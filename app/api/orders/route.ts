@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
   // Verify stock availability and calculate total
   let totalAmount = 0;
-  const orderItemsData: { productId: string; quantity: number; price: number }[] = [];
+  const orderItemsData: { productId: string; quantity: number; price: number; isPasabuy: boolean }[] = [];
 
   for (const item of items) {
     const productArr = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
