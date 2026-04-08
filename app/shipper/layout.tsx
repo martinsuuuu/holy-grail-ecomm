@@ -2,7 +2,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Package, LogOut, Truck } from 'lucide-react';
+import { LogOut, Truck } from 'lucide-react';
+import PacifierIcon from '@/components/PacifierIcon';
 
 export default async function ShipperLayout({
   children,
@@ -23,10 +24,10 @@ export default async function ShipperLayout({
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                <Truck className="h-5 w-5 text-white" />
+                <PacifierIcon className="h-5 w-5 text-white" />
               </div>
               <div>
-                <span className="font-bold text-gray-900">RetailHub</span>
+                <span className="font-bold text-gray-900">Little-Mija</span>
                 <span className="text-xs text-indigo-600 ml-2 font-medium">Shipper Panel</span>
               </div>
             </div>

@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { users } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
+import { generateCustomerId } from '@/lib/utils';
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -15,15 +16,43 @@ export async function GET(request: NextRequest) {
 
   const customers = await db.query.users.findMany({
     where: eq(users.role, 'CUSTOMER'),
+    columns: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      address: true,
+      banned: true,
+      createdAt: true,
+    },
     with: {
       orders: {
-        columns: { id: true, totalAmount: true, status: true, createdAt: true },
+        columns: { id: true, totalAmount: true, status: true, createdAt: true, paymentMethodName: true, deliveryMethod: true, deliveryAddress: true },
+        with: {
+          items: {
+            with: { product: { columns: { id: true, name: true } } },
+          },
+        },
       },
     },
     orderBy: desc(users.createdAt),
   });
 
-  return NextResponse.json(customers);
+  // Lazy-assign customerIds — silently skip if column not yet migrated
+  const result = await Promise.all(customers.map(async c => {
+    let customerId: string | null = null;
+    try {
+      const [row] = await db.select({ customerId: users.customerId }).from(users).where(eq(users.id, c.id));
+      customerId = row?.customerId ?? null;
+      if (!customerId) {
+        customerId = generateCustomerId();
+        await db.update(users).set({ customerId }).where(eq(users.id, c.id));
+      }
+    } catch { /* column not yet in DB */ }
+    return { ...c, customerId };
+  }));
+
+  return NextResponse.json(result);
 }
 
 export async function POST(request: NextRequest) {
@@ -48,6 +77,13 @@ export async function POST(request: NextRequest) {
     role: 'CUSTOMER',
   }).returning();
   const user = newUserArr[0];
+
+  // Assign customerId if column exists
+  try {
+    const cid = generateCustomerId();
+    await db.update(users).set({ customerId: cid }).where(eq(users.id, user.id));
+    (user as any).customerId = cid;
+  } catch { /* column not yet migrated */ }
 
   const { password: _, ...userWithoutPassword } = user;
   return NextResponse.json(userWithoutPassword, { status: 201 });

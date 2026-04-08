@@ -18,7 +18,14 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Email and password are required');
         }
 
-        const userArr = await db.select().from(users).where(eq(users.email, credentials.email)).limit(1);
+        const userArr = await db.select({
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          password: users.password,
+          role: users.role,
+          banned: users.banned,
+        }).from(users).where(eq(users.email, credentials.email)).limit(1);
         const user = userArr[0];
 
         if (!user) {

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { formatCurrency, formatDateTime, getOrderStatusColor, getOrderStatusLabel } from '@/lib/utils';
-import { ShoppingBag, CheckCircle, Search, Filter, Package, Eye } from 'lucide-react';
+import { ShoppingBag, CheckCircle, Search, Filter, Package, Eye, Truck, ZoomIn, X, Calendar } from 'lucide-react';
 
 interface Order {
   id: string;
@@ -15,6 +16,7 @@ interface Order {
   createdAt: string;
   user: {
     id: string;
+    customerId: string | null;
     name: string;
     email: string;
   };
@@ -25,17 +27,40 @@ interface Order {
     product: {
       name: string;
       imageUrl: string | null;
+      type: string;
     };
   }>;
 }
 
+function orderType(order: Order): 'PASABUY' | 'ONHAND' {
+  return order.items.some(i => i.product.type === 'PASABUY') ? 'PASABUY' : 'ONHAND';
+}
+
+function OrderTypeBadge({ type }: { type: 'PASABUY' | 'ONHAND' }) {
+  return type === 'PASABUY'
+    ? <span className="badge text-xs bg-purple-100 text-purple-700">Pasabuy</span>
+    : <span className="badge text-xs bg-emerald-100 text-emerald-700">On Hand</span>;
+}
+
 export default function AdminOrdersPage() {
+  return (
+    <Suspense>
+      <OrdersContent />
+    </Suspense>
+  );
+}
+
+function OrdersContent() {
+  const searchParams = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/orders?all=true')
@@ -43,6 +68,11 @@ export default function AdminOrdersPage() {
       .then(data => {
         setOrders(data);
         setIsLoading(false);
+        const targetId = searchParams.get('order');
+        if (targetId) {
+          const match = data.find((o: Order) => o.id === targetId);
+          if (match) setSelectedOrder(match);
+        }
       });
   }, []);
 
@@ -75,24 +105,33 @@ export default function AdminOrdersPage() {
   };
 
   const filtered = orders.filter(o => {
-    const matchesSearch = o.id.toLowerCase().includes(search.toLowerCase()) ||
-      o.user.name.toLowerCase().includes(search.toLowerCase()) ||
-      o.user.email.toLowerCase().includes(search.toLowerCase());
+    const q = search.toLowerCase();
+    const matchesSearch = o.id.toLowerCase().includes(q) ||
+      o.user.name.toLowerCase().includes(q) ||
+      o.user.email.toLowerCase().includes(q) ||
+      (o.user.customerId ?? '').toLowerCase().includes(q);
     const matchesStatus = statusFilter === 'all' || o.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const orderDate = new Date(o.createdAt);
+    const matchesFrom = !dateFrom || orderDate >= new Date(dateFrom + 'T00:00:00');
+    const matchesTo   = !dateTo   || orderDate <= new Date(dateTo   + 'T23:59:59');
+    return matchesSearch && matchesStatus && matchesFrom && matchesTo;
   });
 
   const statusOptions = [
     { value: 'all', label: 'All Orders' },
     { value: 'PENDING_DEPOSIT', label: 'Pending Deposit' },
     { value: 'DEPOSIT_SUBMITTED', label: 'Deposit Submitted' },
+    { value: 'WAITING_FOR_ARRIVAL', label: 'Waiting for Arrival' },
     { value: 'CONFIRMED', label: 'Confirmed' },
     { value: 'SHIPPED', label: 'Shipped' },
     { value: 'DELIVERED', label: 'Delivered' },
     { value: 'CANCELLED', label: 'Cancelled' },
   ];
 
+  const hasDateFilter = dateFrom || dateTo;
+
   return (
+    <>
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -102,28 +141,62 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <div className="relative flex-1 min-w-48">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search orders..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 input-field"
-          />
+      <div className="space-y-3 mb-6">
+        {/* Row 1: Search + Status */}
+        <div className="flex flex-wrap gap-3">
+          <div className="relative flex-1 min-w-48">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by order #, customer name or email…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-10 input-field"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-gray-400" />
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="input-field py-2"
+            >
+              {statusOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-gray-400" />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="input-field py-2"
-          >
-            {statusOptions.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+
+        {/* Row 2: Date range */}
+        <div className="flex flex-wrap items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+          <Calendar className="h-4 w-4 text-gray-400 flex-shrink-0" />
+          <span className="text-sm text-gray-500 font-medium">Date Range</span>
+          <div className="flex items-center gap-2 flex-1 flex-wrap">
+            <input
+              type="date"
+              value={dateFrom}
+              max={dateTo || undefined}
+              onChange={e => setDateFrom(e.target.value)}
+              className="input-field py-1.5 text-sm flex-1 min-w-[140px]"
+            />
+            <span className="text-gray-400 text-sm">to</span>
+            <input
+              type="date"
+              value={dateTo}
+              min={dateFrom || undefined}
+              onChange={e => setDateTo(e.target.value)}
+              className="input-field py-1.5 text-sm flex-1 min-w-[140px]"
+            />
+            {hasDateFilter && (
+              <button
+                onClick={() => { setDateFrom(''); setDateTo(''); }}
+                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium whitespace-nowrap"
+              >
+                Clear dates
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -135,6 +208,7 @@ export default function AdminOrdersPage() {
               <tr>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Order</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Customer</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Type</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Total</th>
               </tr>
@@ -143,7 +217,7 @@ export default function AdminOrdersPage() {
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
-                    {Array.from({ length: 4 }).map((_, j) => (
+                    {Array.from({ length: 5 }).map((_, j) => (
                       <td key={j} className="px-6 py-4">
                         <div className="h-4 bg-gray-200 rounded animate-pulse" />
                       </td>
@@ -152,7 +226,7 @@ export default function AdminOrdersPage() {
                 ))
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                     <ShoppingBag className="h-8 w-8 mx-auto mb-2 text-gray-300" />
                     <p>No orders found</p>
                   </td>
@@ -171,6 +245,12 @@ export default function AdminOrdersPage() {
                     <td className="px-6 py-4">
                       <p className="text-sm font-medium text-gray-900">{order.user.name}</p>
                       <p className="text-xs text-gray-500">{order.user.email}</p>
+                      {order.user.customerId && (
+                        <span className="font-mono text-xs text-indigo-600">{order.user.customerId}</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <OrderTypeBadge type={orderType(order)} />
                     </td>
                     <td className="px-6 py-4">
                       <span className={`badge text-xs ${getOrderStatusColor(order.status)}`}>
@@ -194,19 +274,33 @@ export default function AdminOrdersPage() {
               <div className="mb-4 pb-4 border-b border-gray-100">
                 <h3 className="font-semibold text-gray-900">Order #{selectedOrder.id.slice(-8).toUpperCase()}</h3>
                 <p className="text-xs text-gray-500 mt-1">{formatDateTime(selectedOrder.createdAt)}</p>
-                <span className={`badge text-xs mt-2 ${getOrderStatusColor(selectedOrder.status)}`}>
-                  {getOrderStatusLabel(selectedOrder.status)}
-                </span>
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <span className={`badge text-xs ${getOrderStatusColor(selectedOrder.status)}`}>
+                    {getOrderStatusLabel(selectedOrder.status)}
+                  </span>
+                  <OrderTypeBadge type={orderType(selectedOrder)} />
+                </div>
               </div>
 
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Customer</span>
-                  <span className="font-medium">{selectedOrder.user.name}</span>
+                  <div className="text-right">
+                    <p className="font-medium">{selectedOrder.user.name}</p>
+                    {selectedOrder.user.customerId && (
+                      <p className="font-mono text-xs text-indigo-600">CID: {selectedOrder.user.customerId}</p>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Delivery</span>
                   <span className="font-medium">{selectedOrder.deliveryMethod}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Order Type</span>
+                  <span className="font-medium">
+                    {orderType(selectedOrder) === 'PASABUY' ? 'Pasabuy (Pre-order)' : 'On Hand'}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Total</span>
@@ -219,19 +313,44 @@ export default function AdminOrdersPage() {
                 <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Items</h4>
                 {selectedOrder.items.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm py-1">
-                    <span className="text-gray-700 truncate mr-2">{item.product.name} x{item.quantity}</span>
+                    <div className="flex items-center gap-1.5 truncate mr-2">
+                      <span className="text-gray-700 truncate">{item.product.name} x{item.quantity}</span>
+                      {item.product.type === 'PASABUY' && (
+                        <span className="text-xs bg-purple-100 text-purple-600 px-1 rounded flex-shrink-0">PB</span>
+                      )}
+                    </div>
                     <span className="text-gray-600 flex-shrink-0">{formatCurrency(item.price * item.quantity)}</span>
                   </div>
                 ))}
               </div>
 
               {/* Deposit proof */}
-              {selectedOrder.depositProof && (
-                <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-xs font-medium text-blue-800 mb-1">Deposit Proof</p>
-                  <p className="text-xs text-blue-600">{selectedOrder.depositProof}</p>
-                </div>
-              )}
+              {selectedOrder.depositProof && (() => {
+                const [imgSrc, noteRaw] = selectedOrder.depositProof!.split('||note:');
+                const note = noteRaw?.trim();
+                return (
+                  <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                    <p className="text-xs font-medium text-blue-800 mb-2">Deposit Proof</p>
+                    <div className="relative group w-full">
+                      <img
+                        src={imgSrc}
+                        alt="Deposit proof"
+                        className="w-full rounded-lg object-contain max-h-48 cursor-zoom-in border border-blue-200"
+                        onClick={() => setLightboxSrc(imgSrc)}
+                      />
+                      <button
+                        onClick={() => setLightboxSrc(imgSrc)}
+                        className="absolute top-2 right-2 bg-black/40 hover:bg-black/60 text-white rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <ZoomIn className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    {note && (
+                      <p className="text-xs text-blue-700 mt-2 italic">Note: {note}</p>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Actions */}
               {selectedOrder.status === 'DEPOSIT_SUBMITTED' && !selectedOrder.depositConfirmed && (
@@ -243,6 +362,22 @@ export default function AdminOrdersPage() {
                   <CheckCircle className="h-4 w-4" />
                   {isConfirming ? 'Confirming...' : 'Confirm Deposit'}
                 </button>
+              )}
+
+              {selectedOrder.status === 'WAITING_FOR_ARRIVAL' && (
+                <div className="mb-2">
+                  <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 mb-2">
+                    <Truck className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                    <p className="text-xs text-orange-700 font-medium">Pasabuy order — waiting for items to arrive</p>
+                  </div>
+                  <button
+                    onClick={() => handleStatusUpdate(selectedOrder.id, 'CONFIRMED')}
+                    className="w-full btn-success flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    Confirm Arrival
+                  </button>
+                </div>
               )}
 
               {selectedOrder.status === 'CONFIRMED' && (
@@ -283,5 +418,27 @@ export default function AdminOrdersPage() {
         </div>
       </div>
     </div>
+
+    {/* Lightbox */}
+    {lightboxSrc && (
+      <div
+        className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+        onClick={() => setLightboxSrc(null)}
+      >
+        <button
+          className="absolute top-4 right-4 text-white hover:text-gray-300"
+          onClick={() => setLightboxSrc(null)}
+        >
+          <X className="h-6 w-6" />
+        </button>
+        <img
+          src={lightboxSrc}
+          alt="Deposit proof"
+          className="max-w-full max-h-full rounded-lg object-contain"
+          onClick={e => e.stopPropagation()}
+        />
+      </div>
+    )}
+    </>
   );
 }

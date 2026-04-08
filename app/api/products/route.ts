@@ -3,13 +3,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { products, notifications } from '@/db/schema';
-import { eq, gt, or, ilike, desc } from 'drizzle-orm';
+import { eq, gt, or, ilike, desc, asc } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const category = searchParams.get('category');
   const search = searchParams.get('search');
   const inStockOnly = searchParams.get('inStockOnly') === 'true';
+  const sort = searchParams.get('sort'); // 'price_asc' | 'price_desc'
 
   let query = db.select().from(products).$dynamic();
 
@@ -32,7 +33,13 @@ export async function GET(request: NextRequest) {
     query = query.where(and(...conditions));
   }
 
-  const result = await query.orderBy(desc(products.createdAt));
+  const orderBy = sort === 'price_asc'
+    ? asc(products.price)
+    : sort === 'price_desc'
+    ? desc(products.price)
+    : desc(products.createdAt);
+
+  const result = await query.orderBy(orderBy);
 
   return NextResponse.json(result);
 }
@@ -45,7 +52,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name, description, price, stock, category, imageUrl } = body;
+  const { name, description, price, stock, category, imageUrl, type, etaStart, etaEnd } = body;
 
   if (!name || price === undefined) {
     return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
@@ -58,6 +65,9 @@ export async function POST(request: NextRequest) {
     stock: parseInt(stock) || 0,
     category,
     imageUrl,
+    type: type === 'PASABUY' ? 'PASABUY' : 'ONHAND',
+    etaStart: etaStart ? new Date(etaStart) : null,
+    etaEnd: etaEnd ? new Date(etaEnd) : null,
   }).returning();
   const product = newProductArr[0];
 

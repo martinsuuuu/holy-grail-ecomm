@@ -95,6 +95,7 @@ export default async function AdminDashboard() {
     const styles: Record<string, string> = {
       PENDING_DEPOSIT: 'bg-yellow-100 text-yellow-800',
       DEPOSIT_SUBMITTED: 'bg-blue-100 text-blue-800',
+      WAITING_FOR_ARRIVAL: 'bg-orange-100 text-orange-800',
       CONFIRMED: 'bg-green-100 text-green-800',
       SHIPPED: 'bg-purple-100 text-purple-800',
       DELIVERED: 'bg-gray-100 text-gray-800',
@@ -107,6 +108,7 @@ export default async function AdminDashboard() {
     const labels: Record<string, string> = {
       PENDING_DEPOSIT: 'Pending Deposit',
       DEPOSIT_SUBMITTED: 'Deposit Submitted',
+      WAITING_FOR_ARRIVAL: 'Waiting for Arrival',
       CONFIRMED: 'Confirmed',
       SHIPPED: 'Shipped',
       DELIVERED: 'Delivered',
@@ -154,27 +156,46 @@ export default async function AdminDashboard() {
             {recentOrders.length === 0 ? (
               <div className="p-8 text-center text-gray-500 text-sm">No orders yet</div>
             ) : (
-              recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center gap-4 p-4 hover:bg-gray-50">
-                  <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <ShoppingBag className="h-5 w-5 text-indigo-600" />
+              recentOrders.map((order) => {
+                const isClickable = ['PENDING_DEPOSIT', 'DEPOSIT_SUBMITTED', 'WAITING_FOR_ARRIVAL', 'CONFIRMED', 'SHIPPED', 'DELIVERED'].includes(order.status);
+                const inner = (
+                  <>
+                    <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <ShoppingBag className="h-5 w-5 text-indigo-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900">
+                        #{order.id.slice(-8).toUpperCase()}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">{order.user?.name}</p>
+                    </div>
+                    <div className="text-right flex items-center gap-2">
+                      <div>
+                        <span className={`badge text-xs ${getStatusBadge(order.status)}`}>
+                          {getStatusLabel(order.status)}
+                        </span>
+                        <p className="text-sm font-semibold text-gray-900 mt-1">
+                          {formatCurrency(order.totalAmount)}
+                        </p>
+                      </div>
+                      {isClickable && <ChevronRight className="h-4 w-4 text-gray-300 flex-shrink-0" />}
+                    </div>
+                  </>
+                );
+                return isClickable ? (
+                  <Link
+                    key={order.id}
+                    href={`/admin/orders?order=${order.id}`}
+                    className="flex items-center gap-4 p-4 hover:bg-indigo-50 transition-colors"
+                  >
+                    {inner}
+                  </Link>
+                ) : (
+                  <div key={order.id} className="flex items-center gap-4 p-4">
+                    {inner}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">
-                      #{order.id.slice(-8).toUpperCase()}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">{order.user?.name}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className={`badge text-xs ${getStatusBadge(order.status)}`}>
-                      {getStatusLabel(order.status)}
-                    </span>
-                    <p className="text-sm font-semibold text-gray-900 mt-1">
-                      {formatCurrency(order.totalAmount)}
-                    </p>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

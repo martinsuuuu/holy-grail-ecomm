@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Package, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import PacifierIcon from '@/components/PacifierIcon';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -66,12 +67,12 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <Link href="/shop" className="inline-flex items-center gap-2 mb-6">
             <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-              <Package className="h-6 w-6 text-white" />
+              <PacifierIcon className="h-6 w-6 text-white" />
             </div>
-            <span className="font-bold text-2xl text-gray-900">RetailHub</span>
+            <span className="font-bold text-2xl text-gray-900">Little-Mija</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">Create an account</h1>
-          <p className="text-gray-500 mt-1">Join RetailHub and start shopping</p>
+          <p className="text-gray-500 mt-1">Join Little-Mija and start shopping</p>
         </div>
 
         {/* Card */}

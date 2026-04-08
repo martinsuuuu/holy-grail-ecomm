@@ -4,7 +4,8 @@ import { useState, Suspense } from 'react';
 import { signIn, getSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Package, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import PacifierIcon from '@/components/PacifierIcon';
 
 function LoginForm() {
   const router = useRouter();
@@ -57,9 +58,9 @@ function LoginForm() {
         <div className="text-center mb-8">
           <Link href="/shop" className="inline-flex items-center gap-2 mb-6">
             <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-              <Package className="h-6 w-6 text-white" />
+              <PacifierIcon className="h-6 w-6 text-white" />
             </div>
-            <span className="font-bold text-2xl text-gray-900">RetailHub</span>
+            <span className="font-bold text-2xl text-gray-900">Little-Mija</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
           <p className="text-gray-500 mt-1">Sign in to your account</p>

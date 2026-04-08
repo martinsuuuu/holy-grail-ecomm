@@ -4,11 +4,14 @@ import { createId } from '@paralleldrive/cuid2';
 
 export const users = pgTable('users', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
+  customerId: text('customer_id').unique(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
   password: text('password').notNull(),
   role: text('role').notNull().default('CUSTOMER'),
   banned: boolean('banned').notNull().default(false),
+  phone: text('phone'),
+  address: text('address'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
@@ -26,6 +29,9 @@ export const products = pgTable('products', {
   reserved: integer('reserved').notNull().default(0),
   category: text('category'),
   imageUrl: text('image_url'),
+  type: text('type').notNull().default('ONHAND'), // 'ONHAND' | 'PASABUY'
+  etaStart: timestamp('eta_start'),
+  etaEnd: timestamp('eta_end'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
@@ -74,6 +80,7 @@ export const purchaseOrders = pgTable('purchase_orders', {
   status: text('status').notNull().default('PENDING'),
   totalCost: doublePrecision('total_cost').notNull().default(0),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  receivedAt: timestamp('received_at'),
 });
 
 export const purchaseOrdersRelations = relations(purchaseOrders, ({ many }) => ({
@@ -113,9 +120,18 @@ export const paymentMethods = pgTable('payment_methods', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   type: text('type').notNull(), // 'GCASH' | 'BANK_TRANSFER'
   name: text('name').notNull(),
+  accountName: text('account_name'),
+  accountNumber: text('account_number'),
   qrCode: text('qr_code'),
   isActive: boolean('is_active').notNull().default(true),
   sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const categories = pgTable('categories', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  name: text('name').notNull().unique(),
+  description: text('description'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

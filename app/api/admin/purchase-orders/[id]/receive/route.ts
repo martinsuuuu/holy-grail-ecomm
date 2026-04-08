@@ -36,7 +36,7 @@ export async function POST(
   }
 
   await db.update(purchaseOrders)
-    .set({ status: 'RECEIVED' })
+    .set({ status: 'RECEIVED', receivedAt: new Date() })
     .where(eq(purchaseOrders.id, params.id));
 
   // Add expense for the purchase

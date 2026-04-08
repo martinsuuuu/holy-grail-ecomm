@@ -6,7 +6,7 @@ import SessionProvider from '@/components/SessionProvider';
 import StoreHydration from '@/components/StoreHydration';
 
 export const metadata: Metadata = {
-  title: 'RetailHub - Your Online Store',
+  title: 'Little-Mija',
   description: 'Shop the best products at great prices',
 };
 

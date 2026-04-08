@@ -96,12 +96,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Product ${item.productId} not found` }, { status: 400 });
     }
 
-    const availableStock = product.stock - product.reserved;
-    if (availableStock < item.quantity) {
-      return NextResponse.json(
-        { error: `Insufficient stock for ${product.name}. Available: ${availableStock}` },
-        { status: 400 }
-      );
+    // Pasabuy items are sourced on-demand — no stock check needed
+    if (product.type !== 'PASABUY') {
+      const availableStock = product.stock - product.reserved;
+      if (availableStock < item.quantity) {
+        return NextResponse.json(
+          { error: `Insufficient stock for ${product.name}. Available: ${availableStock}` },
+          { status: 400 }
+        );
+      }
     }
 
     totalAmount += product.price * item.quantity;
@@ -109,6 +112,7 @@ export async function POST(request: NextRequest) {
       productId: product.id,
       quantity: item.quantity,
       price: product.price,
+      isPasabuy: product.type === 'PASABUY',
     });
   }
 
@@ -137,11 +141,13 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // Reserve stock for each item
+  // Reserve stock for on-hand items only (pasabuy items are sourced on-demand)
   for (const item of orderItemsData) {
-    await db.update(products)
-      .set({ reserved: sql`${products.reserved} + ${item.quantity}` })
-      .where(eq(products.id, item.productId));
+    if (!item.isPasabuy) {
+      await db.update(products)
+        .set({ reserved: sql`${products.reserved} + ${item.quantity}` })
+        .where(eq(products.id, item.productId));
+    }
   }
 
   // Create notifications

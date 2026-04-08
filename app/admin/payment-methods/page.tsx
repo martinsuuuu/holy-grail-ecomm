@@ -1,15 +1,22 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { CreditCard, Plus, Trash2, Upload, QrCode, Building2, Smartphone, X, ToggleLeft, ToggleRight, AlertTriangle } from 'lucide-react';
+import { CreditCard, Plus, Trash2, Upload, Building2, Smartphone, X, ToggleLeft, ToggleRight, AlertTriangle, Save, Check } from 'lucide-react';
 
 interface PaymentMethod {
   id: string;
   type: string;
   name: string;
+  accountName: string | null;
+  accountNumber: string | null;
   qrCode: string | null;
   isActive: boolean;
   sortOrder: number;
+}
+
+interface EditState {
+  accountName: string;
+  accountNumber: string;
 }
 
 export default function PaymentMethodsPage() {
@@ -20,17 +27,29 @@ export default function PaymentMethodsPage() {
   const [addName, setAddName] = useState('');
   const [addError, setAddError] = useState('');
   const [uploading, setUploading] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [edits, setEdits] = useState<Record<string, EditState>>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const fetch_ = () =>
     fetch('/api/admin/payment-methods')
-      .then((r) => r.json())
-      .then((data) => { setMethods(data); setIsLoading(false); });
+      .then(r => r.json())
+      .then(data => {
+        setMethods(data);
+        setIsLoading(false);
+        // Initialise edit state from fetched data
+        const initEdits: Record<string, EditState> = {};
+        for (const m of data) {
+          initEdits[m.id] = { accountName: m.accountName ?? '', accountNumber: m.accountNumber ?? '' };
+        }
+        setEdits(initEdits);
+      });
 
   useEffect(() => { fetch_(); }, []);
 
-  const gcash = methods.filter((m) => m.type === 'GCASH');
-  const banks = methods.filter((m) => m.type === 'BANK_TRANSFER');
+  const gcash = methods.filter(m => m.type === 'GCASH');
+  const banks = methods.filter(m => m.type === 'BANK_TRANSFER');
 
   const handleAdd = async () => {
     setAddError('');
@@ -61,11 +80,28 @@ export default function PaymentMethodsPage() {
     fetch_();
   };
 
+  const handleSaveAll = async () => {
+    setIsSaving(true);
+    await Promise.all(
+      Object.entries(edits).map(([id, edit]) =>
+        fetch(`/api/admin/payment-methods/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountName: edit.accountName, accountNumber: edit.accountNumber }),
+        })
+      )
+    );
+    setIsSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+    fetch_();
+  };
+
   const handleQrUpload = async (id: string, file: File) => {
     if (!file.type.startsWith('image/')) { alert('Please upload an image file'); return; }
     setUploading(id);
     const reader = new FileReader();
-    reader.onload = async (e) => {
+    reader.onload = async e => {
       const base64 = e.target?.result as string;
       await fetch(`/api/admin/payment-methods/${id}`, {
         method: 'PUT',
@@ -87,9 +123,14 @@ export default function PaymentMethodsPage() {
     fetch_();
   };
 
+  const updateEdit = (id: string, field: keyof EditState, value: string) => {
+    setEdits(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }));
+  };
+
   const MethodCard = ({ m }: { m: PaymentMethod }) => (
     <div className={`border rounded-xl p-4 ${m.isActive ? 'border-gray-200 bg-white' : 'border-gray-100 bg-gray-50 opacity-60'}`}>
-      <div className="flex items-start justify-between gap-3">
+      {/* Header row */}
+      <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 min-w-0">
           {m.type === 'GCASH'
             ? <Smartphone className="h-4 w-4 text-blue-500 flex-shrink-0" />
@@ -116,16 +157,40 @@ export default function PaymentMethodsPage() {
         </div>
       </div>
 
+      {/* Account details */}
+      <div className="space-y-2 mb-3">
+        <div>
+          <label className="text-xs text-gray-500 font-medium block mb-1">Account Name</label>
+          <input
+            type="text"
+            value={edits[m.id]?.accountName ?? ''}
+            onChange={e => updateEdit(m.id, 'accountName', e.target.value)}
+            placeholder="e.g. Juan Dela Cruz"
+            className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 font-medium block mb-1">Account Number</label>
+          <input
+            type="text"
+            value={edits[m.id]?.accountNumber ?? ''}
+            onChange={e => updateEdit(m.id, 'accountNumber', e.target.value)}
+            placeholder="e.g. 09XX XXX XXXX"
+            className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          />
+        </div>
+      </div>
+
       {/* No QR warning */}
       {!m.qrCode && (
-        <div className="flex items-center gap-1.5 mt-2 px-2 py-1.5 bg-amber-50 border border-amber-200 rounded-lg">
+        <div className="flex items-center gap-1.5 mb-3 px-2 py-1.5 bg-amber-50 border border-amber-200 rounded-lg">
           <AlertTriangle className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
           <span className="text-xs text-amber-700 font-medium">Not visible to customers — upload a QR code</span>
         </div>
       )}
 
-      {/* QR Code area */}
-      <div className="mt-3">
+      {/* QR Code */}
+      <div>
         {m.qrCode ? (
           <div className="relative inline-block">
             <img src={m.qrCode} alt="QR Code" className="w-32 h-32 object-contain border border-gray-200 rounded-lg" />
@@ -152,11 +217,11 @@ export default function PaymentMethodsPage() {
           </div>
         )}
         <input
-          ref={(el) => { fileInputRefs.current[m.id] = el; }}
+          ref={el => { fileInputRefs.current[m.id] = el; }}
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleQrUpload(m.id, f); e.target.value = ''; }}
+          onChange={e => { const f = e.target.files?.[0]; if (f) handleQrUpload(m.id, f); e.target.value = ''; }}
         />
         {m.qrCode && (
           <button
@@ -180,18 +245,32 @@ export default function PaymentMethodsPage() {
           </h1>
           <p className="text-sm text-gray-500 mt-1">Manage payment options shown to customers at checkout</p>
         </div>
-        <button
-          onClick={() => { setShowAddModal(true); setAddError(''); setAddName(''); }}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          Add Payment Method
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSaveAll}
+            disabled={isSaving || methods.length === 0}
+            className={`flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
+              saved
+                ? 'bg-green-100 text-green-700'
+                : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+            } disabled:opacity-50`}
+          >
+            {saved ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+            {isSaving ? 'Saving…' : saved ? 'Saved!' : 'Save Changes'}
+          </button>
+          <button
+            onClick={() => { setShowAddModal(true); setAddError(''); setAddName(''); }}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Add Payment Method
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[1, 2].map((i) => <div key={i} className="h-48 bg-gray-100 rounded-xl animate-pulse" />)}
+          {[1, 2].map(i => <div key={i} className="h-64 bg-gray-100 rounded-xl animate-pulse" />)}
         </div>
       ) : (
         <div className="space-y-8">
@@ -214,7 +293,7 @@ export default function PaymentMethodsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {gcash.map((m) => <MethodCard key={m.id} m={m} />)}
+                {gcash.map(m => <MethodCard key={m.id} m={m} />)}
               </div>
             )}
           </div>
@@ -232,7 +311,7 @@ export default function PaymentMethodsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {banks.map((m) => <MethodCard key={m.id} m={m} />)}
+                {banks.map(m => <MethodCard key={m.id} m={m} />)}
               </div>
             )}
             <button
@@ -248,19 +327,18 @@ export default function PaymentMethodsPage() {
       {/* Add Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowAddModal(false)}>
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Add Payment Method</h2>
               <button onClick={() => setShowAddModal(false)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400">
                 <X className="h-4 w-4" />
               </button>
             </div>
-
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-1.5">Type</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {(['GCASH', 'BANK_TRANSFER'] as const).map((t) => (
+                  {(['GCASH', 'BANK_TRANSFER'] as const).map(t => (
                     <label
                       key={t}
                       className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer text-sm transition-all ${
@@ -274,7 +352,6 @@ export default function PaymentMethodsPage() {
                   ))}
                 </div>
               </div>
-
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-1.5">
                   {addType === 'GCASH' ? 'Name (e.g. GCash)' : 'Bank Name (e.g. UnionBank)'}
@@ -282,8 +359,8 @@ export default function PaymentMethodsPage() {
                 <input
                   type="text"
                   value={addName}
-                  onChange={(e) => setAddName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+                  onChange={e => setAddName(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAdd()}
                   placeholder={addType === 'GCASH' ? 'GCash' : 'e.g. UnionBank, Metrobank'}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   autoFocus
@@ -291,7 +368,6 @@ export default function PaymentMethodsPage() {
                 {addError && <p className="text-red-500 text-xs mt-1">{addError}</p>}
               </div>
             </div>
-
             <div className="flex gap-3 mt-5">
               <button onClick={() => setShowAddModal(false)} className="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50">
                 Cancel

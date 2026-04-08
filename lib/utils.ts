@@ -23,6 +23,7 @@ export function getOrderStatusColor(status: string): string {
   const colors: Record<string, string> = {
     PENDING_DEPOSIT: 'bg-yellow-100 text-yellow-800',
     DEPOSIT_SUBMITTED: 'bg-blue-100 text-blue-800',
+    WAITING_FOR_ARRIVAL: 'bg-orange-100 text-orange-800',
     CONFIRMED: 'bg-green-100 text-green-800',
     SHIPPED: 'bg-purple-100 text-purple-800',
     DELIVERED: 'bg-gray-100 text-gray-800',
@@ -35,6 +36,7 @@ export function getOrderStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     PENDING_DEPOSIT: 'Pending Deposit',
     DEPOSIT_SUBMITTED: 'Deposit Submitted',
+    WAITING_FOR_ARRIVAL: 'Waiting for Arrival',
     CONFIRMED: 'Confirmed',
     SHIPPED: 'Shipped',
     DELIVERED: 'Delivered',
@@ -45,4 +47,11 @@ export function getOrderStatusLabel(status: string): string {
 
 export function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(' ');
+}
+
+const CID_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+export function generateCustomerId(): string {
+  return Array.from({ length: 6 }, () =>
+    CID_CHARS[Math.floor(Math.random() * CID_CHARS.length)]
+  ).join('');
 }

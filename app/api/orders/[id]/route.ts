@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { orders, products, notifications } from '@/db/schema';
+import { orders, products, notifications, paymentMethods } from '@/db/schema';
 import { eq, sql } from 'drizzle-orm';
 
 export async function GET(
@@ -32,7 +32,14 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  return NextResponse.json(order);
+  // Include payment method details so customer can reference them for payment
+  let paymentMethod = null;
+  if (order.paymentMethodId) {
+    const pmArr = await db.select().from(paymentMethods).where(eq(paymentMethods.id, order.paymentMethodId)).limit(1);
+    paymentMethod = pmArr[0] ?? null;
+  }
+
+  return NextResponse.json({ ...order, paymentMethod });
 }
 
 export async function PATCH(
@@ -50,40 +57,59 @@ export async function PATCH(
 
   const order = await db.query.orders.findFirst({
     where: eq(orders.id, params.id),
-    with: { items: true },
+    with: { items: { with: { product: true } } },
   });
 
   if (!order) {
     return NextResponse.json({ error: 'Order not found' }, { status: 404 });
   }
 
+  const hasPasabuyItems = order.items.some(item => item.product.type === 'PASABUY');
+
   const updateData: Partial<typeof orders.$inferInsert> = {};
 
   // Admin can update order status and confirm deposit
+  let pendingNotification: { userId: string; title: string; message: string; type: string } | null = null;
+  let deductStock = false;
+
   if (session.user.role === 'ADMIN') {
-    if (status) updateData.status = status;
+    if (status) {
+      updateData.status = status;
+
+      // When admin confirms arrival of pasabuy items (WAITING_FOR_ARRIVAL → CONFIRMED)
+      if (status === 'CONFIRMED' && order.status === 'WAITING_FOR_ARRIVAL') {
+        pendingNotification = {
+          userId: order.userId,
+          title: 'Items Arrived!',
+          message: `Great news! Your pasabuy items for order #${order.id.slice(-8).toUpperCase()} have arrived and your order is now confirmed.`,
+          type: 'ORDER',
+        };
+      }
+    }
+
     if (depositConfirmed !== undefined) {
       updateData.depositConfirmed = depositConfirmed;
       if (depositConfirmed) {
-        updateData.status = 'CONFIRMED';
-
-        // Release reserved stock and deduct from actual stock
-        for (const item of order.items) {
-          await db.update(products)
-            .set({
-              stock: sql`${products.stock} - ${item.quantity}`,
-              reserved: sql`${products.reserved} - ${item.quantity}`,
-            })
-            .where(eq(products.id, item.productId));
+        if (hasPasabuyItems) {
+          // Pasabuy orders wait for physical arrival before being fully confirmed
+          updateData.status = 'WAITING_FOR_ARRIVAL';
+          pendingNotification = {
+            userId: order.userId,
+            title: 'Deposit Confirmed',
+            message: `Your deposit for order #${order.id.slice(-8).toUpperCase()} has been confirmed. Your pasabuy items are being sourced — we'll notify you when they arrive!`,
+            type: 'ORDER',
+          };
+        } else {
+          // Regular on-hand order — confirm immediately and deduct stock
+          updateData.status = 'CONFIRMED';
+          deductStock = true;
+          pendingNotification = {
+            userId: order.userId,
+            title: 'Deposit Confirmed',
+            message: `Your deposit for order #${order.id.slice(-8).toUpperCase()} has been confirmed. Your order is being processed.`,
+            type: 'ORDER',
+          };
         }
-
-        // Notify customer
-        await db.insert(notifications).values({
-          userId: order.userId,
-          title: 'Deposit Confirmed',
-          message: `Your deposit for order #${order.id.slice(-8).toUpperCase()} has been confirmed. Your order is being processed.`,
-          type: 'ORDER',
-        });
       }
     }
   }
@@ -93,17 +119,38 @@ export async function PATCH(
     if (status === 'SHIPPED') {
       updateData.status = 'SHIPPED';
       updateData.shippedAt = new Date();
-
-      await db.insert(notifications).values({
+      pendingNotification = {
         userId: order.userId,
         title: 'Order Shipped',
         message: `Your order #${order.id.slice(-8).toUpperCase()} has been shipped!`,
         type: 'ORDER',
-      });
+      };
     }
   }
 
+  // Update order status FIRST so it always persists regardless of notification failures
   await db.update(orders).set(updateData).where(eq(orders.id, params.id));
+
+  // Deduct stock after status is saved
+  if (deductStock) {
+    for (const item of order.items) {
+      await db.update(products)
+        .set({
+          stock: sql`${products.stock} - ${item.quantity}`,
+          reserved: sql`${products.reserved} - ${item.quantity}`,
+        })
+        .where(eq(products.id, item.productId));
+    }
+  }
+
+  // Insert notification after order update (non-blocking)
+  if (pendingNotification) {
+    try {
+      await db.insert(notifications).values(pendingNotification);
+    } catch {
+      // Notification failure should not affect the order status update
+    }
+  }
 
   const updatedOrder = await db.query.orders.findFirst({
     where: eq(orders.id, params.id),

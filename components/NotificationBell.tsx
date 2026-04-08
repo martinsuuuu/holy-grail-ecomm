@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Bell, X, Check, CheckCheck } from 'lucide-react';
 import { timeAgo } from '@/lib/utils';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 interface Notification {
   id: string;
@@ -15,6 +16,8 @@ interface Notification {
 }
 
 export default function NotificationBell() {
+  const { data: session } = useSession();
+  const viewAllHref = session?.user.role === 'ADMIN' ? '/admin/notifications' : '/account/notifications';
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -154,7 +157,7 @@ export default function NotificationBell() {
 
           <div className="p-3 border-t border-gray-100">
             <Link
-              href="/admin/notifications"
+              href={viewAllHref}
               className="block text-center text-xs text-indigo-600 hover:text-indigo-800"
               onClick={() => setIsOpen(false)}
             >

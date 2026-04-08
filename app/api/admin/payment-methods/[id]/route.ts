@@ -25,12 +25,14 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 
   const body = await request.json();
-  const { name, qrCode, isActive } = body;
+  const { name, qrCode, isActive, accountName, accountNumber } = body;
 
   const updates: Record<string, unknown> = {};
   if (name !== undefined) updates.name = name.trim();
   if (qrCode !== undefined) updates.qrCode = qrCode;
   if (isActive !== undefined) updates.isActive = isActive;
+  if (accountName !== undefined) updates.accountName = accountName;
+  if (accountNumber !== undefined) updates.accountNumber = accountNumber;
 
   const [updated] = await db.update(paymentMethods)
     .set(updates)

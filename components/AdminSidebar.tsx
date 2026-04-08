@@ -18,11 +18,14 @@ import {
   CreditCard,
   AlertTriangle,
   MapPin,
+  Tag,
 } from 'lucide-react';
+import PacifierIcon from './PacifierIcon';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/products', label: 'Products', icon: Package },
+  { href: '/admin/categories', label: 'Categories', icon: Tag },
   { href: '/admin/customers', label: 'Customers', icon: Users },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/admin/purchase-orders', label: 'Purchase Orders', icon: Truck },
@@ -54,9 +57,9 @@ export default function AdminSidebar() {
       <div className="px-6 py-5 border-b border-gray-800">
         <Link href="/admin" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
-            <Package className="h-5 w-5 text-white" />
+            <PacifierIcon className="h-5 w-5 text-white" />
           </div>
-          <span className="font-bold text-white text-lg">RetailHub</span>
+          <span className="font-bold text-white text-lg">Little-Mija</span>
         </Link>
         <p className="text-xs text-gray-500 mt-1">Admin Panel</p>
       </div>

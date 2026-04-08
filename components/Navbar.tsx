@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { ShoppingCart, User, LogOut, Settings, Package, ChevronDown, Menu, X } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Settings, ChevronDown, Menu, X } from 'lucide-react';
 import NotificationBell from './NotificationBell';
+import PacifierIcon from './PacifierIcon';
 import { useCartStore } from '@/lib/cartStore';
 
 export default function Navbar() {
@@ -20,9 +21,9 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/shop" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <Package className="h-5 w-5 text-white" />
+              <PacifierIcon className="h-5 w-5 text-white" />
             </div>
-            <span className="font-bold text-xl text-gray-900">RetailHub</span>
+            <span className="font-bold text-xl text-gray-900">Little-Mija</span>
           </Link>
 
           {/* Desktop Navigation */}

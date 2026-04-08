@@ -30,7 +30,7 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { name, description, price, stock, category, imageUrl } = body;
+  const { name, description, price, stock, category, imageUrl, type, etaStart, etaEnd } = body;
 
   const updatedArr = await db.update(products).set({
     name,
@@ -39,6 +39,9 @@ export async function PUT(
     stock: parseInt(stock),
     category,
     imageUrl,
+    type: type === 'PASABUY' ? 'PASABUY' : 'ONHAND',
+    etaStart: etaStart ? new Date(etaStart) : null,
+    etaEnd: etaEnd ? new Date(etaEnd) : null,
   }).where(eq(products.id, params.id)).returning();
   const product = updatedArr[0];
 
