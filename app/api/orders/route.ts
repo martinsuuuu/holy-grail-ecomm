@@ -86,7 +86,8 @@ export async function POST(request: NextRequest) {
 
   // Verify stock availability and calculate total
   let totalAmount = 0;
-  const orderItemsData: { productId: string; quantity: number; price: number; isPasabuy: boolean }[] = [];
+  const orderItemsData: { productId: string; quantity: number; price: number }[] = [];
+  const pasabuyProductIds = new Set<string>();
 
   for (const item of items) {
     const productArr = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
@@ -96,8 +97,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Product ${item.productId} not found` }, { status: 400 });
     }
 
+    const isPasabuy = product.type === 'PASABUY';
+    if (isPasabuy) pasabuyProductIds.add(product.id);
+
     // Pasabuy items are sourced on-demand — no stock check needed
-    if (product.type !== 'PASABUY') {
+    if (!isPasabuy) {
       const availableStock = product.stock - product.reserved;
       if (availableStock < item.quantity) {
         return NextResponse.json(
@@ -112,7 +116,6 @@ export async function POST(request: NextRequest) {
       productId: product.id,
       quantity: item.quantity,
       price: product.price,
-      isPasabuy: product.type === 'PASABUY',
     });
   }
 
@@ -143,7 +146,7 @@ export async function POST(request: NextRequest) {
 
   // Reserve stock for on-hand items only (pasabuy items are sourced on-demand)
   for (const item of orderItemsData) {
-    if (!item.isPasabuy) {
+    if (!pasabuyProductIds.has(item.productId)) {
       await db.update(products)
         .set({ reserved: sql`${products.reserved} + ${item.quantity}` })
         .where(eq(products.id, item.productId));
