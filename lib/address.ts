@@ -60,10 +60,10 @@ export function displayAddress(raw: string | null | undefined): string {
 export function isAddressComplete(raw: string | null | undefined): boolean {
   const data = parseAddress(raw);
   if (!data) return false;
+  // provinceCode is optional — some regions (e.g. NCR) have no provinces
   return !!(
     data.street.trim() &&
     data.regionCode &&
-    data.provinceCode &&
     data.cityCode &&
     data.barangayCode
   );
