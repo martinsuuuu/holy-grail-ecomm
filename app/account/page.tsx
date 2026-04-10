@@ -77,10 +77,9 @@ export default function AccountPage() {
   }, [session]);
 
   const startEdit = () => {
-    if (!profile) return;
-    setEditName(profile.name);
-    setEditPhone(profile.phone ?? '');
-    setEditAddressData(parseAddress(profile.address) ?? EMPTY_ADDRESS);
+    setEditName(profile?.name ?? session?.user.name ?? '');
+    setEditPhone(profile?.phone ?? '');
+    setEditAddressData(parseAddress(profile?.address) ?? EMPTY_ADDRESS);
     setEditCurrentPassword('');
     setEditNewPassword('');
     setSaveError('');
