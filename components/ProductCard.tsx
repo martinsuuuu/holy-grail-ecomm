@@ -62,8 +62,8 @@ export default function ProductCard({ product }: { product: Product }) {
           onClose={() => setShowModal(false)}
         />
       )}
-      <Link href={`/shop/${product.id}`} className="group flex h-full">
-        <div className={`flex flex-col w-full bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow duration-200 ${
+      <Link href={`/shop/${product.id}`} className="group flex h-full w-full">
+        <div className={`flex flex-col w-full h-full bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow duration-200 ${
           isPasabuy ? 'border-purple-200 ring-1 ring-purple-100' : 'border-gray-200'
         }`}>
           {/* Pasabuy banner */}
