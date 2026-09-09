@@ -77,8 +77,8 @@ export default function AdminProductDetailPage() {
   if (isLoading) {
     return (
       <div className="p-8 animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-1/3 mb-6" />
-        <div className="h-64 bg-gray-200 rounded-xl" />
+        <div className="h-8 bg-stone-200 rounded w-1/3 mb-6" />
+        <div className="h-64 bg-stone-200 rounded-2xl" />
       </div>
     );
   }
@@ -86,16 +86,16 @@ export default function AdminProductDetailPage() {
   return (
     <div className="p-8">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/admin/products" className="text-gray-500 hover:text-indigo-600">
+        <Link href="/admin/products" className="text-stone-500 hover:text-primary-600">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Edit Product</h1>
+        <h1 className="text-2xl font-display font-bold text-espresso">Edit Product</h1>
       </div>
 
       <div className="max-w-2xl">
-        <form onSubmit={handleSave} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
-          {error && <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
-          {success && <div className="p-3 bg-green-50 text-green-700 rounded-lg text-sm">{success}</div>}
+        <form onSubmit={handleSave} className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6 space-y-4">
+          {error && <div className="p-3 bg-red-50 text-red-700 rounded-xl text-sm">{error}</div>}
+          {success && <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl text-sm">{success}</div>}
 
           <div>
             <label className="label">Product Name *</label>
@@ -132,7 +132,7 @@ export default function AdminProductDetailPage() {
 
           {formData.imageUrl && (
             <div>
-              <img src={formData.imageUrl} alt="Preview" className="w-32 h-32 object-cover rounded-lg border border-gray-200" />
+              <img src={formData.imageUrl} alt="Preview" className="w-32 h-32 object-cover rounded-xl border border-stone-200" />
             </div>
           )}
 

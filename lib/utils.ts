@@ -21,15 +21,15 @@ export function timeAgo(date: Date | string): string {
 
 export function getOrderStatusColor(status: string): string {
   const colors: Record<string, string> = {
-    PENDING_DEPOSIT: 'bg-yellow-100 text-yellow-800',
-    DEPOSIT_SUBMITTED: 'bg-blue-100 text-blue-800',
+    PENDING_DEPOSIT: 'bg-amber-100 text-amber-800',
+    DEPOSIT_SUBMITTED: 'bg-sky-100 text-sky-800',
     WAITING_FOR_ARRIVAL: 'bg-orange-100 text-orange-800',
-    CONFIRMED: 'bg-green-100 text-green-800',
-    SHIPPED: 'bg-purple-100 text-purple-800',
-    DELIVERED: 'bg-gray-100 text-gray-800',
-    CANCELLED: 'bg-red-100 text-red-800',
+    CONFIRMED: 'bg-emerald-100 text-emerald-800',
+    SHIPPED: 'bg-plum-100 text-plum-800',
+    DELIVERED: 'bg-stone-100 text-stone-700',
+    CANCELLED: 'bg-red-100 text-red-700',
   };
-  return colors[status] || 'bg-gray-100 text-gray-800';
+  return colors[status] || 'bg-stone-100 text-stone-700';
 }
 
 export function getOrderStatusLabel(status: string): string {

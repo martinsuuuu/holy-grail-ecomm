@@ -105,30 +105,30 @@ export default function CartPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-cream">
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center gap-3 mb-8">
-          <Link href="/shop" className="text-gray-500 hover:text-indigo-600">
+          <Link href="/shop" className="text-espresso/50 hover:text-primary-700">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <ShoppingCart className="h-6 w-6 text-indigo-600" />
+          <h1 className="text-2xl font-display font-semibold text-espresso flex items-center gap-2">
+            <ShoppingCart className="h-6 w-6 text-primary-700" />
             Shopping Cart
           </h1>
           {items.length > 0 && (
-            <span className="bg-indigo-100 text-indigo-700 text-sm font-medium px-2.5 py-0.5 rounded-full">
+            <span className="bg-primary-100 text-primary-800 text-sm font-medium px-2.5 py-0.5 rounded-full">
               {items.length} item{items.length !== 1 ? 's' : ''}
             </span>
           )}
         </div>
 
         {items.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16 text-center">
-            <ShoppingCart className="h-16 w-16 text-gray-200 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Your cart is empty</h2>
-            <p className="text-gray-500 mb-6">Add some products to get started</p>
+          <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-16 text-center">
+            <ShoppingCart className="h-16 w-16 text-stone-200 mx-auto mb-4" />
+            <h2 className="text-xl font-display font-semibold text-espresso/80 mb-2">Your cart is empty</h2>
+            <p className="text-espresso/50 mb-6">Add some products to get started</p>
             <Link href="/shop" className="btn-primary">
               Browse Products
             </Link>
@@ -137,12 +137,12 @@ export default function CartPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Cart items */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-semibold text-gray-900">Items in Cart</h2>
+                  <h2 className="font-display font-semibold text-espresso">Items in Cart</h2>
                   <button
                     onClick={clearCart}
-                    className="text-sm text-red-500 hover:text-red-700"
+                    className="text-sm text-red-600 hover:text-red-800"
                   >
                     Clear all
                   </button>
@@ -153,9 +153,9 @@ export default function CartPage() {
               </div>
 
               {/* Delivery method */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mt-4">
-                <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Truck className="h-5 w-5 text-indigo-600" />
+              <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6 mt-4">
+                <h2 className="font-display font-semibold text-espresso mb-4 flex items-center gap-2">
+                  <Truck className="h-5 w-5 text-primary-700" />
                   Delivery Method
                 </h2>
                 <div className="grid grid-cols-2 gap-3">
@@ -168,8 +168,8 @@ export default function CartPage() {
                       key={method.value}
                       className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
                         deliveryMethod === method.value
-                          ? 'border-indigo-500 bg-indigo-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-primary-500 bg-primary-50'
+                          : 'border-stone-200 hover:border-stone-300'
                       }`}
                     >
                       <input
@@ -178,11 +178,11 @@ export default function CartPage() {
                         value={method.value}
                         checked={deliveryMethod === method.value}
                         onChange={(e) => setDeliveryMethod(e.target.value as 'LALAMOVE' | 'SHOPEE' | 'JNT')}
-                        className="text-indigo-600"
+                        className="text-primary-600"
                       />
                       <div>
-                        <p className="font-medium text-sm text-gray-900">{method.label}</p>
-                        <p className="text-xs text-gray-500">{method.desc}</p>
+                        <p className="font-medium text-sm text-espresso">{method.label}</p>
+                        <p className="text-xs text-espresso/50">{method.desc}</p>
                       </div>
                     </label>
                   ))}
@@ -200,7 +200,7 @@ export default function CartPage() {
                         href={shopeeLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                        className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors"
                       >
                         <ExternalLink className="h-4 w-4" />
                         Open Shopee Checkout
@@ -226,8 +226,8 @@ export default function CartPage() {
 
                 {/* Lalamove address */}
                 {deliveryMethod === 'LALAMOVE' && (
-                  <div className="mt-4 p-4 bg-indigo-50 border border-indigo-200 rounded-xl space-y-3">
-                    <p className="text-sm font-medium text-indigo-800 flex items-center gap-1.5">
+                  <div className="mt-4 p-4 bg-primary-50 border border-primary-200 rounded-xl space-y-3">
+                    <p className="text-sm font-medium text-primary-800 flex items-center gap-1.5">
                       <MapPin className="h-4 w-4" />
                       Lalamove Delivery Address
                     </p>
@@ -236,9 +236,9 @@ export default function CartPage() {
                         type="checkbox"
                         checked={useSameAddress}
                         onChange={(e) => setUseSameAddress(e.target.checked)}
-                        className="rounded text-indigo-600"
+                        className="rounded text-primary-600"
                       />
-                      <span className="text-sm text-indigo-700">Same as my shipping address</span>
+                      <span className="text-sm text-primary-700">Same as my shipping address</span>
                     </label>
                     {!useSameAddress && (
                       <textarea
@@ -246,7 +246,7 @@ export default function CartPage() {
                         onChange={(e) => setLalamoveAddress(e.target.value)}
                         placeholder="Enter full delivery address or paste Lalamove pin location…"
                         rows={3}
-                        className="w-full border border-indigo-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                        className="w-full border border-primary-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
                       />
                     )}
                   </div>
@@ -254,20 +254,20 @@ export default function CartPage() {
               </div>
 
               {/* Payment method */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mt-4">
-                <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-indigo-600" />
+              <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6 mt-4">
+                <h2 className="font-display font-semibold text-espresso mb-4 flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-primary-700" />
                   Payment Method
                 </h2>
 
                 {paymentMethods.length === 0 ? (
-                  <p className="text-sm text-gray-400">No payment methods available. Please contact the store.</p>
+                  <p className="text-sm text-stone-400">No payment methods available. Please contact the store.</p>
                 ) : (
                   <div className="space-y-4">
                     {/* GCash options */}
                     {gcashMethods.length > 0 && (
                       <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                        <p className="text-xs font-semibold text-espresso/50 uppercase tracking-wider mb-2 flex items-center gap-1">
                           <Smartphone className="h-3 w-3" /> E-Wallet
                         </p>
                         <div className="space-y-2">
@@ -275,7 +275,7 @@ export default function CartPage() {
                             <label
                               key={m.id}
                               className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                                selectedPaymentId === m.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                                selectedPaymentId === m.id ? 'border-sky-500 bg-sky-50' : 'border-stone-200 hover:border-stone-300'
                               }`}
                             >
                               <input
@@ -284,10 +284,10 @@ export default function CartPage() {
                                 value={m.id}
                                 checked={selectedPaymentId === m.id}
                                 onChange={() => setSelectedPaymentId(m.id)}
-                                className="text-blue-600"
+                                className="text-sky-600"
                               />
-                              <Smartphone className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                              <span className="font-medium text-sm text-gray-900">{m.name}</span>
+                              <Smartphone className="h-4 w-4 text-sky-500 flex-shrink-0" />
+                              <span className="font-medium text-sm text-espresso">{m.name}</span>
                             </label>
                           ))}
                         </div>
@@ -297,7 +297,7 @@ export default function CartPage() {
                     {/* Bank Transfer options */}
                     {bankMethods.length > 0 && (
                       <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                        <p className="text-xs font-semibold text-espresso/50 uppercase tracking-wider mb-2 flex items-center gap-1">
                           <Building2 className="h-3 w-3" /> Bank Transfer
                         </p>
                         <div className="space-y-2">
@@ -305,7 +305,7 @@ export default function CartPage() {
                             <label
                               key={m.id}
                               className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                                selectedPaymentId === m.id ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'
+                                selectedPaymentId === m.id ? 'border-primary-500 bg-primary-50' : 'border-stone-200 hover:border-stone-300'
                               }`}
                             >
                               <input
@@ -314,10 +314,10 @@ export default function CartPage() {
                                 value={m.id}
                                 checked={selectedPaymentId === m.id}
                                 onChange={() => setSelectedPaymentId(m.id)}
-                                className="text-indigo-600"
+                                className="text-primary-600"
                               />
-                              <Building2 className="h-4 w-4 text-indigo-500 flex-shrink-0" />
-                              <span className="font-medium text-sm text-gray-900">{m.name}</span>
+                              <Building2 className="h-4 w-4 text-primary-600 flex-shrink-0" />
+                              <span className="font-medium text-sm text-espresso">{m.name}</span>
                             </label>
                           ))}
                         </div>
@@ -326,8 +326,8 @@ export default function CartPage() {
 
                     {/* QR Code display */}
                     {selectedPayment?.qrCode && (
-                      <div className="mt-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                        <p className="text-xs font-medium text-gray-600 mb-3 flex items-center gap-1">
+                      <div className="mt-3 p-4 bg-stone-50 rounded-xl border border-stone-200">
+                        <p className="text-xs font-medium text-espresso/60 mb-3 flex items-center gap-1">
                           <QrCode className="h-3 w-3" />
                           Scan to pay via {selectedPayment.name}
                         </p>
@@ -338,13 +338,13 @@ export default function CartPage() {
                           <img
                             src={selectedPayment.qrCode}
                             alt={`${selectedPayment.name} QR Code`}
-                            className="w-full h-full object-contain border border-gray-200 rounded-lg bg-white p-1"
+                            className="w-full h-full object-contain border border-stone-200 rounded-lg bg-white p-1"
                           />
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors">
+                          <div className="absolute inset-0 flex items-center justify-center bg-espresso/0 group-hover:bg-espresso/20 rounded-lg transition-colors">
                             <ZoomIn className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow" />
                           </div>
                         </div>
-                        <p className="text-xs text-gray-400 text-center mt-2">
+                        <p className="text-xs text-stone-400 text-center mt-2">
                           Tap image to enlarge · Send exact amount · Upload proof after placing order
                         </p>
                       </div>
@@ -356,31 +356,31 @@ export default function CartPage() {
 
             {/* Order summary */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-20">
-                <h2 className="font-semibold text-gray-900 mb-4">Order Summary</h2>
+              <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6 sticky top-20">
+                <h2 className="font-display font-semibold text-espresso mb-4">Order Summary</h2>
                 <div className="space-y-2 text-sm">
                   {items.map((item) => (
-                    <div key={item.id} className="flex justify-between text-gray-600">
+                    <div key={item.id} className="flex justify-between text-espresso/70">
                       <span className="truncate mr-2">{item.name} x{item.quantity}</span>
                       <span className="flex-shrink-0">{formatCurrency(item.price * item.quantity)}</span>
                     </div>
                   ))}
                 </div>
-                <div className="border-t border-gray-100 mt-4 pt-4">
-                  <div className="flex justify-between font-bold text-gray-900">
+                <div className="border-t border-stone-100 mt-4 pt-4">
+                  <div className="flex justify-between font-bold text-espresso">
                     <span>Total</span>
-                    <span className="text-indigo-600 text-lg">{formatCurrency(getTotalPrice())}</span>
+                    <span className="text-primary-700 text-lg">{formatCurrency(getTotalPrice())}</span>
                   </div>
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg mt-4 text-sm">
+                  <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-xl mt-4 text-sm">
                     <AlertCircle className="h-4 w-4 flex-shrink-0" />
                     {error}
                   </div>
                 )}
 
-                <div className="mt-4 p-3 bg-amber-50 rounded-lg text-xs text-amber-700">
+                <div className="mt-4 p-3 bg-amber-50 rounded-xl text-xs text-amber-700">
                   <p className="font-medium mb-1">Deposit Required</p>
                   <p>After placing your order, you have 24 hours to submit deposit proof. Otherwise, your order will be automatically cancelled.</p>
                 </div>
@@ -407,21 +407,21 @@ export default function CartPage() {
       {/* QR Lightbox */}
       {lightboxQr && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-espresso/80"
           onClick={() => setLightboxQr(null)}
         >
           <div
-            className="relative bg-white rounded-2xl shadow-2xl p-5 max-w-sm w-full"
+            className="relative bg-white rounded-2xl shadow-warm p-5 max-w-sm w-full"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-3">
-              <p className="font-semibold text-gray-900 flex items-center gap-2">
-                <QrCode className="h-4 w-4 text-indigo-600" />
+              <p className="font-semibold text-espresso flex items-center gap-2">
+                <QrCode className="h-4 w-4 text-primary-700" />
                 {lightboxQr.name}
               </p>
               <button
                 onClick={() => setLightboxQr(null)}
-                className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
+                className="p-1.5 hover:bg-stone-100 rounded-lg text-stone-400 hover:text-espresso transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -429,9 +429,9 @@ export default function CartPage() {
             <img
               src={lightboxQr.src}
               alt={`${lightboxQr.name} QR Code`}
-              className="w-full object-contain rounded-lg border border-gray-100"
+              className="w-full object-contain rounded-lg border border-stone-100"
             />
-            <p className="text-xs text-gray-400 text-center mt-3">Scan with your phone camera or payment app</p>
+            <p className="text-xs text-stone-400 text-center mt-3">Scan with your phone camera or payment app</p>
           </div>
         </div>
       )}

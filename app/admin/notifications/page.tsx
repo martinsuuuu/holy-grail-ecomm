@@ -57,17 +57,17 @@ export default function AdminNotificationsPage() {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'ORDER': return <ShoppingBag className="h-4 w-4 text-blue-500" />;
+      case 'ORDER': return <ShoppingBag className="h-4 w-4 text-sky-500" />;
       case 'WARNING': return <AlertTriangle className="h-4 w-4 text-amber-500" />;
-      default: return <Info className="h-4 w-4 text-green-500" />;
+      default: return <Info className="h-4 w-4 text-emerald-500" />;
     }
   };
 
   const getTypeBg = (type: string) => {
     switch (type) {
-      case 'ORDER': return 'bg-blue-50';
+      case 'ORDER': return 'bg-sky-50';
       case 'WARNING': return 'bg-amber-50';
-      default: return 'bg-green-50';
+      default: return 'bg-emerald-50';
     }
   };
 
@@ -75,8 +75,8 @@ export default function AdminNotificationsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
-          <p className="text-gray-500 text-sm mt-1">
+          <h1 className="text-2xl font-display font-bold text-espresso">Notifications</h1>
+          <p className="text-stone-500 text-sm mt-1">
             {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
           </p>
         </div>
@@ -102,10 +102,10 @@ export default function AdminNotificationsPage() {
           <button
             key={tab.value}
             onClick={() => setFilter(tab.value)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
               filter === tab.value
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                ? 'bg-primary-600 text-espresso'
+                : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
             }`}
           >
             {tab.label}
@@ -117,41 +117,41 @@ export default function AdminNotificationsPage() {
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-20 bg-white rounded-xl animate-pulse" />
+            <div key={i} className="h-20 bg-stone-200 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <Bell className="h-12 w-12 text-gray-200 mx-auto mb-4" />
-          <h3 className="font-semibold text-gray-700 mb-2">No notifications</h3>
-          <p className="text-gray-500 text-sm">Nothing to see here yet</p>
+        <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-12 text-center">
+          <Bell className="h-12 w-12 text-stone-300 mx-auto mb-4" />
+          <h3 className="font-display font-semibold text-espresso mb-2">No notifications</h3>
+          <p className="text-stone-500 text-sm">Nothing to see here yet</p>
         </div>
       ) : (
         <div className="space-y-2">
           {filtered.map((notification) => (
             <div
               key={notification.id}
-              className={`bg-white rounded-xl shadow-sm border p-4 flex items-start gap-4 transition-colors ${
-                !notification.read ? 'border-indigo-200 bg-indigo-50/30' : 'border-gray-200'
+              className={`bg-white rounded-2xl shadow-soft border p-4 flex items-start gap-4 transition-colors ${
+                !notification.read ? 'border-primary-200 bg-primary-50/30' : 'border-stone-200/70'
               }`}
             >
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${getTypeBg(notification.type)}`}>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${getTypeBg(notification.type)}`}>
                 {getTypeIcon(notification.type)}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className={`font-medium text-sm ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                    <p className={`font-medium text-sm ${!notification.read ? 'text-espresso' : 'text-stone-700'}`}>
                       {notification.title}
                     </p>
-                    <p className="text-sm text-gray-500 mt-0.5">{notification.message}</p>
+                    <p className="text-sm text-stone-500 mt-0.5">{notification.message}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-xs text-gray-400">{timeAgo(notification.createdAt)}</span>
+                    <span className="text-xs text-stone-400">{timeAgo(notification.createdAt)}</span>
                     {!notification.read && (
                       <button
                         onClick={() => markAsRead(notification.id)}
-                        className="p-1 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-100 rounded transition-colors"
+                        className="p-1 text-primary-400 hover:text-primary-600 hover:bg-primary-100 rounded transition-colors"
                         title="Mark as read"
                       >
                         <Check className="h-3 w-3" />

@@ -101,24 +101,24 @@ export default function NewPurchaseOrderPage() {
   return (
     <div className="p-8">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/admin/purchase-orders" className="text-gray-500 hover:text-indigo-600">
+        <Link href="/admin/purchase-orders" className="text-stone-500 hover:text-primary-600">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">New Purchase Order</h1>
-          <p className="text-gray-500 text-sm mt-1">Order products from a supplier</p>
+          <h1 className="text-2xl font-display font-bold text-espresso">New Purchase Order</h1>
+          <p className="text-stone-500 text-sm mt-1">Order products from a supplier</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="max-w-4xl">
         {error && (
-          <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm mb-6">{error}</div>
+          <div className="p-3 bg-red-50 text-red-700 rounded-xl text-sm mb-6">{error}</div>
         )}
 
         {/* Supplier */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Truck className="h-5 w-5 text-indigo-600" />
+        <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6 mb-6">
+          <h2 className="font-display font-semibold text-espresso mb-4 flex items-center gap-2">
+            <Truck className="h-5 w-5 text-primary-600" />
             Supplier Information
           </h2>
           <div>
@@ -135,9 +135,9 @@ export default function NewPurchaseOrderPage() {
         </div>
 
         {/* Line Items */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-900">Order Items</h2>
+            <h2 className="font-display font-semibold text-espresso">Order Items</h2>
             <button
               type="button"
               onClick={addItem}
@@ -151,11 +151,11 @@ export default function NewPurchaseOrderPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left pb-3 text-xs font-medium text-gray-500 uppercase">Product</th>
-                  <th className="text-right pb-3 text-xs font-medium text-gray-500 uppercase w-24">Quantity</th>
-                  <th className="text-right pb-3 text-xs font-medium text-gray-500 uppercase w-32">Unit Cost</th>
-                  <th className="text-right pb-3 text-xs font-medium text-gray-500 uppercase w-28">Subtotal</th>
+                <tr className="border-b border-stone-200">
+                  <th className="text-left pb-3 text-xs font-medium text-stone-500 uppercase">Product</th>
+                  <th className="text-right pb-3 text-xs font-medium text-stone-500 uppercase w-24">Quantity</th>
+                  <th className="text-right pb-3 text-xs font-medium text-stone-500 uppercase w-32">Unit Cost</th>
+                  <th className="text-right pb-3 text-xs font-medium text-stone-500 uppercase w-28">Subtotal</th>
                   <th className="w-10" />
                 </tr>
               </thead>
@@ -163,7 +163,7 @@ export default function NewPurchaseOrderPage() {
                 {items.map((item, index) => {
                   const subtotal = (parseFloat(item.quantity) || 0) * (parseFloat(item.unitCost) || 0);
                   return (
-                    <tr key={index} className="border-b border-gray-50">
+                    <tr key={index} className="border-b border-stone-50">
                       <td className="py-3 pr-3">
                         <select
                           value={item.productId}
@@ -198,7 +198,7 @@ export default function NewPurchaseOrderPage() {
                           placeholder="0.00"
                         />
                       </td>
-                      <td className="py-3 pl-2 text-right font-medium text-gray-900">
+                      <td className="py-3 pl-2 text-right font-medium text-espresso">
                         {formatCurrency(subtotal)}
                       </td>
                       <td className="py-3 pl-2">
@@ -206,7 +206,7 @@ export default function NewPurchaseOrderPage() {
                           <button
                             type="button"
                             onClick={() => removeItem(index)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                            className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -218,10 +218,10 @@ export default function NewPurchaseOrderPage() {
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={3} className="pt-4 pr-2 text-right font-semibold text-gray-700">
+                  <td colSpan={3} className="pt-4 pr-2 text-right font-semibold text-stone-700">
                     Total Cost:
                   </td>
-                  <td className="pt-4 pl-2 text-right font-bold text-xl text-indigo-600">
+                  <td className="pt-4 pl-2 text-right font-bold text-xl text-primary-700">
                     {formatCurrency(totalCost)}
                   </td>
                   <td />

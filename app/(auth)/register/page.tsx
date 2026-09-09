@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
-import PacifierIcon from '@/components/PacifierIcon';
+import HGMonogram from '@/components/HGMonogram';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -61,24 +61,24 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-cream flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/shop" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-              <PacifierIcon className="h-6 w-6 text-white" />
+          <Link href="/shop" className="inline-flex items-center gap-2.5 mb-6">
+            <div className="w-11 h-11 bg-espresso rounded-full flex items-center justify-center">
+              <HGMonogram className="h-6 w-6 text-primary-400" />
             </div>
-            <span className="font-bold text-2xl text-gray-900">Little-Mija</span>
+            <span className="font-display font-semibold text-3xl tracking-wide text-espresso">Holy Grail</span>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Create an account</h1>
-          <p className="text-gray-500 mt-1">Join Little-Mija and start shopping</p>
+          <h1 className="text-2xl font-display font-semibold text-espresso">Create an account</h1>
+          <p className="text-espresso/50 mt-1">Join Holy Grail and start shopping</p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+        <div className="bg-white rounded-2xl shadow-warm border border-stone-200/70 p-8">
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-lg mb-4 text-sm bg-red-50 text-red-700">
+            <div className="flex items-center gap-2 p-3 rounded-xl mb-4 text-sm bg-red-50 text-red-700">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               {error}
             </div>
@@ -118,12 +118,12 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   placeholder="Min. 6 characters"
-                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm pr-10"
+                  className="block w-full rounded-xl border-stone-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 hover:text-espresso"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -141,7 +141,7 @@ export default function RegisterPage() {
                 className="input-field"
               />
               {formData.confirmPassword && formData.password === formData.confirmPassword && (
-                <p className="flex items-center gap-1 text-xs text-green-600 mt-1">
+                <p className="flex items-center gap-1 text-xs text-emerald-700 mt-1">
                   <CheckCircle className="h-3 w-3" /> Passwords match
                 </p>
               )}
@@ -157,9 +157,9 @@ export default function RegisterPage() {
           </form>
         </div>
 
-        <p className="text-center text-sm text-gray-600 mt-6">
+        <p className="text-center text-sm text-espresso/60 mt-6">
           Already have an account?{' '}
-          <Link href="/login" className="text-indigo-600 hover:text-indigo-800 font-medium">
+          <Link href="/login" className="text-primary-700 hover:text-primary-900 font-medium">
             Sign in
           </Link>
         </p>

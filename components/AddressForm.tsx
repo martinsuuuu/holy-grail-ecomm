@@ -158,7 +158,7 @@ export default function AddressForm({ value, onChange }: Props) {
   return (
     <div className="space-y-3">
       {error && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded p-2">{error}</p>
+        <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg p-2">{error}</p>
       )}
 
       {/* 1. House/Unit No. + Street */}
@@ -179,7 +179,7 @@ export default function AddressForm({ value, onChange }: Props) {
       <div>
         <label className="label">
           Subdivision / Building
-          <span className="text-gray-400 font-normal text-xs ml-1">(optional)</span>
+          <span className="text-stone-400 font-normal text-xs ml-1">(optional)</span>
         </label>
         <input
           type="text"

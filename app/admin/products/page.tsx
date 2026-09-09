@@ -24,15 +24,15 @@ interface Product {
 const TYPE_META: Record<ProductType, { label: string; color: string; bg: string; dot: string }> = {
   ONHAND: {
     label: 'On Hand',
-    color: 'text-green-700',
-    bg: 'bg-green-100',
-    dot: 'bg-green-500',
+    color: 'text-emerald-700',
+    bg: 'bg-emerald-100',
+    dot: 'bg-emerald-500',
   },
   PASABUY: {
     label: 'Pasabuy',
-    color: 'text-purple-700',
-    bg: 'bg-purple-100',
-    dot: 'bg-purple-500',
+    color: 'text-plum-700',
+    bg: 'bg-plum-100',
+    dot: 'bg-plum-500',
   },
 };
 
@@ -154,8 +154,8 @@ export default function AdminProductsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-          <p className="text-gray-500 text-sm mt-1">{products.length} products total</p>
+          <h1 className="text-2xl font-display font-bold text-espresso">Products</h1>
+          <p className="text-stone-500 text-sm mt-1">{products.length} products total</p>
         </div>
         <button onClick={openCreateModal} className="btn-primary flex items-center gap-2">
           <Plus className="h-4 w-4" />
@@ -165,7 +165,7 @@ export default function AdminProductsPage() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
         <input
           type="text"
           placeholder="Search products..."
@@ -176,33 +176,33 @@ export default function AdminProductsPage() {
       </div>
 
       {/* Products Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-stone-50 border-b border-stone-200">
             <tr>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Product</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Type</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Category</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Price</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Stock / ETA</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Product</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Type</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Category</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Price</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Stock / ETA</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-stone-100">
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i}>
                   {Array.from({ length: 6 }).map((_, j) => (
                     <td key={j} className="px-6 py-4">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                      <div className="h-4 bg-stone-200 rounded animate-pulse" />
                     </td>
                   ))}
                 </tr>
               ))
             ) : products.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                  <Package className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                <td colSpan={6} className="px-6 py-12 text-center text-stone-500">
+                  <Package className="h-8 w-8 mx-auto mb-2 text-stone-300" />
                   <p>No products found</p>
                 </td>
               </tr>
@@ -210,22 +210,22 @@ export default function AdminProductsPage() {
               products.map((product) => {
                 const typeMeta = TYPE_META[product.type ?? 'ONHAND'];
                 return (
-                  <tr key={product.id} className="hover:bg-gray-50">
+                  <tr key={product.id} className="hover:bg-stone-50/60">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                        <div className="w-10 h-10 bg-stone-100 rounded-xl overflow-hidden flex-shrink-0">
                           {product.imageUrl ? (
                             <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Package className="h-4 w-4 text-gray-300" />
+                              <Package className="h-4 w-4 text-stone-300" />
                             </div>
                           )}
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900 text-sm">{product.name}</p>
+                          <p className="font-medium text-espresso text-sm">{product.name}</p>
                           {product.description && (
-                            <p className="text-xs text-gray-500 truncate max-w-40">{product.description}</p>
+                            <p className="text-xs text-stone-500 truncate max-w-40">{product.description}</p>
                           )}
                         </div>
                       </div>
@@ -237,14 +237,14 @@ export default function AdminProductsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600">{product.category || '—'}</span>
+                      <span className="text-sm text-stone-600">{product.category || '—'}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-semibold text-sm text-gray-900">{formatCurrency(product.price)}</span>
+                      <span className="font-semibold text-sm text-espresso">{formatCurrency(product.price)}</span>
                     </td>
                     <td className="px-6 py-4">
                       {product.type === 'PASABUY' ? (
-                        <div className="text-xs text-purple-700 space-y-0.5">
+                        <div className="text-xs text-plum-700 space-y-0.5">
                           {product.etaStart && product.etaEnd ? (
                             <>
                               <p className="font-medium">
@@ -254,7 +254,7 @@ export default function AdminProductsPage() {
                               </p>
                             </>
                           ) : (
-                            <span className="text-gray-400 italic">No ETA set</span>
+                            <span className="text-stone-400 italic">No ETA set</span>
                           )}
                         </div>
                       ) : (
@@ -264,12 +264,12 @@ export default function AdminProductsPage() {
                               ? 'bg-red-100 text-red-700'
                               : product.stock < 5
                               ? 'bg-orange-100 text-orange-700'
-                              : 'bg-green-100 text-green-700'
+                              : 'bg-emerald-100 text-emerald-700'
                           }`}>
                             {product.stock} in stock
                           </span>
                           {product.reserved > 0 && (
-                            <span className="text-xs text-gray-400">({product.reserved} reserved)</span>
+                            <span className="text-xs text-stone-400">({product.reserved} reserved)</span>
                           )}
                           {product.stock < 5 && product.stock > 0 && (
                             <AlertTriangle className="h-3 w-3 text-orange-400" />
@@ -281,13 +281,13 @@ export default function AdminProductsPage() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => openEditModal(product)}
-                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-1.5 text-stone-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-colors"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(product.id, product.name)}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -303,36 +303,36 @@ export default function AdminProductsPage() {
 
       {/* Step 1 — Type Picker Modal */}
       {modalStep === 'type' && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
-            <div className="p-6 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900">Add New Product</h2>
-              <p className="text-sm text-gray-500 mt-1">First, choose the product type</p>
+        <div className="fixed inset-0 bg-espresso/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-warm w-full max-w-md max-h-[90vh] flex flex-col">
+            <div className="p-6 border-b border-stone-100">
+              <h2 className="text-lg font-display font-semibold text-espresso">Add New Product</h2>
+              <p className="text-sm text-stone-500 mt-1">First, choose the product type</p>
             </div>
             <div className="p-6 space-y-3 overflow-y-auto">
               <button
                 onClick={() => { setSelectedType('ONHAND'); setModalStep('form'); }}
-                className="w-full flex items-center gap-4 p-4 border-2 border-gray-200 hover:border-green-400 hover:bg-green-50 rounded-xl transition-all text-left group"
+                className="w-full flex items-center gap-4 p-4 border-2 border-stone-200 hover:border-emerald-400 hover:bg-emerald-50 rounded-xl transition-all text-left group"
               >
-                <div className="w-12 h-12 bg-green-100 group-hover:bg-green-200 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors">
-                  <ShoppingBag className="h-6 w-6 text-green-600" />
+                <div className="w-12 h-12 bg-emerald-100 group-hover:bg-emerald-200 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors">
+                  <ShoppingBag className="h-6 w-6 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">On Hand</p>
-                  <p className="text-sm text-gray-500 mt-0.5">Product is physically in stock and ready to ship</p>
+                  <p className="font-semibold text-espresso">On Hand</p>
+                  <p className="text-sm text-stone-500 mt-0.5">Product is physically in stock and ready to ship</p>
                 </div>
               </button>
 
               <button
                 onClick={() => { setSelectedType('PASABUY'); setModalStep('form'); }}
-                className="w-full flex items-center gap-4 p-4 border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 rounded-xl transition-all text-left group"
+                className="w-full flex items-center gap-4 p-4 border-2 border-stone-200 hover:border-plum-400 hover:bg-plum-50 rounded-xl transition-all text-left group"
               >
-                <div className="w-12 h-12 bg-purple-100 group-hover:bg-purple-200 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors">
-                  <Truck className="h-6 w-6 text-purple-600" />
+                <div className="w-12 h-12 bg-plum-100 group-hover:bg-plum-200 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors">
+                  <Truck className="h-6 w-6 text-plum-600" />
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">Pasabuy</p>
-                  <p className="text-sm text-gray-500 mt-0.5">Product sourced on request — order before we buy</p>
+                  <p className="font-semibold text-espresso">Pasabuy</p>
+                  <p className="text-sm text-stone-500 mt-0.5">Product sourced on request — order before we buy</p>
                 </div>
               </button>
             </div>
@@ -350,22 +350,22 @@ export default function AdminProductsPage() {
 
       {/* Step 2 — Product Form Modal */}
       {modalStep === 'form' && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-            <div className="p-6 border-b border-gray-100">
+        <div className="fixed inset-0 bg-espresso/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-warm w-full max-w-lg max-h-[90vh] flex flex-col">
+            <div className="p-6 border-b border-stone-100">
               <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                  selectedType === 'PASABUY' ? 'bg-purple-100' : 'bg-green-100'
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                  selectedType === 'PASABUY' ? 'bg-plum-100' : 'bg-emerald-100'
                 }`}>
                   {selectedType === 'PASABUY'
-                    ? <Truck className="h-4 w-4 text-purple-600" />
-                    : <ShoppingBag className="h-4 w-4 text-green-600" />}
+                    ? <Truck className="h-4 w-4 text-plum-600" />
+                    : <ShoppingBag className="h-4 w-4 text-emerald-600" />}
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
+                  <h2 className="text-lg font-display font-semibold text-espresso">
                     {editingProduct ? 'Edit Product' : 'Add New Product'}
                   </h2>
-                  <p className={`text-xs font-medium ${selectedType === 'PASABUY' ? 'text-purple-600' : 'text-green-600'}`}>
+                  <p className={`text-xs font-medium ${selectedType === 'PASABUY' ? 'text-plum-600' : 'text-emerald-600'}`}>
                     {TYPE_META[selectedType].label}
                   </p>
                 </div>
@@ -374,7 +374,7 @@ export default function AdminProductsPage() {
             <form onSubmit={handleSave} className="flex flex-col flex-1 min-h-0">
             <div className="p-6 space-y-4 overflow-y-auto flex-1">
               {error && (
-                <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>
+                <div className="p-3 bg-red-50 text-red-700 rounded-xl text-sm">{error}</div>
               )}
 
               {/* Type toggle (visible when editing) */}
@@ -387,12 +387,12 @@ export default function AdminProductsPage() {
                         key={t}
                         type="button"
                         onClick={() => setSelectedType(t)}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border-2 text-sm font-medium transition-all ${
                           selectedType === t
                             ? t === 'PASABUY'
-                              ? 'border-purple-400 bg-purple-50 text-purple-700'
-                              : 'border-green-400 bg-green-50 text-green-700'
-                            : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                              ? 'border-plum-400 bg-plum-50 text-plum-700'
+                              : 'border-emerald-400 bg-emerald-50 text-emerald-700'
+                            : 'border-stone-200 text-stone-500 hover:border-stone-300'
                         }`}
                       >
                         {t === 'PASABUY' ? <Truck className="h-3.5 w-3.5" /> : <ShoppingBag className="h-3.5 w-3.5" />}
@@ -462,14 +462,14 @@ export default function AdminProductsPage() {
 
               {/* ETA — Pasabuy only */}
               {selectedType === 'PASABUY' && (
-                <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 space-y-3">
-                  <div className="flex items-center gap-2 text-purple-700 text-sm font-semibold">
+                <div className="bg-plum-50 border border-plum-200 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-plum-700 text-sm font-semibold">
                     <Truck className="h-4 w-4" />
                     Expected Time of Arrival (ETA)
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="label text-purple-700">ETA From</label>
+                      <label className="label text-plum-700">ETA From</label>
                       <input
                         type="date"
                         value={formData.etaStart}
@@ -478,7 +478,7 @@ export default function AdminProductsPage() {
                       />
                     </div>
                     <div>
-                      <label className="label text-purple-700">ETA To</label>
+                      <label className="label text-plum-700">ETA To</label>
                       <input
                         type="date"
                         value={formData.etaEnd}
@@ -489,7 +489,7 @@ export default function AdminProductsPage() {
                     </div>
                   </div>
                   {formData.etaStart && formData.etaEnd && (
-                    <p className="text-xs text-purple-600">
+                    <p className="text-xs text-plum-600">
                       Customers will see: arriving{' '}
                       <span className="font-medium">
                         {new Date(formData.etaStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -515,7 +515,7 @@ export default function AdminProductsPage() {
                     <img
                       src={formData.imageUrl}
                       alt="Preview"
-                      className="w-full h-40 object-cover rounded-lg border border-gray-200"
+                      className="w-full h-40 object-cover rounded-xl border border-stone-200"
                     />
                     <button
                       type="button"
@@ -527,7 +527,7 @@ export default function AdminProductsPage() {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="mt-2 flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800"
+                      className="mt-2 flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800"
                     >
                       <Upload className="h-3 w-3" /> Replace image
                     </button>
@@ -537,16 +537,16 @@ export default function AdminProductsPage() {
                     onClick={() => fileInputRef.current?.click()}
                     onDragOver={e => e.preventDefault()}
                     onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) handleImageUpload(f); }}
-                    className="flex flex-col items-center justify-center h-36 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all"
+                    className="flex flex-col items-center justify-center h-36 border-2 border-dashed border-stone-200 rounded-xl cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-all"
                   >
-                    <Upload className="h-6 w-6 text-gray-300 mb-2" />
-                    <p className="text-sm text-gray-400">Click or drag & drop to upload</p>
-                    <p className="text-xs text-gray-300 mt-1">PNG, JPG, WEBP</p>
+                    <Upload className="h-6 w-6 text-stone-300 mb-2" />
+                    <p className="text-sm text-stone-400">Click or drag & drop to upload</p>
+                    <p className="text-xs text-stone-300 mt-1">PNG, JPG, WEBP</p>
                   </div>
                 )}
               </div>
               </div>
-              <div className="flex gap-3 p-6 pt-4 border-t border-gray-100 flex-shrink-0">
+              <div className="flex gap-3 p-6 pt-4 border-t border-stone-100 flex-shrink-0">
                 <button type="submit" disabled={isSaving} className="btn-primary flex-1">
                   {isSaving ? 'Saving...' : editingProduct ? 'Save Changes' : 'Create Product'}
                 </button>

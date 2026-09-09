@@ -20,7 +20,7 @@ import {
   MapPin,
   Tag,
 } from 'lucide-react';
-import PacifierIcon from './PacifierIcon';
+import HGMonogram from './HGMonogram';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -52,16 +52,16 @@ export default function AdminSidebar() {
   }, [pathname]);
 
   return (
-    <aside className="w-64 bg-gray-900 min-h-screen flex flex-col">
+    <aside className="w-64 bg-espresso min-h-screen flex flex-col">
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-gray-800">
-        <Link href="/admin" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
-            <PacifierIcon className="h-5 w-5 text-white" />
+      <div className="px-6 py-5 border-b border-white/10">
+        <Link href="/admin" className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
+            <HGMonogram className="h-5 w-5 text-espresso" />
           </div>
-          <span className="font-bold text-white text-lg">Little-Mija</span>
+          <span className="font-display font-semibold text-cream text-xl tracking-wide">Holy Grail</span>
         </Link>
-        <p className="text-xs text-gray-500 mt-1">Admin Panel</p>
+        <p className="text-xs text-cream/40 mt-1 tracking-wide">Admin Panel</p>
       </div>
 
       {/* Navigation */}
@@ -74,10 +74,10 @@ export default function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+              className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                 isActive
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  ? 'bg-primary-600 text-espresso'
+                  : 'text-cream/50 hover:bg-white/5 hover:text-cream'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -94,17 +94,17 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-4 border-t border-gray-800">
+      <div className="px-3 py-4 border-t border-white/10">
         <Link
           href="/shop"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-cream/50 hover:bg-white/5 hover:text-cream transition-colors"
         >
           <ShoppingBag className="h-4 w-4" />
           Visit Shop
         </Link>
         <button
           onClick={() => setShowLogoutConfirm(true)}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-400 hover:bg-red-900/30 hover:text-red-400 transition-colors w-full mt-1"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-cream/50 hover:bg-red-900/30 hover:text-red-400 transition-colors w-full mt-1"
         >
           <LogOut className="h-4 w-4" />
           Sign Out
@@ -113,23 +113,23 @@ export default function AdminSidebar() {
 
       {/* Logout confirmation modal */}
       {showLogoutConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-xs p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-espresso/60">
+          <div className="bg-white rounded-2xl shadow-warm w-full max-w-xs p-6">
             <div className="flex items-center justify-center w-11 h-11 bg-red-100 rounded-full mx-auto mb-4">
-              <LogOut className="h-5 w-5 text-red-600" />
+              <LogOut className="h-5 w-5 text-red-700" />
             </div>
-            <h2 className="text-base font-semibold text-gray-900 text-center">Sign out?</h2>
-            <p className="text-sm text-gray-500 text-center mt-1 mb-5">You will be returned to the login page.</p>
+            <h2 className="text-base font-display font-semibold text-espresso text-center">Sign out?</h2>
+            <p className="text-sm text-espresso/60 text-center mt-1 mb-5">You will be returned to the login page.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="flex-1 py-2 rounded-full border border-stone-200 text-sm font-medium text-espresso/80 hover:bg-stone-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => signOut({ callbackUrl: '/login' })}
-                className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors"
+                className="flex-1 py-2 rounded-full bg-red-700 hover:bg-red-800 text-white text-sm font-medium transition-colors"
               >
                 Sign Out
               </button>

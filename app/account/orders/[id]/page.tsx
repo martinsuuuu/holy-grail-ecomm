@@ -136,11 +136,11 @@ export default function OrderDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-cream">
         <Navbar />
         <div className="max-w-3xl mx-auto px-4 py-8 animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/3" />
-          <div className="h-64 bg-gray-200 rounded-xl" />
+          <div className="h-8 bg-stone-200 rounded w-1/3" />
+          <div className="h-64 bg-stone-200 rounded-2xl" />
         </div>
       </div>
     );
@@ -173,23 +173,23 @@ export default function OrderDetailPage() {
     : statusSteps.findIndex(s => s.key === order.status);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-cream">
       <Navbar />
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <Link href="/account" className="text-gray-500 hover:text-indigo-600">
+          <Link href="/account" className="text-espresso/50 hover:text-primary-700">
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-display font-semibold text-espresso">
               Order #{order.id.slice(-8).toUpperCase()}
             </h1>
-            <p className="text-sm text-gray-500">{formatDateTime(order.createdAt)}</p>
+            <p className="text-sm text-espresso/50">{formatDateTime(order.createdAt)}</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
             {hasPasabuy
-              ? <span className="badge text-xs bg-purple-100 text-purple-700">Pasabuy</span>
+              ? <span className="badge text-xs bg-plum-100 text-plum-700">Pasabuy</span>
               : <span className="badge text-xs bg-emerald-100 text-emerald-700">On Hand</span>
             }
             <span className={`badge ${getOrderStatusColor(order.status)}`}>
@@ -207,15 +207,15 @@ export default function OrderDetailPage() {
 
         {/* Status Steps */}
         {order.status !== 'CANCELLED' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-4">
+          <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6 mb-4">
             <div className="flex items-center justify-between">
               {statusSteps.map((step, index) => (
                 <div key={step.key} className="flex items-center">
                   <div className="flex flex-col items-center">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                       index <= currentStepIndex
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-200 text-gray-400'
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-stone-200 text-stone-400'
                     }`}>
                       {index < currentStepIndex ? (
                         <CheckCircle className="h-4 w-4" />
@@ -224,14 +224,14 @@ export default function OrderDetailPage() {
                       )}
                     </div>
                     <p className={`text-xs mt-1 text-center w-16 ${
-                      index <= currentStepIndex ? 'text-indigo-600 font-medium' : 'text-gray-400'
+                      index <= currentStepIndex ? 'text-primary-700 font-medium' : 'text-stone-400'
                     }`}>
                       {step.label}
                     </p>
                   </div>
                   {index < statusSteps.length - 1 && (
                     <div className={`h-0.5 w-8 sm:w-12 mx-1 mb-5 ${
-                      index < currentStepIndex ? 'bg-indigo-600' : 'bg-gray-200'
+                      index < currentStepIndex ? 'bg-primary-600' : 'bg-stone-200'
                     }`} />
                   )}
                 </div>
@@ -242,8 +242,8 @@ export default function OrderDetailPage() {
 
         {/* Cancelled notice */}
         {order.status === 'CANCELLED' && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4 flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
             <div>
               <p className="font-medium text-red-800">Order Cancelled</p>
               <p className="text-sm text-red-600">This order was cancelled. Reserved stock has been returned.</p>
@@ -256,19 +256,19 @@ export default function OrderDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 
             {/* Left — Upload proof */}
-            <div className="bg-white rounded-2xl shadow-sm border border-amber-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <div className="bg-white rounded-2xl shadow-soft border border-amber-200 p-6">
+              <h3 className="font-display font-semibold text-espresso mb-3 flex items-center gap-2">
                 <Upload className="h-5 w-5 text-amber-500" />
                 Submit Deposit Proof
               </h3>
               {success ? (
-                <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-lg">
+                <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 p-3 rounded-xl">
                   <CheckCircle className="h-5 w-5" />
                   {success}
                 </div>
               ) : !isAddressComplete(userAddress) ? (
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-start gap-2 text-amber-700 bg-amber-50 border border-amber-200 p-3 rounded-lg text-sm">
+                  <div className="flex items-start gap-2 text-amber-700 bg-amber-50 border border-amber-200 p-3 rounded-xl text-sm">
                     <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                     <span>You need to add a delivery address to your profile before submitting a deposit.</span>
                   </div>
@@ -281,11 +281,11 @@ export default function OrderDetailPage() {
                 </div>
               ) : (
                 <>
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className="text-sm text-espresso/60 mb-4">
                     Pay using the method on the right, then upload your proof here.
                   </p>
                   {error && (
-                    <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg mb-3 text-sm">
+                    <div className="flex items-center gap-2 text-red-700 bg-red-50 p-3 rounded-xl mb-3 text-sm">
                       <AlertCircle className="h-4 w-4" />
                       {error}
                     </div>
@@ -296,15 +296,15 @@ export default function OrderDetailPage() {
                       <img
                         src={proofImage}
                         alt="Deposit proof preview"
-                        className="w-full max-h-52 object-contain rounded-xl border border-gray-200 bg-gray-50"
+                        className="w-full max-h-52 object-contain rounded-xl border border-stone-200 bg-stone-50"
                       />
                       <button
                         onClick={() => setProofImage(null)}
-                        className="absolute top-2 right-2 w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors"
+                        className="absolute top-2 right-2 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-colors"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
-                      <p className="text-xs text-green-600 mt-1.5 flex items-center gap-1">
+                      <p className="text-xs text-emerald-700 mt-1.5 flex items-center gap-1">
                         <CheckCircle className="h-3.5 w-3.5" /> Image ready to submit
                       </p>
                     </div>
@@ -312,7 +312,7 @@ export default function OrderDetailPage() {
                     <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-amber-300 rounded-xl cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-all mb-3">
                       <ImageIcon className="h-8 w-8 text-amber-400 mb-2" />
                       <span className="text-sm font-medium text-amber-700">Click to upload payment screenshot</span>
-                      <span className="text-xs text-gray-400 mt-1">JPG, PNG, GIF · Max 5MB</span>
+                      <span className="text-xs text-stone-400 mt-1">JPG, PNG, GIF · Max 5MB</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -342,11 +342,11 @@ export default function OrderDetailPage() {
             </div>
 
             {/* Right — Payment method details */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6">
+              <h3 className="font-display font-semibold text-espresso mb-3 flex items-center gap-2">
                 {order.paymentMethod?.type === 'GCASH'
-                  ? <Smartphone className="h-5 w-5 text-blue-500" />
-                  : <Building2 className="h-5 w-5 text-indigo-500" />}
+                  ? <Smartphone className="h-5 w-5 text-sky-500" />
+                  : <Building2 className="h-5 w-5 text-primary-600" />}
                 Pay via {order.paymentMethodName ?? 'Payment Method'}
               </h3>
 
@@ -354,22 +354,22 @@ export default function OrderDetailPage() {
                 <div className="space-y-4">
                   {/* Account details */}
                   {(order.paymentMethod.accountName || order.paymentMethod.accountNumber) && (
-                    <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                    <div className="bg-stone-50 rounded-xl p-4 space-y-2">
                       {order.paymentMethod.accountName && (
                         <div>
-                          <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Account Name</p>
-                          <p className="font-semibold text-gray-900 text-sm mt-0.5 select-all">{order.paymentMethod.accountName}</p>
+                          <p className="text-xs text-stone-400 uppercase tracking-wide font-medium">Account Name</p>
+                          <p className="font-semibold text-espresso text-sm mt-0.5 select-all">{order.paymentMethod.accountName}</p>
                         </div>
                       )}
                       {order.paymentMethod.accountNumber && (
                         <div>
-                          <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Account Number</p>
-                          <p className="font-semibold text-gray-900 text-sm mt-0.5 select-all tracking-wider">{order.paymentMethod.accountNumber}</p>
+                          <p className="text-xs text-stone-400 uppercase tracking-wide font-medium">Account Number</p>
+                          <p className="font-semibold text-espresso text-sm mt-0.5 select-all tracking-wider">{order.paymentMethod.accountNumber}</p>
                         </div>
                       )}
                       <div>
-                        <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Amount to Send</p>
-                        <p className="font-bold text-indigo-600 text-lg mt-0.5">{formatCurrency(order.totalAmount)}</p>
+                        <p className="text-xs text-stone-400 uppercase tracking-wide font-medium">Amount to Send</p>
+                        <p className="font-bold text-primary-700 text-lg mt-0.5">{formatCurrency(order.totalAmount)}</p>
                       </div>
                     </div>
                   )}
@@ -377,7 +377,7 @@ export default function OrderDetailPage() {
                   {/* QR Code */}
                   {order.paymentMethod.qrCode && (
                     <div className="flex flex-col items-center">
-                      <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                      <p className="text-xs text-espresso/50 mb-2 flex items-center gap-1">
                         <QrCode className="h-3 w-3" /> Scan to pay
                       </p>
                       <div
@@ -387,18 +387,18 @@ export default function OrderDetailPage() {
                         <img
                           src={order.paymentMethod.qrCode}
                           alt={`${order.paymentMethod.name} QR`}
-                          className="w-full h-full object-contain border border-gray-200 rounded-xl bg-white p-1"
+                          className="w-full h-full object-contain border border-stone-200 rounded-xl bg-white p-1"
                         />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 rounded-xl transition-colors">
+                        <div className="absolute inset-0 flex items-center justify-center bg-espresso/0 group-hover:bg-espresso/20 rounded-xl transition-colors">
                           <ZoomIn className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow" />
                         </div>
                       </div>
-                      <p className="text-xs text-gray-400 mt-2 text-center">Tap to enlarge · Send exact amount</p>
+                      <p className="text-xs text-stone-400 mt-2 text-center">Tap to enlarge · Send exact amount</p>
                     </div>
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-gray-400">Payment details unavailable. Contact the store.</p>
+                <p className="text-sm text-stone-400">Payment details unavailable. Contact the store.</p>
               )}
             </div>
           </div>
@@ -407,21 +407,21 @@ export default function OrderDetailPage() {
         {/* QR Lightbox */}
         {lightboxQr && order.paymentMethod?.qrCode && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-espresso/80"
             onClick={() => setLightboxQr(false)}
           >
             <div
-              className="relative bg-white rounded-2xl shadow-2xl p-5 max-w-sm w-full"
+              className="relative bg-white rounded-2xl shadow-warm p-5 max-w-sm w-full"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-3">
-                <p className="font-semibold text-gray-900 flex items-center gap-2">
-                  <QrCode className="h-4 w-4 text-indigo-600" />
+                <p className="font-semibold text-espresso flex items-center gap-2">
+                  <QrCode className="h-4 w-4 text-primary-700" />
                   {order.paymentMethod.name}
                 </p>
                 <button
                   onClick={() => setLightboxQr(false)}
-                  className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-1.5 hover:bg-stone-100 rounded-lg text-stone-400 hover:text-espresso transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -429,30 +429,30 @@ export default function OrderDetailPage() {
               <img
                 src={order.paymentMethod.qrCode}
                 alt={`${order.paymentMethod.name} QR Code`}
-                className="w-full object-contain rounded-lg border border-gray-100"
+                className="w-full object-contain rounded-lg border border-stone-100"
               />
-              <p className="text-xs text-gray-400 text-center mt-3">Scan with your phone camera or payment app</p>
+              <p className="text-xs text-stone-400 text-center mt-3">Scan with your phone camera or payment app</p>
             </div>
           </div>
         )}
 
         {order.status === 'DEPOSIT_SUBMITTED' && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 flex items-center gap-3">
-            <Clock className="h-5 w-5 text-blue-500 flex-shrink-0" />
+          <div className="bg-sky-50 border border-sky-200 rounded-2xl p-4 mb-4 flex items-center gap-3">
+            <Clock className="h-5 w-5 text-sky-500 flex-shrink-0" />
             <div>
-              <p className="font-medium text-blue-800">Deposit Under Review</p>
-              <p className="text-sm text-blue-600">Your deposit proof has been submitted. Admin will confirm shortly.</p>
+              <p className="font-medium text-sky-800">Deposit Under Review</p>
+              <p className="text-sm text-sky-600">Your deposit proof has been submitted. Admin will confirm shortly.</p>
               {order.depositProof && (
                 <div className="mt-2">
                   {order.depositProof.startsWith('data:image') ? (
                     <img
                       src={order.depositProof.split('||note:')[0]}
                       alt="Deposit proof"
-                      className="max-h-40 rounded-lg border border-blue-200 object-contain bg-white"
+                      className="max-h-40 rounded-lg border border-sky-200 object-contain bg-white"
                     />
                   ) : null}
                   {order.depositProof.includes('||note:') && (
-                    <p className="text-xs text-blue-500 mt-1">
+                    <p className="text-xs text-sky-500 mt-1">
                       Note: {order.depositProof.split('||note:')[1]}
                     </p>
                   )}
@@ -463,7 +463,7 @@ export default function OrderDetailPage() {
         )}
 
         {order.status === 'WAITING_FOR_ARRIVAL' && (
-          <div className="bg-orange-50 border border-orange-200 rounded-xl p-5 mb-4">
+          <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5 mb-4">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                 <Truck className="h-5 w-5 text-orange-500" />
@@ -484,43 +484,43 @@ export default function OrderDetailPage() {
         )}
 
         {/* Order Items */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-4">
-          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Package className="h-5 w-5 text-indigo-600" />
+        <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6 mb-4">
+          <h3 className="font-display font-semibold text-espresso mb-4 flex items-center gap-2">
+            <Package className="h-5 w-5 text-primary-700" />
             Order Items
           </h3>
           <div className="space-y-3">
             {order.items.map((item) => (
               <div key={item.id} className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                <div className="w-12 h-12 bg-stone-100 rounded-xl overflow-hidden flex-shrink-0">
                   {item.product.imageUrl ? (
                     <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Package className="h-5 w-5 text-gray-300" />
+                      <Package className="h-5 w-5 text-stone-300" />
                     </div>
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-sm text-gray-900">{item.product.name}</p>
-                  <p className="text-xs text-gray-500">Qty: {item.quantity} × {formatCurrency(item.price)}</p>
+                  <p className="font-medium text-sm text-espresso">{item.product.name}</p>
+                  <p className="text-xs text-espresso/50">Qty: {item.quantity} × {formatCurrency(item.price)}</p>
                 </div>
-                <p className="font-semibold text-sm text-gray-900">
+                <p className="font-semibold text-sm text-espresso">
                   {formatCurrency(item.price * item.quantity)}
                 </p>
               </div>
             ))}
           </div>
 
-          <div className="border-t border-gray-100 mt-4 pt-4">
+          <div className="border-t border-stone-100 mt-4 pt-4">
             <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-sm text-espresso/60">
                 <Truck className="h-4 w-4" />
                 <span>{order.deliveryMethod}</span>
               </div>
               <div className="text-right">
-                <p className="text-xs text-gray-500">Total Amount</p>
-                <p className="text-xl font-bold text-indigo-600">{formatCurrency(order.totalAmount)}</p>
+                <p className="text-xs text-espresso/50">Total Amount</p>
+                <p className="text-xl font-bold text-primary-700">{formatCurrency(order.totalAmount)}</p>
               </div>
             </div>
           </div>

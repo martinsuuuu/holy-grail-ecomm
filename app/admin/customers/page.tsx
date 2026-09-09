@@ -139,8 +139,8 @@ export default function AdminCustomersPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-          <p className="text-gray-500 text-sm mt-1">{customers.length} registered customers</p>
+          <h1 className="text-2xl font-display font-bold text-espresso">Customers</h1>
+          <p className="text-stone-500 text-sm mt-1">{customers.length} registered customers</p>
         </div>
         <button onClick={openAdd} className="btn-primary flex items-center gap-2">
           <Plus className="h-4 w-4" />
@@ -149,7 +149,7 @@ export default function AdminCustomersPage() {
       </div>
 
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
         <input
           type="text"
           placeholder="Search customers..."
@@ -159,33 +159,33 @@ export default function AdminCustomersPage() {
         />
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-stone-50 border-b border-stone-200">
             <tr>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Customer ID</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Customer</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Joined</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Orders</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Customer ID</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Customer</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Joined</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Orders</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Status</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-stone-100">
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i}>
                   {Array.from({ length: 6 }).map((_, j) => (
                     <td key={j} className="px-6 py-4">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                      <div className="h-4 bg-stone-200 rounded animate-pulse" />
                     </td>
                   ))}
                 </tr>
               ))
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                  <Users className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                <td colSpan={5} className="px-6 py-12 text-center text-stone-500">
+                  <Users className="h-8 w-8 mx-auto mb-2 text-stone-300" />
                   <p>No customers found</p>
                 </td>
               </tr>
@@ -193,29 +193,29 @@ export default function AdminCustomersPage() {
               filtered.map(customer => (
                   <tr
                     key={customer.id}
-                    className="hover:bg-gray-50 cursor-pointer"
+                    className="hover:bg-stone-50/60 cursor-pointer"
                     onClick={() => router.push(`/admin/customers/${customer.id}`)}
                   >
                     <td className="px-6 py-4">
-                      <span className="font-mono text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-1 rounded">
+                      <span className="font-mono text-xs font-semibold text-primary-700 bg-primary-50 px-2 py-1 rounded">
                         {customer.customerId ?? '—'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-bold text-indigo-600">{customer.name[0]}</span>
+                        <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-bold text-primary-600">{customer.name[0]}</span>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{customer.name}</p>
-                          <p className="text-xs text-gray-500">{customer.email}</p>
+                          <p className="text-sm font-medium text-espresso">{customer.name}</p>
+                          <p className="text-xs text-stone-500">{customer.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{formatDate(customer.createdAt)}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{customer.orders.length}</td>
+                    <td className="px-6 py-4 text-sm text-stone-600">{formatDate(customer.createdAt)}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-espresso">{customer.orders.length}</td>
                     <td className="px-6 py-4">
-                      <span className={`badge text-xs ${customer.banned ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                      <span className={`badge text-xs ${customer.banned ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
                         {customer.banned ? 'Banned' : 'Active'}
                       </span>
                     </td>
@@ -223,16 +223,16 @@ export default function AdminCustomersPage() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={e => openEdit(e, customer)}
-                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-1.5 text-stone-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-colors"
                           title="Edit customer"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={e => handleBanToggle(e, customer.id)}
-                          className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                          className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl transition-colors ${
                             customer.banned
-                              ? 'bg-green-50 text-green-700 hover:bg-green-100'
+                              ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                               : 'bg-red-50 text-red-700 hover:bg-red-100'
                           }`}
                         >
@@ -251,20 +251,20 @@ export default function AdminCustomersPage() {
 
       {/* Add / Edit Modal */}
       {modal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900">
+        <div className="fixed inset-0 bg-espresso/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-warm w-full max-w-lg max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-stone-100">
+              <h2 className="text-lg font-display font-semibold text-espresso">
                 {modal.mode === 'add' ? 'Add Customer' : 'Edit Customer'}
               </h2>
-              <button onClick={closeModal} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
+              <button onClick={closeModal} className="p-1.5 hover:bg-stone-100 rounded-xl text-stone-400 hover:text-stone-600 transition-colors">
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <form onSubmit={handleSave} className="p-6 space-y-4 overflow-y-auto flex-1">
               {formError && (
-                <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">{formError}</div>
+                <div className="p-3 bg-red-50 text-red-700 rounded-xl text-sm">{formError}</div>
               )}
 
               <div className="grid grid-cols-2 gap-4">
@@ -297,7 +297,7 @@ export default function AdminCustomersPage() {
                     Password
                     {modal.mode === 'add'
                       ? <span className="text-red-500"> *</span>
-                      : <span className="text-gray-400 font-normal text-xs ml-1">(leave blank to keep current)</span>}
+                      : <span className="text-stone-400 font-normal text-xs ml-1">(leave blank to keep current)</span>}
                   </label>
                   <div className="relative">
                     <input
@@ -311,7 +311,7 @@ export default function AdminCustomersPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(s => !s)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>

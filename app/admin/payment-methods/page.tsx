@@ -33,29 +33,29 @@ interface MethodCardProps {
 
 function MethodCard({ m, edit, uploading, fileInputRefs, onUpdateEdit, onToggle, onDelete, onQrUpload, onRemoveQr }: MethodCardProps) {
   return (
-    <div className={`border rounded-xl p-4 ${m.isActive ? 'border-gray-200 bg-white' : 'border-gray-100 bg-gray-50 opacity-60'}`}>
+    <div className={`border rounded-2xl p-4 ${m.isActive ? 'border-stone-200 bg-white' : 'border-stone-100 bg-stone-50 opacity-60'}`}>
       {/* Header row */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 min-w-0">
           {m.type === 'GCASH'
-            ? <Smartphone className="h-4 w-4 text-blue-500 flex-shrink-0" />
-            : <Building2 className="h-4 w-4 text-indigo-500 flex-shrink-0" />}
-          <span className="font-medium text-gray-900 truncate">{m.name}</span>
-          {!m.isActive && <span className="text-xs text-gray-400 flex-shrink-0">(hidden)</span>}
+            ? <Smartphone className="h-4 w-4 text-sky-500 flex-shrink-0" />
+            : <Building2 className="h-4 w-4 text-primary-500 flex-shrink-0" />}
+          <span className="font-medium text-espresso truncate">{m.name}</span>
+          {!m.isActive && <span className="text-xs text-stone-400 flex-shrink-0">(hidden)</span>}
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
           <button
             onClick={() => onToggle(m)}
             title={m.isActive ? 'Hide from customers' : 'Show to customers'}
-            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-500"
+            className="p-1.5 rounded-xl hover:bg-stone-100 transition-colors text-stone-500"
           >
             {m.isActive
-              ? <ToggleRight className="h-4 w-4 text-green-500" />
-              : <ToggleLeft className="h-4 w-4 text-gray-400" />}
+              ? <ToggleRight className="h-4 w-4 text-emerald-500" />
+              : <ToggleLeft className="h-4 w-4 text-stone-400" />}
           </button>
           <button
             onClick={() => onDelete(m.id)}
-            className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+            className="p-1.5 rounded-xl hover:bg-red-50 text-stone-400 hover:text-red-500 transition-colors"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -65,30 +65,30 @@ function MethodCard({ m, edit, uploading, fileInputRefs, onUpdateEdit, onToggle,
       {/* Account details */}
       <div className="space-y-2 mb-3">
         <div>
-          <label className="text-xs text-gray-500 font-medium block mb-1">Account Name</label>
+          <label className="text-xs text-stone-500 font-medium block mb-1">Account Name</label>
           <input
             type="text"
             value={edit?.accountName ?? ''}
             onChange={e => onUpdateEdit(m.id, 'accountName', e.target.value)}
             placeholder="e.g. Juan Dela Cruz"
-            className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full border border-stone-300 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
         </div>
         <div>
-          <label className="text-xs text-gray-500 font-medium block mb-1">Account Number</label>
+          <label className="text-xs text-stone-500 font-medium block mb-1">Account Number</label>
           <input
             type="text"
             value={edit?.accountNumber ?? ''}
             onChange={e => onUpdateEdit(m.id, 'accountNumber', e.target.value)}
             placeholder="e.g. 09XX XXX XXXX"
-            className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full border border-stone-300 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
         </div>
       </div>
 
       {/* No QR warning */}
       {!m.qrCode && (
-        <div className="flex items-center gap-1.5 mb-3 px-2 py-1.5 bg-amber-50 border border-amber-200 rounded-lg">
+        <div className="flex items-center gap-1.5 mb-3 px-2 py-1.5 bg-amber-50 border border-amber-200 rounded-xl">
           <AlertTriangle className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
           <span className="text-xs text-amber-700 font-medium">Not visible to customers — upload a QR code</span>
         </div>
@@ -98,7 +98,7 @@ function MethodCard({ m, edit, uploading, fileInputRefs, onUpdateEdit, onToggle,
       <div>
         {m.qrCode ? (
           <div className="relative inline-block">
-            <img src={m.qrCode} alt="QR Code" className="w-32 h-32 object-contain border border-gray-200 rounded-lg" />
+            <img src={m.qrCode} alt="QR Code" className="w-32 h-32 object-contain border border-stone-200 rounded-xl" />
             <button
               onClick={() => onRemoveQr(m.id)}
               className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
@@ -109,14 +109,14 @@ function MethodCard({ m, edit, uploading, fileInputRefs, onUpdateEdit, onToggle,
         ) : (
           <div
             onClick={() => fileInputRefs.current[m.id]?.click()}
-            className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all"
+            className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-stone-300 rounded-xl cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-all"
           >
             {uploading === m.id ? (
-              <div className="text-xs text-gray-400">Uploading…</div>
+              <div className="text-xs text-stone-400">Uploading…</div>
             ) : (
               <>
-                <Upload className="h-5 w-5 text-gray-300 mb-1" />
-                <span className="text-xs text-gray-400 text-center px-1">Upload QR / Image</span>
+                <Upload className="h-5 w-5 text-stone-300 mb-1" />
+                <span className="text-xs text-stone-400 text-center px-1">Upload QR / Image</span>
               </>
             )}
           </div>
@@ -131,7 +131,7 @@ function MethodCard({ m, edit, uploading, fileInputRefs, onUpdateEdit, onToggle,
         {m.qrCode && (
           <button
             onClick={() => fileInputRefs.current[m.id]?.click()}
-            className="mt-1.5 text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+            className="mt-1.5 text-xs text-primary-600 hover:text-primary-800 flex items-center gap-1"
           >
             <Upload className="h-3 w-3" /> Replace image
           </button>
@@ -252,20 +252,20 @@ export default function PaymentMethodsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <CreditCard className="h-6 w-6 text-indigo-600" />
+          <h1 className="text-2xl font-display font-bold text-espresso flex items-center gap-2">
+            <CreditCard className="h-6 w-6 text-primary-600" />
             Payment Methods
           </h1>
-          <p className="text-sm text-gray-500 mt-1">Manage payment options shown to customers at checkout</p>
+          <p className="text-sm text-stone-500 mt-1">Manage payment options shown to customers at checkout</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleSaveAll}
             disabled={isSaving || methods.length === 0}
-            className={`flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
+            className={`flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl transition-colors ${
               saved
-                ? 'bg-green-100 text-green-700'
-                : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                ? 'bg-emerald-100 text-emerald-700'
+                : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
             } disabled:opacity-50`}
           >
             {saved ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
@@ -273,7 +273,7 @@ export default function PaymentMethodsPage() {
           </button>
           <button
             onClick={() => { setShowAddModal(true); setAddError(''); setAddName(''); }}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            className="btn-primary flex items-center gap-2 text-sm py-2"
           >
             <Plus className="h-4 w-4" />
             Add Payment Method
@@ -283,23 +283,23 @@ export default function PaymentMethodsPage() {
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[1, 2].map(i => <div key={i} className="h-64 bg-gray-100 rounded-xl animate-pulse" />)}
+          {[1, 2].map(i => <div key={i} className="h-64 bg-stone-200 rounded-2xl animate-pulse" />)}
         </div>
       ) : (
         <div className="space-y-8">
           {/* GCash */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Smartphone className="h-5 w-5 text-blue-500" />
-              <h2 className="text-base font-semibold text-gray-900">GCash</h2>
-              <span className="text-xs text-gray-400">({gcash.length} configured)</span>
+              <Smartphone className="h-5 w-5 text-sky-500" />
+              <h2 className="text-base font-display font-semibold text-espresso">GCash</h2>
+              <span className="text-xs text-stone-400">({gcash.length} configured)</span>
             </div>
             {gcash.length === 0 ? (
-              <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center text-gray-400 text-sm">
+              <div className="border-2 border-dashed border-stone-200 rounded-2xl p-8 text-center text-stone-400 text-sm">
                 No GCash entry yet.{' '}
                 <button
                   onClick={() => { setAddType('GCASH'); setAddName('GCash'); setShowAddModal(true); }}
-                  className="text-indigo-600 hover:underline"
+                  className="text-primary-600 hover:underline"
                 >
                   Add one
                 </button>
@@ -327,12 +327,12 @@ export default function PaymentMethodsPage() {
           {/* Bank Transfer */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Building2 className="h-5 w-5 text-indigo-500" />
-              <h2 className="text-base font-semibold text-gray-900">Bank Transfer</h2>
-              <span className="text-xs text-gray-400">({banks.length} banks)</span>
+              <Building2 className="h-5 w-5 text-primary-500" />
+              <h2 className="text-base font-display font-semibold text-espresso">Bank Transfer</h2>
+              <span className="text-xs text-stone-400">({banks.length} banks)</span>
             </div>
             {banks.length === 0 ? (
-              <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center text-gray-400 text-sm">
+              <div className="border-2 border-dashed border-stone-200 rounded-2xl p-8 text-center text-stone-400 text-sm">
                 No banks configured.
               </div>
             ) : (
@@ -355,7 +355,7 @@ export default function PaymentMethodsPage() {
             )}
             <button
               onClick={() => { setAddType('BANK_TRANSFER'); setAddName(''); setShowAddModal(true); }}
-              className="mt-3 flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800"
+              className="mt-3 flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-800"
             >
               <Plus className="h-4 w-4" /> Add bank
             </button>
@@ -365,23 +365,23 @@ export default function PaymentMethodsPage() {
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowAddModal(false)}>
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-espresso/50" onClick={() => setShowAddModal(false)}>
+          <div className="bg-white rounded-2xl shadow-warm w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Add Payment Method</h2>
-              <button onClick={() => setShowAddModal(false)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400">
+              <h2 className="text-lg font-display font-semibold text-espresso">Add Payment Method</h2>
+              <button onClick={() => setShowAddModal(false)} className="p-1.5 hover:bg-stone-100 rounded-xl text-stone-400">
                 <X className="h-4 w-4" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1.5">Type</label>
+                <label className="text-sm font-medium text-espresso/80 block mb-1.5">Type</label>
                 <div className="grid grid-cols-2 gap-2">
                   {(['GCASH', 'BANK_TRANSFER'] as const).map(t => (
                     <label
                       key={t}
-                      className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer text-sm transition-all ${
-                        addType === t ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-200 text-gray-600'
+                      className={`flex items-center gap-2 p-3 rounded-2xl border-2 cursor-pointer text-sm transition-all ${
+                        addType === t ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-stone-200 text-stone-600'
                       }`}
                     >
                       <input type="radio" name="type" value={t} checked={addType === t} onChange={() => setAddType(t)} className="hidden" />
@@ -392,7 +392,7 @@ export default function PaymentMethodsPage() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                <label className="text-sm font-medium text-espresso/80 block mb-1.5">
                   {addType === 'GCASH' ? 'Name (e.g. GCash)' : 'Bank Name (e.g. UnionBank)'}
                 </label>
                 <input
@@ -401,17 +401,17 @@ export default function PaymentMethodsPage() {
                   onChange={e => setAddName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleAdd()}
                   placeholder={addType === 'GCASH' ? 'GCash' : 'e.g. UnionBank, Metrobank'}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full border border-stone-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                   autoFocus
                 />
-                {addError && <p className="text-red-500 text-xs mt-1">{addError}</p>}
+                {addError && <p className="text-red-600 text-xs mt-1">{addError}</p>}
               </div>
             </div>
             <div className="flex gap-3 mt-5">
-              <button onClick={() => setShowAddModal(false)} className="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50">
+              <button onClick={() => setShowAddModal(false)} className="flex-1 py-2 rounded-full border border-stone-200 text-sm text-espresso/80 hover:bg-stone-50">
                 Cancel
               </button>
-              <button onClick={handleAdd} className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium">
+              <button onClick={handleAdd} className="flex-1 py-2 rounded-full bg-espresso hover:bg-primary-800 text-cream text-sm font-medium">
                 Add
               </button>
             </div>

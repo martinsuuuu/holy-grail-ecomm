@@ -117,8 +117,8 @@ export default function AdminExpensesPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Expenses</h1>
-          <p className="text-gray-500 text-sm mt-1">Track business expenses</p>
+          <h1 className="text-2xl font-display font-bold text-espresso">Expenses</h1>
+          <p className="text-stone-500 text-sm mt-1">Track business expenses</p>
         </div>
         <button onClick={openCreateModal} className="btn-primary flex items-center gap-2">
           <Plus className="h-4 w-4" />
@@ -128,28 +128,28 @@ export default function AdminExpensesPage() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
               <DollarSign className="h-5 w-5 text-red-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Total Expenses</p>
-              <p className="text-lg font-bold text-gray-900">{formatCurrency(totalExpenses)}</p>
+              <p className="text-xs text-stone-500">Total Expenses</p>
+              <p className="text-lg font-bold text-espresso">{formatCurrency(totalExpenses)}</p>
             </div>
           </div>
         </div>
         {byCategory.slice(0, 3).map(cat => (
-          <div key={cat.category} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <p className="text-xs text-gray-500">{cat.category}</p>
-            <p className="text-lg font-bold text-gray-900 mt-1">{formatCurrency(cat.total)}</p>
+          <div key={cat.category} className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-4">
+            <p className="text-xs text-stone-500">{cat.category}</p>
+            <p className="text-lg font-bold text-espresso mt-1">{formatCurrency(cat.total)}</p>
           </div>
         ))}
       </div>
 
       {/* Search */}
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
         <input
           type="text"
           placeholder="Search expenses..."
@@ -160,57 +160,57 @@ export default function AdminExpensesPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-stone-50 border-b border-stone-200">
             <tr>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Title</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Category</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Amount</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Notes</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Title</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Category</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Amount</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Date</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Notes</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-stone-100">
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i}>
                   {Array.from({ length: 6 }).map((_, j) => (
                     <td key={j} className="px-6 py-4">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                      <div className="h-4 bg-stone-200 rounded animate-pulse" />
                     </td>
                   ))}
                 </tr>
               ))
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                  <DollarSign className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                <td colSpan={6} className="px-6 py-12 text-center text-stone-500">
+                  <DollarSign className="h-8 w-8 mx-auto mb-2 text-stone-300" />
                   <p>No expenses found</p>
                 </td>
               </tr>
             ) : (
               filtered.map((expense) => (
-                <tr key={expense.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-sm text-gray-900">{expense.title}</td>
+                <tr key={expense.id} className="hover:bg-stone-50/60">
+                  <td className="px-6 py-4 font-medium text-sm text-espresso">{expense.title}</td>
                   <td className="px-6 py-4">
-                    <span className="badge bg-indigo-50 text-indigo-700 text-xs">{expense.category}</span>
+                    <span className="badge bg-primary-50 text-primary-700 text-xs">{expense.category}</span>
                   </td>
                   <td className="px-6 py-4 font-bold text-sm text-red-600">{formatCurrency(expense.amount)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{formatDate(expense.date)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500 max-w-48 truncate">{expense.notes || '—'}</td>
+                  <td className="px-6 py-4 text-sm text-stone-600">{formatDate(expense.date)}</td>
+                  <td className="px-6 py-4 text-sm text-stone-500 max-w-48 truncate">{expense.notes || '—'}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => openEditModal(expense)}
-                        className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        className="p-1.5 text-stone-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-colors"
                       >
                         <Edit className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(expense.id, expense.title)}
-                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -225,15 +225,15 @@ export default function AdminExpensesPage() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
-            <div className="p-6 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900">
+        <div className="fixed inset-0 bg-espresso/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-warm w-full max-w-md">
+            <div className="p-6 border-b border-stone-100">
+              <h2 className="text-lg font-display font-semibold text-espresso">
                 {editingExpense ? 'Edit Expense' : 'Add Expense'}
               </h2>
             </div>
             <form onSubmit={handleSave} className="p-6 space-y-4">
-              {error && <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
+              {error && <div className="p-3 bg-red-50 text-red-700 rounded-xl text-sm">{error}</div>}
               <div>
                 <label className="label">Title *</label>
                 <input

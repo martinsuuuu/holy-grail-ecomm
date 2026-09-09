@@ -5,11 +5,13 @@ config({ path: path.resolve(process.cwd(), '.env') });
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
-import { users, products, expenses, notifications } from './schema';
+import { users, products, expenses, notifications, categories } from './schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
-const client = postgres(process.env.DATABASE_URL!, { ssl: 'require' });
+const client = postgres(process.env.DATABASE_URL!, {
+  ssl: process.env.DATABASE_URL?.includes('localhost') ? false : 'require',
+});
 const db = drizzle(client, { schema });
 
 async function main() {
@@ -65,87 +67,140 @@ async function main() {
 
   console.log('Users created:', { admin: admin.email, shipper: shipper.email, customer: customer.email });
 
-  // Create products
+  // Create brand categories
+  const categoryList = [
+    { name: 'Louis Vuitton', description: 'French leather goods and travel house, founded 1854.' },
+    { name: 'Chanel', description: 'Timeless Parisian elegance and quilted leather icons.' },
+    { name: 'Hermès', description: 'Artisanal French leather goods, home of the Birkin and Kelly.' },
+    { name: 'Gucci', description: 'Italian luxury fashion house known for bold, eclectic design.' },
+    { name: 'Dior', description: 'Christian Dior\'s house of couture-inspired accessories.' },
+  ];
+
+  for (const cat of categoryList) {
+    const existing = await db.select().from(categories).where(eq(categories.name, cat.name)).limit(1);
+    if (!existing[0]) {
+      await db.insert(categories).values(cat);
+    }
+  }
+
+  console.log(`${categoryList.length} brand categories ready`);
+
+  // Create products — luxury handbags
+  const now = new Date();
   const productsList = [
     {
-      name: 'Wireless Bluetooth Headphones',
-      description: 'Premium sound quality with active noise cancellation. Up to 30 hours battery life.',
-      price: 89.99,
-      stock: 25,
-      category: 'Electronics',
-      imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
+      name: 'Louis Vuitton Neverfull MM',
+      description: 'Monogram canvas tote with spacious interior and signature leather trim. An everyday icon.',
+      price: 95000,
+      stock: 6,
+      category: 'Louis Vuitton',
+      imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&q=80',
+      type: 'ONHAND',
     },
     {
-      name: 'Smartphone Stand & Charger',
-      description: '3-in-1 wireless charging stand for phone, watch, and earbuds.',
-      price: 45.99,
-      stock: 15,
-      category: 'Electronics',
-      imageUrl: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400',
+      name: 'Louis Vuitton Speedy 25',
+      description: 'Compact monogram canvas top-handle bag, a Louis Vuitton archive favorite since 1930.',
+      price: 110000,
+      stock: 4,
+      category: 'Louis Vuitton',
+      imageUrl: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80',
+      type: 'ONHAND',
     },
     {
-      name: 'USB-C Hub 7-in-1',
-      description: 'Expand your laptop connectivity with HDMI, USB 3.0, SD card reader, and more.',
-      price: 34.99,
-      stock: 30,
-      category: 'Electronics',
-      imageUrl: 'https://images.unsplash.com/photo-1625723044792-44de16ccb4e9?w=400',
+      name: 'Louis Vuitton Capucines BB',
+      description: 'Structured calfskin bag with the iconic LV flower clasp, made in the Asnières workshop.',
+      price: 245000,
+      stock: 0,
+      category: 'Louis Vuitton',
+      imageUrl: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600&q=80',
+      type: 'PASABUY',
+      etaStart: new Date(now.getFullYear(), now.getMonth() + 1, 5),
+      etaEnd: new Date(now.getFullYear(), now.getMonth() + 1, 20),
     },
     {
-      name: "Men's Classic Polo Shirt",
-      description: 'Premium cotton polo shirt, available in multiple colors. Machine washable.',
-      price: 29.99,
-      stock: 50,
-      category: 'Clothing',
-      imageUrl: 'https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=400',
-    },
-    {
-      name: "Women's Running Sneakers",
-      description: 'Lightweight and breathable running shoes with cushioned sole. Sizes 5-11.',
-      price: 65.99,
-      stock: 20,
-      category: 'Clothing',
-      imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400',
-    },
-    {
-      name: 'Denim Jacket',
-      description: 'Classic denim jacket with modern fit. Perfect for layering in any season.',
-      price: 79.99,
-      stock: 18,
-      category: 'Clothing',
-      imageUrl: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400',
-    },
-    {
-      name: 'Organic Green Tea (50 bags)',
-      description: 'Premium organic green tea from Japan. Rich in antioxidants, smooth flavor.',
-      price: 12.99,
-      stock: 100,
-      category: 'Food',
-      imageUrl: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400',
-    },
-    {
-      name: 'Dark Chocolate Gift Box',
-      description: 'Assorted premium dark chocolates. 70% cacao, fair trade certified. 500g.',
-      price: 24.99,
-      stock: 40,
-      category: 'Food',
-      imageUrl: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400',
-    },
-    {
-      name: 'Artisan Coffee Beans 1kg',
-      description: 'Single-origin Ethiopian coffee beans, medium roast. Rich, fruity notes.',
-      price: 18.99,
+      name: 'Chanel Classic Flap Medium',
+      description: 'Quilted lambskin with the interlocking CC turn-lock and signature chain strap.',
+      price: 380000,
       stock: 3,
-      category: 'Food',
-      imageUrl: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400',
+      category: 'Chanel',
+      imageUrl: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=600&q=80',
+      type: 'ONHAND',
     },
     {
-      name: 'Smart LED Desk Lamp',
-      description: 'Adjustable color temperature and brightness. USB charging port included.',
-      price: 42.99,
-      stock: 12,
-      category: 'Electronics',
-      imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400',
+      name: 'Chanel Boy Bag Medium',
+      description: 'Structured calfskin bag with aged-gold hardware and a bold chain-and-leather strap.',
+      price: 320000,
+      stock: 2,
+      category: 'Chanel',
+      imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80',
+      type: 'ONHAND',
+    },
+    {
+      name: 'Chanel 19 Bag',
+      description: 'Diamond-quilted goatskin with mixed vintage-style hardware, a modern Chanel classic.',
+      price: 355000,
+      stock: 0,
+      category: 'Chanel',
+      imageUrl: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=600&q=80',
+      type: 'PASABUY',
+      etaStart: new Date(now.getFullYear(), now.getMonth() + 1, 10),
+      etaEnd: new Date(now.getFullYear(), now.getMonth() + 1, 28),
+    },
+    {
+      name: 'Hermès Birkin 30',
+      description: 'Togo leather with palladium hardware. The house\'s most coveted silhouette, made to order.',
+      price: 950000,
+      stock: 1,
+      category: 'Hermès',
+      imageUrl: 'https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=600&q=80',
+      type: 'ONHAND',
+    },
+    {
+      name: 'Hermès Kelly 28',
+      description: 'Structured Epsom leather bag with the iconic turn-lock strap closure and top handle.',
+      price: 890000,
+      stock: 0,
+      category: 'Hermès',
+      imageUrl: 'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600&q=80',
+      type: 'PASABUY',
+      etaStart: new Date(now.getFullYear(), now.getMonth() + 2, 1),
+      etaEnd: new Date(now.getFullYear(), now.getMonth() + 2, 15),
+    },
+    {
+      name: 'Gucci GG Marmont Small',
+      description: 'Matelassé chevron leather with the antique-gold Double G hardware and chain strap.',
+      price: 89000,
+      stock: 8,
+      category: 'Gucci',
+      imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&q=80',
+      type: 'ONHAND',
+    },
+    {
+      name: 'Gucci Dionysus Small',
+      description: 'Supreme canvas shoulder bag with tiger-head closure and a signature web stripe.',
+      price: 105000,
+      stock: 5,
+      category: 'Gucci',
+      imageUrl: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80',
+      type: 'ONHAND',
+    },
+    {
+      name: 'Dior Lady Dior Medium',
+      description: 'Cannage-stitched lambskin with charm pendants spelling "D.I.O.R." A red-carpet mainstay.',
+      price: 275000,
+      stock: 4,
+      category: 'Dior',
+      imageUrl: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600&q=80',
+      type: 'ONHAND',
+    },
+    {
+      name: 'Dior Saddle Bag',
+      description: 'Oblique jacquard saddle-shaped bag with the signature D-shaped flap, revived from 1999.',
+      price: 180000,
+      stock: 7,
+      category: 'Dior',
+      imageUrl: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=600&q=80',
+      type: 'ONHAND',
     },
   ];
 
@@ -156,7 +211,6 @@ async function main() {
   console.log(`${productsList.length} products created`);
 
   // Create sample expenses
-  const now = new Date();
   const expensesList = [
     {
       title: 'Office Rent',

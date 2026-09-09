@@ -74,43 +74,43 @@ export default function NotificationBell() {
 
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      ORDER: 'bg-blue-100 text-blue-600',
-      WARNING: 'bg-yellow-100 text-yellow-600',
-      INFO: 'bg-green-100 text-green-600',
-      ERROR: 'bg-red-100 text-red-600',
+      ORDER: 'bg-sky-100 text-sky-700',
+      WARNING: 'bg-amber-100 text-amber-700',
+      INFO: 'bg-emerald-100 text-emerald-700',
+      ERROR: 'bg-red-100 text-red-700',
     };
-    return colors[type] || 'bg-gray-100 text-gray-600';
+    return colors[type] || 'bg-stone-100 text-stone-600';
   };
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
+        className="relative p-2 text-espresso/70 hover:text-primary-700 hover:bg-primary-50 rounded-full transition-colors"
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+          <span className="absolute top-0 right-0 h-4 w-4 bg-red-600 text-white text-xs rounded-full flex items-center justify-center font-medium">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
-          <div className="flex items-center justify-between p-4 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-900">Notifications</h3>
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-warm border border-stone-200/70 z-50">
+          <div className="flex items-center justify-between p-4 border-b border-stone-100">
+            <h3 className="font-display font-semibold text-espresso">Notifications</h3>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                  className="text-xs text-primary-700 hover:text-primary-900 flex items-center gap-1"
                 >
                   <CheckCheck className="h-3 w-3" />
                   Mark all read
                 </button>
               )}
-              <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setIsOpen(false)} className="text-stone-400 hover:text-espresso">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -118,15 +118,15 @@ export default function NotificationBell() {
 
           <div className="max-h-96 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">
-                <Bell className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+              <div className="p-6 text-center text-espresso/50">
+                <Bell className="h-8 w-8 mx-auto mb-2 text-stone-300" />
                 <p className="text-sm">No notifications yet</p>
               </div>
             ) : (
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors ${!notification.read ? 'bg-indigo-50/30' : ''}`}
+                  className={`p-4 border-b border-stone-50 hover:bg-stone-50 transition-colors ${!notification.read ? 'bg-primary-50/40' : ''}`}
                 >
                   <div className="flex items-start gap-3">
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${getTypeColor(notification.type)}`}>
@@ -134,20 +134,20 @@ export default function NotificationBell() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className={`text-sm font-medium ${!notification.read ? 'text-gray-900' : 'text-gray-600'}`}>
+                        <p className={`text-sm font-medium ${!notification.read ? 'text-espresso' : 'text-espresso/60'}`}>
                           {notification.title}
                         </p>
                         {!notification.read && (
                           <button
                             onClick={() => markAsRead(notification.id)}
-                            className="flex-shrink-0 text-indigo-400 hover:text-indigo-600"
+                            className="flex-shrink-0 text-primary-400 hover:text-primary-700"
                           >
                             <Check className="h-3 w-3" />
                           </button>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{notification.message}</p>
-                      <p className="text-xs text-gray-400 mt-1">{timeAgo(notification.createdAt)}</p>
+                      <p className="text-xs text-espresso/50 mt-0.5 line-clamp-2">{notification.message}</p>
+                      <p className="text-xs text-espresso/40 mt-1">{timeAgo(notification.createdAt)}</p>
                     </div>
                   </div>
                 </div>
@@ -155,10 +155,10 @@ export default function NotificationBell() {
             )}
           </div>
 
-          <div className="p-3 border-t border-gray-100">
+          <div className="p-3 border-t border-stone-100">
             <Link
               href={viewAllHref}
-              className="block text-center text-xs text-indigo-600 hover:text-indigo-800"
+              className="block text-center text-xs text-primary-700 hover:text-primary-900"
               onClick={() => setIsOpen(false)}
             >
               View all notifications

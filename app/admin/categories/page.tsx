@@ -87,55 +87,55 @@ export default function AdminCategoriesPage() {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Tag className="h-6 w-6 text-indigo-600" />
+        <h1 className="text-2xl font-display font-bold text-espresso flex items-center gap-2">
+          <Tag className="h-6 w-6 text-primary-600" />
           Product Categories
         </h1>
-        <p className="text-sm text-gray-500 mt-1">Manage categories used to organize products</p>
+        <p className="text-sm text-stone-500 mt-1">Manage categories used to organize products</p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-stone-50 border-b border-stone-200">
             <tr>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase w-48">Category</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Description</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase w-48">Category</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Description</th>
               <th className="px-4 py-3 w-24" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-stone-100">
             {isLoading ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <tr key={i}>
                   {[1, 2, 3].map(j => (
                     <td key={j} className="px-6 py-4">
-                      <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                      <div className="h-4 bg-stone-100 rounded animate-pulse" />
                     </td>
                   ))}
                 </tr>
               ))
             ) : categories.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-6 py-12 text-center text-gray-400">
-                  <Tag className="h-8 w-8 mx-auto mb-2 text-gray-200" />
+                <td colSpan={3} className="px-6 py-12 text-center text-stone-400">
+                  <Tag className="h-8 w-8 mx-auto mb-2 text-stone-200" />
                   <p className="text-sm">No categories yet. Add one below.</p>
                 </td>
               </tr>
             ) : (
               categories.map(cat => (
-                <tr key={cat.id} className="hover:bg-gray-50 group">
+                <tr key={cat.id} className="hover:bg-stone-50/60 group">
                   <td className="px-6 py-3">
                     {editing === cat.id ? (
                       <input
                         type="text"
                         value={editState.name}
                         onChange={e => setEditState(prev => ({ ...prev, name: e.target.value }))}
-                        className="w-full border border-indigo-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        className="w-full border border-primary-300 rounded-xl px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                         autoFocus
                       />
                     ) : (
                       <span
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-sm font-medium cursor-pointer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-50 text-primary-700 text-sm font-medium cursor-pointer"
                         onClick={() => startEdit(cat)}
                       >
                         <Tag className="h-3 w-3" />
@@ -150,14 +150,14 @@ export default function AdminCategoriesPage() {
                         value={editState.description}
                         onChange={e => setEditState(prev => ({ ...prev, description: e.target.value }))}
                         placeholder="Add a description…"
-                        className="w-full border border-indigo-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        className="w-full border border-primary-300 rounded-xl px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                       />
                     ) : (
                       <span
-                        className="text-sm text-gray-500 cursor-pointer"
+                        className="text-sm text-stone-500 cursor-pointer"
                         onClick={() => startEdit(cat)}
                       >
-                        {cat.description || <span className="text-gray-300 italic">No description</span>}
+                        {cat.description || <span className="text-stone-300 italic">No description</span>}
                       </span>
                     )}
                   </td>
@@ -167,14 +167,14 @@ export default function AdminCategoriesPage() {
                         <button
                           onClick={() => handleSave(cat.id)}
                           disabled={isSaving || !editState.name.trim()}
-                          className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors disabled:opacity-50"
+                          className="p-1.5 rounded-xl bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors disabled:opacity-50"
                           title="Save"
                         >
                           <Check className="h-4 w-4" />
                         </button>
                         <button
                           onClick={cancelEdit}
-                          className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"
+                          className="p-1.5 rounded-xl text-stone-400 hover:bg-stone-100 transition-colors"
                           title="Cancel"
                         >
                           <X className="h-4 w-4" />
@@ -183,7 +183,7 @@ export default function AdminCategoriesPage() {
                     ) : (
                       <button
                         onClick={() => handleDelete(cat.id, cat.name)}
-                        className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                        className="p-1.5 rounded-xl text-stone-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
                         title="Delete"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -195,14 +195,14 @@ export default function AdminCategoriesPage() {
             )}
 
             {/* Add new row */}
-            <tr className="bg-gray-50/50">
+            <tr className="bg-stone-50/50">
               <td className="px-6 py-3">
                 <input
                   type="text"
                   value={newName}
                   onChange={e => { setNewName(e.target.value); setAddError(''); }}
                   placeholder="New category…"
-                  className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+                  className="w-full border border-stone-200 rounded-xl px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
                   onKeyDown={e => e.key === 'Enter' && handleAdd(e as any)}
                 />
                 {addError && <p className="text-red-500 text-xs mt-1">{addError}</p>}
@@ -213,7 +213,7 @@ export default function AdminCategoriesPage() {
                   value={newDescription}
                   onChange={e => setNewDescription(e.target.value)}
                   placeholder="Description (optional)"
-                  className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+                  className="w-full border border-stone-200 rounded-xl px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
                   onKeyDown={e => e.key === 'Enter' && handleAdd(e as any)}
                 />
               </td>
@@ -221,7 +221,7 @@ export default function AdminCategoriesPage() {
                 <button
                   onClick={handleAdd}
                   disabled={isAdding || !newName.trim()}
-                  className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1 bg-espresso hover:bg-primary-800 text-cream text-xs font-medium px-3 py-1.5 rounded-xl transition-colors disabled:opacity-50"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add

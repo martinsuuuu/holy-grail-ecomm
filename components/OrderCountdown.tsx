@@ -39,7 +39,7 @@ export default function OrderCountdown({ expiryDate }: OrderCountdownProps) {
 
   if (timeLeft.expired) {
     return (
-      <div className="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+      <div className="flex items-center gap-2 text-red-700 bg-red-50 px-3 py-2 rounded-xl">
         <Clock className="h-4 w-4" />
         <span className="text-sm font-medium">Reservation expired</span>
       </div>
@@ -49,7 +49,7 @@ export default function OrderCountdown({ expiryDate }: OrderCountdownProps) {
   const isUrgent = timeLeft.hours < 2;
 
   return (
-    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isUrgent ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-700'}`}>
+    <div className={`flex items-center gap-2 px-3 py-2 rounded-xl ${isUrgent ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`}>
       <Clock className="h-4 w-4" />
       <span className="text-sm font-medium">
         Reservation expires in:{' '}
