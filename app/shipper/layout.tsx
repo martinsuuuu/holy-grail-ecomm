@@ -23,9 +23,7 @@ export default async function ShipperLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-espresso rounded-full flex items-center justify-center">
-                <HGMonogram className="h-5 w-5 text-primary-400" />
-              </div>
+              <HGMonogram className="h-9 w-9" />
               <div>
                 <span className="font-display font-semibold text-espresso">Holy Grail</span>
                 <span className="text-xs text-primary-700 ml-2 font-medium">Shipper Panel</span>

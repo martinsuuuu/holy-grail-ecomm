@@ -66,9 +66,7 @@ export default function RegisterPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/shop" className="inline-flex items-center gap-2.5 mb-6">
-            <div className="w-11 h-11 bg-espresso rounded-full flex items-center justify-center">
-              <HGMonogram className="h-6 w-6 text-primary-400" />
-            </div>
+            <HGMonogram className="h-12 w-12" />
             <span className="font-display font-semibold text-3xl tracking-wide text-espresso">Holy Grail</span>
           </Link>
           <h1 className="text-2xl font-display font-semibold text-espresso">Create an account</h1>

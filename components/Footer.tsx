@@ -20,9 +20,7 @@ export default function Footer() {
         {/* Newsletter */}
         <div className="md:col-span-1">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-cream rounded-full flex items-center justify-center">
-              <HGMonogram className="h-4 w-4 text-espresso" />
-            </div>
+            <HGMonogram className="h-8 w-8" />
             <span className="font-display font-black text-lg tracking-wide">HOLY GRAIL</span>
           </div>
           <p className="text-sm text-cream/60 mb-4">

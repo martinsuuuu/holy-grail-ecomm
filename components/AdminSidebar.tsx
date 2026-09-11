@@ -56,9 +56,7 @@ export default function AdminSidebar() {
       {/* Logo */}
       <div className="px-6 py-5 border-b border-white/10">
         <Link href="/admin" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
-            <HGMonogram className="h-5 w-5 text-espresso" />
-          </div>
+          <HGMonogram className="h-9 w-9" />
           <span className="font-display font-semibold text-cream text-xl tracking-wide">Holy Grail</span>
         </Link>
         <p className="text-xs text-cream/40 mt-1 tracking-wide">Admin Panel</p>

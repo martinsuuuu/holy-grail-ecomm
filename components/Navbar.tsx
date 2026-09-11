@@ -90,9 +90,7 @@ export default function Navbar() {
 
           {/* Center: Logo */}
           <Link href="/shop" className="flex items-center justify-center md:justify-center gap-2.5 justify-self-start md:justify-self-auto">
-            <div className="w-9 h-9 bg-espresso rounded-full flex items-center justify-center">
-              <HGMonogram className="h-5 w-5 text-primary-400" />
-            </div>
+            <HGMonogram className="h-10 w-10" />
             <span className="font-display font-black text-xl tracking-wide text-espresso hidden sm:inline">HOLY GRAIL</span>
           </Link>
 
