@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { orders, orderItems, products, notifications, paymentMethods } from '@/db/schema';
+import { orders, orderItems, products, notifications, paymentMethods, promoCodes } from '@/db/schema';
 import { eq, and, inArray, desc, sql } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { items, deliveryMethod, paymentMethodId, deliveryAddress } = body;
+  const { items, deliveryMethod, paymentMethodId, deliveryAddress, promoCode } = body;
 
   if (!items || items.length === 0) {
     return NextResponse.json({ error: 'No items in order' }, { status: 400 });
@@ -119,6 +119,26 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  // Re-validate promo code server-side — never trust a client-supplied discount amount
+  let appliedPromoCode: string | null = null;
+  let discountAmount = 0;
+
+  if (promoCode?.trim()) {
+    const promoArr = await db.select().from(promoCodes).where(eq(promoCodes.code, promoCode.trim().toUpperCase())).limit(1);
+    const promo = promoArr[0];
+    const isValid = promo && promo.isActive && (!promo.expiresAt || new Date(promo.expiresAt) >= new Date());
+
+    // An invalid/expired code at submission time is ignored rather than blocking checkout —
+    // this can legitimately happen if an admin deactivates a code between validation and order placement.
+    if (isValid) {
+      const rawDiscount = promo.type === 'PERCENT' ? (totalAmount * promo.value) / 100 : promo.value;
+      discountAmount = Math.min(Math.max(rawDiscount, 0), totalAmount);
+      appliedPromoCode = promo.code;
+    }
+  }
+
+  totalAmount = Math.max(totalAmount - discountAmount, 0);
+
   // Create order with 24-hour reservation
   const reservationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
@@ -129,6 +149,8 @@ export async function POST(request: NextRequest) {
     paymentMethodName: pm.name,
     deliveryAddress: deliveryAddress?.trim() || null,
     totalAmount,
+    promoCode: appliedPromoCode,
+    discountAmount,
     reservationExpiry,
     status: 'PENDING_DEPOSIT',
   }).returning();

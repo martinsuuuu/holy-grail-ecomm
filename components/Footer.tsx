@@ -47,7 +47,9 @@ export default function Footer() {
 
         {/* Contact */}
         <div>
-          <h4 className="font-display font-bold text-sm uppercase tracking-widest mb-4">Contact Us</h4>
+          <h4 className="font-display font-bold text-sm uppercase tracking-widest mb-4">
+            <Link href="/contact" className="hover:text-cream/70 transition-colors">Contact Us</Link>
+          </h4>
           <ul className="space-y-2 text-sm text-cream/60">
             <li>By appointment only</li>
             <li>10am – 7pm (GMT+8)</li>
@@ -60,9 +62,10 @@ export default function Footer() {
         <div>
           <h4 className="font-display font-bold text-sm uppercase tracking-widest mb-4">The Company</h4>
           <ul className="space-y-2 text-sm text-cream/60">
-            <li><Link href="/shop" className="hover:text-cream transition-colors">About Us</Link></li>
+            <li><Link href="/about" className="hover:text-cream transition-colors">About Us</Link></li>
+            <li><Link href="/faq" className="hover:text-cream transition-colors">FAQ</Link></li>
             <li><Link href="/shop" className="hover:text-cream transition-colors">Consignment</Link></li>
-            <li><Link href="/shop" className="hover:text-cream transition-colors">Return Policy</Link></li>
+            <li><Link href="/faq" className="hover:text-cream transition-colors">Return Policy</Link></li>
             <li><Link href="/shop" className="hover:text-cream transition-colors">Privacy Policy</Link></li>
           </ul>
         </div>

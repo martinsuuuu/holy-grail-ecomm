@@ -1,5 +1,9 @@
+'use client';
+
 import Link from 'next/link';
-import { Package, Truck, Calendar } from 'lucide-react';
+import { Package, Truck, Calendar, Heart } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useWishlistStore } from '@/lib/wishlistStore';
 
 interface Product {
   id: string;
@@ -18,6 +22,18 @@ interface Product {
 export default function ProductCard({ product }: { product: Product }) {
   const availableStock = product.stock - product.reserved;
   const isPasabuy = product.type === 'PASABUY';
+  const { data: session } = useSession();
+  const isWishlisted = useWishlistStore((state) => state.has(product.id));
+  const toggleWishlist = useWishlistStore((state) => state.toggle);
+
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!session) {
+      window.location.href = '/login';
+      return;
+    }
+    toggleWishlist(product.id);
+  };
 
   return (
     <Link href={`/shop/${product.id}`} className="group flex flex-col h-full w-full">
@@ -42,6 +58,17 @@ export default function ProductCard({ product }: { product: Product }) {
             <Package className="h-12 w-12 text-stone-300" />
           </div>
         )}
+
+        {session?.user.role !== 'ADMIN' && session?.user.role !== 'SHIPPER' && (
+          <button
+            onClick={handleWishlist}
+            aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            className="absolute top-2 left-2 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition-colors"
+          >
+            <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-red-600 text-red-600' : 'text-espresso/60'}`} />
+          </button>
+        )}
+
         {!isPasabuy && availableStock <= 0 && (
           <div className="absolute inset-0 bg-espresso/40 flex items-center justify-center">
             <span className="bg-red-600 text-white text-sm font-medium px-3 py-1 rounded-full">Out of Stock</span>

@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import ProductCard from '@/components/ProductCard';
 import { useCartStore } from '@/lib/cartStore';
+import { useWishlistStore } from '@/lib/wishlistStore';
 import { useSession } from 'next-auth/react';
 import { formatCurrency } from '@/lib/utils';
-import { MessageCircle, ArrowLeft, Package, Tag, CheckCircle, Truck, Calendar } from 'lucide-react';
+import { MessageCircle, ArrowLeft, Package, Tag, CheckCircle, Truck, Calendar, Heart } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/lib/toast';
 import AddToCartModal from '@/components/AddToCartModal';
@@ -35,6 +37,9 @@ export default function ProductDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [added, setAdded] = useState(false);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const isWishlisted = useWishlistStore((state) => state.has(product?.id ?? ''));
+  const toggleWishlist = useWishlistStore((state) => state.toggle);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -50,6 +55,17 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [params.id]);
 
+  useEffect(() => {
+    if (!product?.category) {
+      setRelatedProducts([]);
+      return;
+    }
+    fetch(`/api/products?category=${encodeURIComponent(product.category)}`)
+      .then((r) => r.json())
+      .then((data: Product[]) => setRelatedProducts(data.filter((p) => p.id !== product.id).slice(0, 4)))
+      .catch(() => setRelatedProducts([]));
+  }, [product?.category, product?.id]);
+
   const availableStock = product ? product.stock - product.reserved : 0;
   const isPasabuy = product?.type === 'PASABUY';
 
@@ -60,6 +76,15 @@ export default function ProductDetailPage() {
     }
     if (!product || (!isPasabuy && availableStock <= 0)) return;
     setShowModal(true);
+  };
+
+  const handleWishlist = () => {
+    if (!session) {
+      router.push('/login');
+      return;
+    }
+    if (!product) return;
+    toggleWishlist(product.id);
   };
 
   const handleConfirm = (quantity: number) => {
@@ -209,32 +234,44 @@ export default function ProductDetailPage() {
                 )}
               </div>
 
-              {/* Primary CTA */}
-              <button
-                onClick={handleAddToCart}
-                disabled={!isPasabuy && availableStock <= 0}
-                className={`w-full flex items-center justify-center gap-2 py-3 rounded-full font-semibold tracking-wide transition-all duration-200 ${
-                  added
-                    ? 'bg-emerald-600 text-white'
-                    : isPasabuy
-                    ? 'bg-plum-600 hover:bg-plum-700 text-white'
-                    : availableStock <= 0
-                    ? 'bg-stone-200 text-stone-400 cursor-not-allowed'
-                    : 'bg-espresso hover:bg-primary-800 text-white'
-                }`}
-              >
-                {added ? (
-                  <>
-                    <CheckCircle className="h-5 w-5" />
-                    {isPasabuy ? 'Order Placed!' : 'Request Sent!'}
-                  </>
-                ) : (
-                  <>
-                    {isPasabuy ? <Truck className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
-                    {isPasabuy ? 'Order Now' : availableStock <= 0 ? 'Out of Stock' : 'Contact Sales Associate'}
-                  </>
+              {/* Primary CTA + wishlist */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={!isPasabuy && availableStock <= 0}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full font-semibold tracking-wide transition-all duration-200 ${
+                    added
+                      ? 'bg-emerald-600 text-white'
+                      : isPasabuy
+                      ? 'bg-plum-600 hover:bg-plum-700 text-white'
+                      : availableStock <= 0
+                      ? 'bg-stone-200 text-stone-400 cursor-not-allowed'
+                      : 'bg-espresso hover:bg-primary-800 text-white'
+                  }`}
+                >
+                  {added ? (
+                    <>
+                      <CheckCircle className="h-5 w-5" />
+                      {isPasabuy ? 'Order Placed!' : 'Request Sent!'}
+                    </>
+                  ) : (
+                    <>
+                      {isPasabuy ? <Truck className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+                      {isPasabuy ? 'Order Now' : availableStock <= 0 ? 'Out of Stock' : 'Contact Sales Associate'}
+                    </>
+                  )}
+                </button>
+
+                {session?.user.role !== 'ADMIN' && session?.user.role !== 'SHIPPER' && (
+                  <button
+                    onClick={handleWishlist}
+                    aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                    className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full border border-stone-200 hover:bg-stone-50 transition-colors"
+                  >
+                    <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-red-600 text-red-600' : 'text-espresso/60'}`} />
+                  </button>
                 )}
-              </button>
+              </div>
 
               {/* Info box */}
               <div className="mt-6 p-4 bg-primary-50 rounded-2xl text-sm text-primary-800">
@@ -246,6 +283,17 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+
+        {relatedProducts.length > 0 && (
+          <div className="mt-16">
+            <h2 className="font-display font-black text-2xl text-espresso mb-6">You May Also Like</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {relatedProducts.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <Footer />

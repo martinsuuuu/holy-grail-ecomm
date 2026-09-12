@@ -10,6 +10,8 @@ interface Order {
   status: string;
   deliveryMethod: string;
   totalAmount: number;
+  promoCode: string | null;
+  discountAmount: number;
   depositProof: string | null;
   depositConfirmed: boolean;
   reservationExpiry: string;
@@ -302,6 +304,12 @@ function OrdersContent() {
                     {orderType(selectedOrder) === 'PASABUY' ? 'Pasabuy (Pre-order)' : 'On Hand'}
                   </span>
                 </div>
+                {selectedOrder.discountAmount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-stone-500">Discount ({selectedOrder.promoCode})</span>
+                    <span className="font-medium text-emerald-700">-{formatCurrency(selectedOrder.discountAmount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-500">Total</span>
                   <span className="font-bold text-primary-600">{formatCurrency(selectedOrder.totalAmount)}</span>

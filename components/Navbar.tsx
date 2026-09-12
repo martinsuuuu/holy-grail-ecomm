@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { ShoppingCart, User, LogOut, Settings, ChevronDown, Menu, X, Search } from 'lucide-react';
+import { ShoppingCart, Heart, User, LogOut, Settings, ChevronDown, Menu, X, Search } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import HGMonogram from './HGMonogram';
 import { useCartStore } from '@/lib/cartStore';
+import { useWishlistStore } from '@/lib/wishlistStore';
 
 interface Category {
   id: string;
@@ -58,6 +59,8 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const cartItemCount = useCartStore((state) => state.getTotalItems());
+  const wishlistCount = useWishlistStore((state) => state.items.length);
+  const fetchWishlist = useWishlistStore((state) => state.fetchWishlist);
 
   useEffect(() => {
     fetch('/api/categories')
@@ -65,6 +68,10 @@ export default function Navbar() {
       .then(setCategories)
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (session?.user.role === 'CUSTOMER') fetchWishlist();
+  }, [session?.user.role, fetchWishlist]);
 
   const categoryHref = (name: string) => `/shop?category=${encodeURIComponent(name)}`;
 
@@ -105,6 +112,20 @@ export default function Navbar() {
             </Link>
 
             {session && <NotificationBell />}
+
+            {session?.user.role === 'CUSTOMER' && (
+              <Link
+                href="/account/wishlist"
+                className="relative p-2 text-espresso/70 hover:text-primary-700 hover:bg-primary-50 rounded-full transition-colors"
+              >
+                <Heart className="h-5 w-5" />
+                {wishlistCount > 0 && (
+                  <span className="absolute top-0 right-0 h-4 w-4 bg-primary-600 text-white text-xs rounded-full flex items-center justify-center font-medium">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {session?.user.role === 'CUSTOMER' && (
               <Link

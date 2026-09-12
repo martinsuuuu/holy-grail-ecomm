@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar';
 import CartItem from '@/components/CartItem';
 import { useCartStore } from '@/lib/cartStore';
 import { formatCurrency } from '@/lib/utils';
-import { ShoppingCart, ArrowLeft, Truck, AlertCircle, CreditCard, Smartphone, Building2, QrCode, X, ZoomIn, ExternalLink, MapPin } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Truck, AlertCircle, CreditCard, Smartphone, Building2, QrCode, X, ZoomIn, ExternalLink, MapPin, Tag, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface PaymentMethod {
@@ -30,6 +30,10 @@ export default function CartPage() {
   const [shopeeLink, setShopeeLink] = useState('');
   const [lalamoveAddress, setLalamoveAddress] = useState('');
   const [useSameAddress, setUseSameAddress] = useState(false);
+  const [promoInput, setPromoInput] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountAmount: number } | null>(null);
+  const [promoError, setPromoError] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
 
   useEffect(() => {
     fetch('/api/payment-methods')
@@ -46,6 +50,40 @@ export default function CartPage() {
   const gcashMethods = paymentMethods.filter((m) => m.type === 'GCASH');
   const bankMethods = paymentMethods.filter((m) => m.type === 'BANK_TRANSFER');
   const selectedPayment = paymentMethods.find((m) => m.id === selectedPaymentId);
+
+  const subtotal = getTotalPrice();
+  const discount = appliedPromo?.discountAmount ?? 0;
+  const total = Math.max(subtotal - discount, 0);
+
+  const handleApplyPromo = async () => {
+    setPromoError('');
+    if (!promoInput.trim()) return;
+    setPromoLoading(true);
+    try {
+      const res = await fetch('/api/promo-codes/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoInput.trim(), subtotal }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.valid) {
+        setPromoError(data.error || 'Invalid promo code');
+        setAppliedPromo(null);
+        return;
+      }
+      setAppliedPromo({ code: data.code, discountAmount: data.discountAmount });
+    } catch {
+      setPromoError('Could not validate promo code');
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null);
+    setPromoInput('');
+    setPromoError('');
+  };
 
   const handlePlaceOrder = async () => {
     if (!session) {
@@ -85,6 +123,7 @@ export default function CartPage() {
           deliveryAddress: deliveryMethod === 'LALAMOVE'
             ? (useSameAddress ? 'Same as shipping address' : lalamoveAddress.trim())
             : null,
+          promoCode: appliedPromo?.code || null,
         }),
       });
 
@@ -366,10 +405,57 @@ export default function CartPage() {
                     </div>
                   ))}
                 </div>
+                {/* Promo code */}
                 <div className="border-t border-stone-100 mt-4 pt-4">
-                  <div className="flex justify-between font-bold text-espresso">
+                  {appliedPromo ? (
+                    <div className="flex items-center justify-between p-2.5 bg-emerald-50 rounded-xl text-sm">
+                      <span className="flex items-center gap-1.5 text-emerald-700 font-medium">
+                        <CheckCircle className="h-4 w-4" />
+                        {appliedPromo.code} applied
+                      </span>
+                      <button onClick={handleRemovePromo} className="text-emerald-700 hover:text-emerald-900">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400" />
+                        <input
+                          type="text"
+                          value={promoInput}
+                          onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                          onKeyDown={(e) => e.key === 'Enter' && handleApplyPromo()}
+                          placeholder="Promo code"
+                          className="w-full pl-8 pr-3 py-2 text-sm border border-stone-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-400"
+                        />
+                      </div>
+                      <button
+                        onClick={handleApplyPromo}
+                        disabled={promoLoading || !promoInput.trim()}
+                        className="px-4 py-2 rounded-full border border-stone-300 text-sm font-medium text-espresso hover:bg-stone-50 disabled:opacity-50"
+                      >
+                        {promoLoading ? '...' : 'Apply'}
+                      </button>
+                    </div>
+                  )}
+                  {promoError && <p className="text-red-600 text-xs mt-1.5">{promoError}</p>}
+                </div>
+
+                <div className="border-t border-stone-100 mt-4 pt-4 space-y-1.5">
+                  <div className="flex justify-between text-sm text-espresso/70">
+                    <span>Subtotal</span>
+                    <span>{formatCurrency(subtotal)}</span>
+                  </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-sm text-emerald-700">
+                      <span>Discount</span>
+                      <span>-{formatCurrency(discount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-bold text-espresso pt-1.5">
                     <span>Total</span>
-                    <span className="text-primary-700 text-lg">{formatCurrency(getTotalPrice())}</span>
+                    <span className="text-primary-700 text-lg">{formatCurrency(total)}</span>
                   </div>
                 </div>
 

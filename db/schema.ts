@@ -18,6 +18,7 @@ export const users = pgTable('users', {
 export const usersRelations = relations(users, ({ many }) => ({
   orders: many(orders),
   notifications: many(notifications),
+  wishlistItems: many(wishlistItems),
 }));
 
 export const products = pgTable('products', {
@@ -53,6 +54,8 @@ export const orders = pgTable('orders', {
   paymentMethodName: text('payment_method_name'),
   deliveryAddress: text('delivery_address'),
   shippedAt: timestamp('shipped_at'),
+  promoCode: text('promo_code'),
+  discountAmount: doublePrecision('discount_amount').notNull().default(0),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
@@ -148,3 +151,25 @@ export const notifications = pgTable('notifications', {
 export const notificationsRelations = relations(notifications, ({ one }) => ({
   user: one(users, { fields: [notifications.userId], references: [users.id] }),
 }));
+
+export const wishlistItems = pgTable('wishlist_items', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  userId: text('user_id').notNull().references(() => users.id),
+  productId: text('product_id').notNull().references(() => products.id),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const wishlistItemsRelations = relations(wishlistItems, ({ one }) => ({
+  user: one(users, { fields: [wishlistItems.userId], references: [users.id] }),
+  product: one(products, { fields: [wishlistItems.productId], references: [products.id] }),
+}));
+
+export const promoCodes = pgTable('promo_codes', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  code: text('code').notNull().unique(),
+  type: text('type').notNull().default('PERCENT'), // 'PERCENT' | 'FIXED'
+  value: doublePrecision('value').notNull(),
+  isActive: boolean('is_active').notNull().default(true),
+  expiresAt: timestamp('expires_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});

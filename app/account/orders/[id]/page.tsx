@@ -24,6 +24,8 @@ interface OrderDetail {
   status: string;
   deliveryMethod: string;
   totalAmount: number;
+  promoCode: string | null;
+  discountAmount: number;
   reservationExpiry: string;
   depositProof: string | null;
   depositConfirmed: boolean;
@@ -519,6 +521,11 @@ export default function OrderDetailPage() {
                 <span>{order.deliveryMethod}</span>
               </div>
               <div className="text-right">
+                {order.discountAmount > 0 && (
+                  <p className="text-xs text-emerald-700 mb-0.5">
+                    Discount applied: -{formatCurrency(order.discountAmount)} ({order.promoCode})
+                  </p>
+                )}
                 <p className="text-xs text-espresso/50">Total Amount</p>
                 <p className="text-xl font-bold text-primary-700">{formatCurrency(order.totalAmount)}</p>
               </div>

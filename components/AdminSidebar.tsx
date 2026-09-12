@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   MapPin,
   Tag,
+  Percent,
 } from 'lucide-react';
 import HGMonogram from './HGMonogram';
 
@@ -32,6 +33,7 @@ const navItems = [
   { href: '/admin/expenses', label: 'Expenses', icon: DollarSign },
   { href: '/admin/sales', label: 'Sales Summary', icon: BarChart3 },
   { href: '/admin/payment-methods', label: 'Payment Methods', icon: CreditCard },
+  { href: '/admin/promo-codes', label: 'Promo Codes', icon: Percent },
   { href: '/admin/delivery-settings', label: 'Delivery Settings', icon: MapPin },
   { href: '/admin/notifications', label: 'Notifications', icon: Bell },
 ];
