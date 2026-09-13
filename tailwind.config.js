@@ -9,16 +9,16 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          50: '#F7F7F7',
-          100: '#EEEEEE',
-          200: '#DDDDDD',
-          300: '#BFBFBF',
-          400: '#8C8C8C',
-          500: '#595959',
-          600: '#404040',
-          700: '#262626',
-          800: '#171717',
-          900: '#0A0A0A',
+          50: '#FBF7F0',
+          100: '#F6EDDC',
+          200: '#ECDBB5',
+          300: '#DFC48A',
+          400: '#D3AF6C',
+          500: '#C6A15B',
+          600: '#B08A45',
+          700: '#8F6E37',
+          800: '#6E552C',
+          900: '#524121',
         },
         plum: {
           50: '#F8F2F5',
@@ -33,7 +33,7 @@ module.exports = {
           900: '#301F28',
         },
         cream: '#FFFFFF',
-        espresso: '#111111',
+        espresso: '#0B3D2E',
       },
       fontFamily: {
         display: ['var(--font-display)', 'Arial Black', 'sans-serif'],

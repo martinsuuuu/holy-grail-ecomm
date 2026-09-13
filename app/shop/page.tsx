@@ -75,10 +75,11 @@ function ShopPageInner() {
 
       {/* Hero Banner */}
       <div
-        className="relative text-cream bg-espresso bg-cover bg-[center_30%] grayscale"
+        className="relative text-cream bg-espresso bg-cover bg-[center_30%]"
         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1589731119540-c4586781dae1?w=1600&q=80')" }}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/40 to-espresso/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/80 to-espresso/40 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/60 to-transparent" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10">
           <p className="text-sm uppercase tracking-[0.3em] text-cream/70 mb-2">Curated. Authenticated.</p>
           <h1 className="font-display font-black text-6xl sm:text-8xl leading-[0.85] tracking-tight mb-4">
