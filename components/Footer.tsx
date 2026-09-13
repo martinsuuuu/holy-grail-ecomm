@@ -64,7 +64,6 @@ export default function Footer() {
           <ul className="space-y-2 text-sm text-cream/60">
             <li><Link href="/about" className="hover:text-cream transition-colors">About Us</Link></li>
             <li><Link href="/faq" className="hover:text-cream transition-colors">FAQ</Link></li>
-            <li><Link href="/shop" className="hover:text-cream transition-colors">Consignment</Link></li>
             <li><Link href="/faq" className="hover:text-cream transition-colors">Return Policy</Link></li>
             <li><Link href="/shop" className="hover:text-cream transition-colors">Privacy Policy</Link></li>
           </ul>
