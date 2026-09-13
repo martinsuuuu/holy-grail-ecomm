@@ -1,13 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Globe, Share2 } from 'lucide-react';
 import HGMonogram from './HGMonogram';
+import { DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/siteConfig';
 
 export default function Footer() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [config, setConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
+
+  useEffect(() => {
+    fetch('/api/site-config').then((r) => r.json()).then(setConfig).catch(() => {});
+  }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +30,7 @@ export default function Footer() {
             <span className="font-display font-black text-lg tracking-wide">HOLY GRAIL</span>
           </div>
           <p className="text-sm text-cream/60 mb-4">
-            Sign up to receive exclusive content and updates on new arrivals.
+            {config.footerTagline}
           </p>
           {subscribed ? (
             <p className="text-sm text-primary-300">Thanks — you&apos;re on the list.</p>

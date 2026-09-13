@@ -20,11 +20,13 @@ import {
   MapPin,
   Tag,
   Percent,
+  Palette,
 } from 'lucide-react';
 import HGMonogram from './HGMonogram';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/site-editor', label: 'Site Editor', icon: Palette },
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/categories', label: 'Categories', icon: Tag },
   { href: '/admin/customers', label: 'Customers', icon: Users },

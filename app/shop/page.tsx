@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import { Search, SlidersHorizontal, Package, Truck } from 'lucide-react';
+import { DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/siteConfig';
 
 interface Product {
   id: string;
@@ -37,11 +38,19 @@ function ShopPageInner() {
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
   const [showInStockOnly, setShowInStockOnly] = useState(true);
   const [sort, setSort] = useState<SortOption>('');
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
 
   useEffect(() => {
     fetch('/api/categories')
       .then((r) => r.json())
       .then(setCategories)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/site-config')
+      .then((r) => r.json())
+      .then(setSiteConfig)
       .catch(() => {});
   }, []);
 
@@ -81,12 +90,14 @@ function ShopPageInner() {
         <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/80 to-espresso/40 mix-blend-multiply" />
         <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/60 to-transparent" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10">
-          <p className="text-sm uppercase tracking-[0.3em] text-cream/70 mb-2">Curated. Authenticated.</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-cream/70 mb-2">{siteConfig.heroEyebrow}</p>
           <h1 className="font-display font-black text-6xl sm:text-8xl leading-[0.85] tracking-tight mb-4">
-            HOLY<br />GRAIL
+            {siteConfig.heroHeadline.split(' ').map((word, i) => (
+              <span key={i} className="block">{word}</span>
+            ))}
           </h1>
           <p className="text-cream/70 max-w-md mb-6">
-            From the first mile to the final arrival — discover great deals across all our categories.
+            {siteConfig.heroSubtext}
           </p>
 
           {/* Search bar */}
@@ -251,7 +262,7 @@ function ShopPageInner() {
       </div>
 
       {/* Shop by brand */}
-      {categories.length > 0 && (
+      {siteConfig.showBrandGrid && categories.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
           <h2 className="font-display font-black text-2xl text-espresso mb-1">Shop by Brand</h2>
           <p className="text-espresso/50 text-sm mb-6">Curated houses, authenticated pieces</p>

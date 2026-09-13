@@ -3,6 +3,25 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Fallback theme values — overridden per-request by an inline style on
+       <html> in app/layout.tsx, driven by the admin site editor. Values are
+       space-separated "R G B" triples so Tailwind's rgb(var(...) / <alpha-value>)
+       opacity-modifier syntax (e.g. text-espresso/70) works. */
+    --color-primary-50-rgb: 251 247 240;
+    --color-primary-100-rgb: 246 237 220;
+    --color-primary-200-rgb: 236 219 181;
+    --color-primary-300-rgb: 223 196 138;
+    --color-primary-400-rgb: 211 175 108;
+    --color-primary-500-rgb: 198 161 91;
+    --color-primary-600-rgb: 176 138 69;
+    --color-primary-700-rgb: 143 110 55;
+    --color-primary-800-rgb: 110 85 44;
+    --color-primary-900-rgb: 82 65 33;
+    --color-espresso-rgb: 11 61 46;
+    --color-cream-rgb: 255 255 255;
+  }
+
   html {
     font-family: var(--font-body), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }

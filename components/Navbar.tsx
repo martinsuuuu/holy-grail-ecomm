@@ -6,6 +6,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { ShoppingCart, Heart, User, LogOut, Settings, ChevronDown, Menu, X, Search } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import HGMonogram from './HGMonogram';
+import AnnouncementBar from './AnnouncementBar';
 import { useCartStore } from '@/lib/cartStore';
 import { useWishlistStore } from '@/lib/wishlistStore';
 
@@ -76,6 +77,8 @@ export default function Navbar() {
   const categoryHref = (name: string) => `/shop?category=${encodeURIComponent(name)}`;
 
   return (
+    <>
+    <AnnouncementBar />
     <nav className="bg-cream/95 backdrop-blur shadow-soft border-b border-stone-200/70 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-3 items-center h-18 py-3">
@@ -250,5 +253,6 @@ export default function Navbar() {
         )}
       </div>
     </nav>
+    </>
   );
 }

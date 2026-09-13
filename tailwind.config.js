@@ -9,16 +9,16 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          50: '#FBF7F0',
-          100: '#F6EDDC',
-          200: '#ECDBB5',
-          300: '#DFC48A',
-          400: '#D3AF6C',
-          500: '#C6A15B',
-          600: '#B08A45',
-          700: '#8F6E37',
-          800: '#6E552C',
-          900: '#524121',
+          50: 'rgb(var(--color-primary-50-rgb) / <alpha-value>)',
+          100: 'rgb(var(--color-primary-100-rgb) / <alpha-value>)',
+          200: 'rgb(var(--color-primary-200-rgb) / <alpha-value>)',
+          300: 'rgb(var(--color-primary-300-rgb) / <alpha-value>)',
+          400: 'rgb(var(--color-primary-400-rgb) / <alpha-value>)',
+          500: 'rgb(var(--color-primary-500-rgb) / <alpha-value>)',
+          600: 'rgb(var(--color-primary-600-rgb) / <alpha-value>)',
+          700: 'rgb(var(--color-primary-700-rgb) / <alpha-value>)',
+          800: 'rgb(var(--color-primary-800-rgb) / <alpha-value>)',
+          900: 'rgb(var(--color-primary-900-rgb) / <alpha-value>)',
         },
         plum: {
           50: '#F8F2F5',
@@ -32,8 +32,8 @@ module.exports = {
           800: '#452C39',
           900: '#301F28',
         },
-        cream: '#FFFFFF',
-        espresso: '#0B3D2E',
+        cream: 'rgb(var(--color-cream-rgb) / <alpha-value>)',
+        espresso: 'rgb(var(--color-espresso-rgb) / <alpha-value>)',
       },
       fontFamily: {
         display: ['var(--font-display)', 'Arial Black', 'sans-serif'],
@@ -42,6 +42,15 @@ module.exports = {
       boxShadow: {
         soft: '0 1px 3px rgba(0, 0, 0, 0.06)',
         warm: '0 12px 32px -8px rgba(0, 0, 0, 0.18)',
+      },
+      keyframes: {
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+      },
+      animation: {
+        marquee: 'marquee 22s linear infinite',
       },
     },
   },
