@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
+import HeroCarousel from '@/components/HeroCarousel';
 import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle } from 'lucide-react';
 import { DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/siteConfig';
 
@@ -40,7 +41,14 @@ function ShopPageInner() {
   const [sort, setSort] = useState<SortOption>('');
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
 
-  const [brandSamples, setBrandSamples] = useState<Record<string, string>>({});
+  // Keep the filter in sync when the ?category= URL param changes from a
+  // same-page navigation (hero carousel, brand tiles, navbar dropdown) —
+  // the useState above only reads it on first mount.
+  useEffect(() => {
+    setSelectedCategory(searchParams.get('category') || 'all');
+  }, [searchParams]);
+
+  const [brandFeatured, setBrandFeatured] = useState<{ category: string; name: string; imageUrl: string }[]>([]);
 
   useEffect(() => {
     fetch('/api/categories')
@@ -49,19 +57,22 @@ function ShopPageInner() {
       .catch(() => {});
   }, []);
 
-  // Sample one product image per brand/category for the "Shop by Brand" tiles —
-  // fetched unfiltered so it's unaffected by the current search/stock filters.
+  // Sample one product per brand/category — used for both the hero carousel
+  // and the "Shop by Brand" tiles. Fetched unfiltered so it's unaffected by
+  // the current search/stock filters.
   useEffect(() => {
     fetch('/api/products')
       .then((r) => r.json())
       .then((data: Product[]) => {
-        const samples: Record<string, string> = {};
+        const seen = new Set<string>();
+        const featured: { category: string; name: string; imageUrl: string }[] = [];
         for (const p of data) {
-          if (p.category && p.imageUrl && !samples[p.category]) {
-            samples[p.category] = p.imageUrl;
+          if (p.category && p.imageUrl && !seen.has(p.category)) {
+            seen.add(p.category);
+            featured.push({ category: p.category, name: p.name, imageUrl: p.imageUrl });
           }
         }
-        setBrandSamples(samples);
+        setBrandFeatured(featured);
       })
       .catch(() => {});
   }, []);
@@ -101,14 +112,12 @@ function ShopPageInner() {
     <div className="min-h-screen bg-cream">
       <Navbar />
 
-      {/* Hero Banner */}
-      <div
-        className="relative text-cream bg-espresso bg-cover bg-[center_30%]"
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1589731119540-c4586781dae1?w=1600&q=80')" }}
-      >
+      {/* Hero Banner — carousel of featured brand products */}
+      <div className="relative text-cream bg-espresso overflow-hidden min-h-[560px]">
+        <HeroCarousel slides={brandFeatured} />
         <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/80 to-espresso/40 mix-blend-multiply" />
         <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/60 to-transparent" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-16">
           <div className="flex items-center gap-3 mb-3">
             <span className="w-10 h-px bg-primary-400" />
             <p className="text-sm uppercase tracking-[0.3em] text-cream/70">{siteConfig.heroEyebrow}</p>
@@ -317,7 +326,7 @@ function ShopPageInner() {
           <p className="text-espresso/50 text-sm mb-8">Curated houses, authenticated pieces</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
             {categories.map((cat) => {
-              const sample = brandSamples[cat.name];
+              const sample = brandFeatured.find((b) => b.category === cat.name)?.imageUrl;
               return (
                 <button
                   key={cat.id}
