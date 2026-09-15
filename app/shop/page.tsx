@@ -2,11 +2,12 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import HeroCarousel from '@/components/HeroCarousel';
-import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle } from 'lucide-react';
+import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle, Check } from 'lucide-react';
 import { DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/siteConfig';
 
 interface Product {
@@ -112,62 +113,64 @@ function ShopPageInner() {
     <div className="min-h-screen bg-cream">
       <Navbar />
 
-      {/* Hero Banner — carousel of featured brand products */}
-      <div className="relative text-cream bg-espresso overflow-hidden min-h-[560px]">
+      {/* Hero Banner — full-bleed carousel of featured brand photography */}
+      <div className="relative text-cream bg-espresso overflow-hidden h-[420px] sm:h-[500px]">
         <HeroCarousel slides={brandFeatured} />
-        <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/80 to-espresso/40 mix-blend-multiply" />
-        <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/60 to-transparent" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-16">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="w-10 h-px bg-primary-400" />
-            <p className="text-sm uppercase tracking-[0.3em] text-cream/70">{siteConfig.heroEyebrow}</p>
+        <div className="absolute inset-0 bg-gradient-to-t from-espresso/95 via-espresso/10 to-transparent" />
+        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-24 sm:pb-28">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="w-8 h-px bg-primary-400" />
+            <p className="text-xs uppercase tracking-[0.3em] text-cream/70">{siteConfig.heroEyebrow}</p>
           </div>
-          <h1 className="font-display font-black text-6xl sm:text-8xl leading-[0.85] tracking-tight mb-4">
-            {siteConfig.heroHeadline.split(' ').map((word, i) => (
-              <span key={i} className="block">{word}</span>
-            ))}
+          <h1 className="font-display font-black text-3xl sm:text-4xl tracking-tight mb-2 max-w-md">
+            {siteConfig.heroHeadline}
           </h1>
-          <p className="text-cream/70 max-w-md mb-6">
+          <p className="text-cream/60 max-w-sm text-sm">
             {siteConfig.heroSubtext}
           </p>
-
-          {/* Search bar */}
-          <div className="max-w-lg relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-full text-espresso placeholder-stone-400 border-0 focus:ring-2 focus:ring-cream/60 text-sm"
-            />
-          </div>
         </div>
       </div>
 
       {/* Trust strip */}
       <div className="bg-white border-b border-stone-200/70">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
           {[
-            { icon: ShieldCheck, label: 'Condition & Authenticity Checked' },
-            { icon: Lock, label: 'Secure Deposit Reservation' },
-            { icon: Truck, label: 'Pasabuy Sourcing On Request' },
-            { icon: MessageCircle, label: 'Personal Sales Concierge' },
-          ].map(({ icon: Icon, label }, i) => (
-            <div key={i} className="flex items-center gap-2.5">
-              <Icon className="h-4 w-4 text-primary-600 flex-shrink-0" />
-              <span className="text-xs text-espresso/70 tracking-wide">{label}</span>
+            { icon: ShieldCheck, label: 'Authenticity Checked', desc: 'Condition & provenance verified' },
+            { icon: Lock, label: 'Secure Reservation', desc: 'Deposit-based checkout' },
+            { icon: Truck, label: 'Pasabuy Sourcing', desc: 'We source it on request' },
+            { icon: MessageCircle, label: 'Sales Concierge', desc: 'Personal assistance, always' },
+          ].map(({ icon: Icon, label, desc }, i) => (
+            <div key={i} className="flex flex-col items-center text-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center">
+                <Icon className="h-5 w-5 text-primary-700" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-espresso">{label}</p>
+                <p className="text-xs text-espresso/50 mt-0.5">{desc}</p>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div id="collection" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-center gap-3 mb-1">
           <span className="w-10 h-px bg-primary-500" />
           <p className="text-xs uppercase tracking-[0.25em] text-primary-700 font-medium">The Collection</p>
         </div>
-        <h2 className="font-display font-black text-3xl text-espresso mb-6">Shop Everything</h2>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+          <h2 className="font-display font-black text-3xl text-espresso">Shop Everything</h2>
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-full border border-stone-200 text-espresso placeholder-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300"
+            />
+          </div>
+        </div>
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3 mb-6">
@@ -315,6 +318,50 @@ function ShopPageInner() {
         )}
       </div>
 
+      {/* Personal sourcing / concierge */}
+      <div className="bg-stone-50 border-y border-stone-200/70">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <div className="flex items-center gap-3 mb-3">
+              <span className="w-10 h-px bg-primary-500" />
+              <p className="text-xs uppercase tracking-[0.25em] text-primary-700 font-medium">Personal Sourcing</p>
+            </div>
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-espresso mb-4">
+              Can&apos;t Find the Piece You Want?
+            </h2>
+            <p className="text-espresso/60 mb-8 max-w-md">
+              Our Pasabuy service sources specific pieces on your behalf when they&apos;re not already
+              in stock, backed by a dedicated sales concierge from inquiry to delivery.
+            </p>
+            <div className="space-y-4 mb-8">
+              {[
+                { title: 'Direct Brand Sourcing', desc: 'We source pieces on request when they are not already on hand.' },
+                { title: 'Authenticated & Verified', desc: 'Every piece is checked for condition and authenticity before it reaches you.' },
+                { title: 'Personal Concierge', desc: 'A dedicated sales associate guides you from inquiry to delivery.' },
+              ].map((f, i) => (
+                <div key={i} className="flex gap-3">
+                  <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="h-3.5 w-3.5 text-primary-700" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-espresso">{f.title}</p>
+                    <p className="text-xs text-espresso/50">{f.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Link href="/contact" className="btn-primary inline-block">Contact Sales Concierge</Link>
+          </div>
+          <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-warm">
+            <img
+              src="https://images.unsplash.com/photo-1589731119540-c4586781dae1?w=1000&q=80"
+              alt="Personal sourcing"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Shop by brand */}
       {siteConfig.showBrandGrid && categories.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
@@ -358,6 +405,42 @@ function ShopPageInner() {
           </div>
         </div>
       )}
+
+      {/* Experience / CTA */}
+      <div className="bg-espresso text-cream">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+          <span className="inline-block px-3 py-1 rounded-full bg-primary-500/20 text-primary-300 text-[11px] uppercase tracking-widest font-medium mb-4">
+            Every Order
+          </span>
+          <h2 className="font-display font-black text-3xl sm:text-4xl mb-3">The Holy Grail Experience</h2>
+          <p className="text-cream/60 max-w-lg mx-auto mb-12">
+            Every order is backed by the same standard of care, from first inquiry to final delivery.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12 text-left">
+            {[
+              { icon: ShieldCheck, title: 'Authenticated Pieces', desc: 'Condition and provenance checked before every sale.' },
+              { icon: Lock, title: 'Secure Checkout', desc: 'Deposit-based reservation with a 24-hour hold.' },
+              { icon: Truck, title: 'Global Sourcing', desc: 'Pasabuy sourcing for pieces not already in stock.' },
+              { icon: MessageCircle, title: 'Sales Concierge', desc: 'Personal assistance on every order.' },
+            ].map(({ icon: Icon, title, desc }, i) => (
+              <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-5">
+                <Icon className="h-5 w-5 text-primary-400 mb-3" />
+                <p className="text-sm font-semibold mb-1">{title}</p>
+                <p className="text-xs text-cream/50">{desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              onClick={() => document.getElementById('collection')?.scrollIntoView({ behavior: 'smooth' })}
+              className="btn-primary"
+            >
+              Browse the Collection
+            </button>
+            <Link href="/contact" className="btn-outline-light">Contact Us</Link>
+          </div>
+        </div>
+      </div>
 
       <Footer />
     </div>
