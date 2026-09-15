@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
-import { Search, SlidersHorizontal, Package, Truck } from 'lucide-react';
+import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle } from 'lucide-react';
 import { DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/siteConfig';
 
 interface Product {
@@ -40,10 +40,29 @@ function ShopPageInner() {
   const [sort, setSort] = useState<SortOption>('');
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
 
+  const [brandSamples, setBrandSamples] = useState<Record<string, string>>({});
+
   useEffect(() => {
     fetch('/api/categories')
       .then((r) => r.json())
       .then(setCategories)
+      .catch(() => {});
+  }, []);
+
+  // Sample one product image per brand/category for the "Shop by Brand" tiles —
+  // fetched unfiltered so it's unaffected by the current search/stock filters.
+  useEffect(() => {
+    fetch('/api/products')
+      .then((r) => r.json())
+      .then((data: Product[]) => {
+        const samples: Record<string, string> = {};
+        for (const p of data) {
+          if (p.category && p.imageUrl && !samples[p.category]) {
+            samples[p.category] = p.imageUrl;
+          }
+        }
+        setBrandSamples(samples);
+      })
       .catch(() => {});
   }, []);
 
@@ -90,7 +109,10 @@ function ShopPageInner() {
         <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/80 to-espresso/40 mix-blend-multiply" />
         <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/60 to-transparent" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10">
-          <p className="text-sm uppercase tracking-[0.3em] text-cream/70 mb-2">{siteConfig.heroEyebrow}</p>
+          <div className="flex items-center gap-3 mb-3">
+            <span className="w-10 h-px bg-primary-400" />
+            <p className="text-sm uppercase tracking-[0.3em] text-cream/70">{siteConfig.heroEyebrow}</p>
+          </div>
           <h1 className="font-display font-black text-6xl sm:text-8xl leading-[0.85] tracking-tight mb-4">
             {siteConfig.heroHeadline.split(' ').map((word, i) => (
               <span key={i} className="block">{word}</span>
@@ -114,7 +136,30 @@ function ShopPageInner() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Trust strip */}
+      <div className="bg-white border-b border-stone-200/70">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-4">
+          {[
+            { icon: ShieldCheck, label: 'Condition & Authenticity Checked' },
+            { icon: Lock, label: 'Secure Deposit Reservation' },
+            { icon: Truck, label: 'Pasabuy Sourcing On Request' },
+            { icon: MessageCircle, label: 'Personal Sales Concierge' },
+          ].map(({ icon: Icon, label }, i) => (
+            <div key={i} className="flex items-center gap-2.5">
+              <Icon className="h-4 w-4 text-primary-600 flex-shrink-0" />
+              <span className="text-xs text-espresso/70 tracking-wide">{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex items-center gap-3 mb-1">
+          <span className="w-10 h-px bg-primary-500" />
+          <p className="text-xs uppercase tracking-[0.25em] text-primary-700 font-medium">The Collection</p>
+        </div>
+        <h2 className="font-display font-black text-3xl text-espresso mb-6">Shop Everything</h2>
+
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3 mb-6">
           <div className="flex items-center gap-2 text-sm text-espresso/60">
@@ -263,24 +308,44 @@ function ShopPageInner() {
 
       {/* Shop by brand */}
       {siteConfig.showBrandGrid && categories.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-          <h2 className="font-display font-black text-2xl text-espresso mb-1">Shop by Brand</h2>
-          <p className="text-espresso/50 text-sm mb-6">Curated houses, authenticated pieces</p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-stone-200">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.name)}
-                className="group relative bg-espresso aspect-[4/3] flex items-center justify-center overflow-hidden"
-              >
-                <span className="font-display font-black text-xl sm:text-2xl text-cream tracking-wide group-hover:scale-105 transition-transform">
-                  {cat.name}
-                </span>
-                <span className="absolute bottom-3 text-[11px] uppercase tracking-widest text-cream/60 group-hover:text-cream transition-colors">
-                  More Products
-                </span>
-              </button>
-            ))}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+          <div className="flex items-center gap-3 mb-1">
+            <span className="w-10 h-px bg-primary-500" />
+            <p className="text-xs uppercase tracking-[0.25em] text-primary-700 font-medium">Maisons</p>
+          </div>
+          <h2 className="font-display font-black text-3xl text-espresso mb-1">Shop by Brand</h2>
+          <p className="text-espresso/50 text-sm mb-8">Curated houses, authenticated pieces</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+            {categories.map((cat) => {
+              const sample = brandSamples[cat.name];
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    setSelectedCategory(cat.name);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-espresso shadow-soft hover:shadow-warm transition-shadow duration-300"
+                >
+                  {sample ? (
+                    <img
+                      src={sample}
+                      alt={cat.name}
+                      className="absolute inset-0 w-full h-full object-cover grayscale-[0.25] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700 ease-out"
+                    />
+                  ) : null}
+                  <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/50 to-espresso/10 group-hover:via-espresso/70 transition-colors duration-300" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-end text-center p-6">
+                    <span className="font-display font-black text-2xl sm:text-3xl text-cream tracking-wide drop-shadow-sm">
+                      {cat.name}
+                    </span>
+                    <span className="mt-3 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-primary-300 border-b border-primary-400/60 pb-1 group-hover:text-primary-200 group-hover:border-primary-200 transition-colors">
+                      Discover the Collection
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
