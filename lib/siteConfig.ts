@@ -114,6 +114,9 @@ export interface SiteConfig {
   heroEyebrow: string;
   heroHeadline: string;
   heroSubtext: string;
+  /** Custom uploaded hero banner (data URL). When set, overrides the
+   *  auto-generated per-brand product carousel with a single static image. */
+  heroBannerImage: string | null;
   footerTagline: string;
 }
 
@@ -130,8 +133,14 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   heroEyebrow: 'Curated. Authenticated.',
   heroHeadline: 'HOLY GRAIL',
   heroSubtext: "From the first mile to the final arrival — discover great deals across all our categories.",
+  heroBannerImage: null,
   footerTagline: 'Sign up to receive exclusive content and updates on new arrivals.',
 };
+
+/** Max accepted upload size for the hero banner image, in bytes. Kept small
+ *  since the image is stored inline as a base64 data URL in site_config,
+ *  which is fetched on every page (footer/announcement bar included). */
+export const MAX_BANNER_IMAGE_BYTES = 1_200_000;
 
 export function getThemePreset(id: string): ThemePreset {
   return THEME_PRESETS.find((p) => p.id === id) ?? THEME_PRESETS[0];

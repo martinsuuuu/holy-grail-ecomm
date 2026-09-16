@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Palette, Type, MessageSquare, Layout, Check, RefreshCw } from 'lucide-react';
+import { Palette, Type, MessageSquare, Layout, Check, RefreshCw, ExternalLink, AlertCircle, ImageUp } from 'lucide-react';
 import {
   THEME_PRESETS,
   FONT_PAIRINGS,
   DEFAULT_SITE_CONFIG,
+  MAX_BANNER_IMAGE_BYTES,
   SiteConfig,
 } from '@/lib/siteConfig';
 
@@ -13,9 +14,12 @@ type Tab = 'theme' | 'content';
 
 export default function SiteEditorPage() {
   const [config, setConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
+  const [savedConfig, setSavedConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [bannerError, setBannerError] = useState('');
   const [tab, setTab] = useState<Tab>('theme');
   const [previewKey, setPreviewKey] = useState(0);
 
@@ -24,9 +28,12 @@ export default function SiteEditorPage() {
       .then((r) => r.json())
       .then((data) => {
         setConfig(data);
+        setSavedConfig(data);
         setIsLoading(false);
       });
   }, []);
+
+  const hasUnsavedChanges = JSON.stringify(config) !== JSON.stringify(savedConfig);
 
   const update = <K extends keyof SiteConfig>(key: K, value: SiteConfig[K]) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -41,16 +48,27 @@ export default function SiteEditorPage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    const res = await fetch('/api/admin/site-config', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(config),
-    });
-    setIsSaving(false);
-    if (res.ok) {
-      setSaved(true);
-      setPreviewKey((k) => k + 1);
-      setTimeout(() => setSaved(false), 3000);
+    setSaveError('');
+    try {
+      const res = await fetch('/api/admin/site-config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setConfig(updated);
+        setSavedConfig(updated);
+        setSaved(true);
+        setPreviewKey((k) => k + 1);
+        setTimeout(() => setSaved(false), 3000);
+      } else {
+        setSaveError('Save failed — please try again.');
+      }
+    } catch {
+      setSaveError('Save failed — check your connection and try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -194,6 +212,54 @@ export default function SiteEditorPage() {
                     <label className="label text-xs">Subtext</label>
                     <textarea value={config.heroSubtext} onChange={(e) => update('heroSubtext', e.target.value)} rows={3} className="input-field text-sm" />
                   </div>
+                  <div>
+                    <label className="label text-xs">Banner image</label>
+                    <p className="text-xs text-stone-400 mb-2">
+                      Optional — uploading a photo replaces the auto-rotating brand carousel with this single image. Max 1.2 MB.
+                    </p>
+                    {config.heroBannerImage ? (
+                      <div className="relative rounded-xl overflow-hidden border border-stone-200">
+                        <img src={config.heroBannerImage} alt="Banner preview" className="w-full h-32 object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => update('heroBannerImage', null)}
+                          className="absolute top-2 right-2 bg-espresso/80 hover:bg-espresso text-cream text-xs px-2.5 py-1 rounded-full"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center gap-1.5 border-2 border-dashed border-stone-200 rounded-xl py-6 cursor-pointer hover:border-primary-300 hover:bg-primary-50/40 transition-colors text-center">
+                        <ImageUp className="h-5 w-5 text-stone-400" />
+                        <span className="text-xs text-stone-500">Click to upload an image</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            e.target.value = '';
+                            if (!file) return;
+                            setBannerError('');
+                            if (file.size > MAX_BANNER_IMAGE_BYTES) {
+                              setBannerError(`Image is too large (${(file.size / 1_000_000).toFixed(1)} MB). Please use one under 1.2 MB.`);
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = () => update('heroBannerImage', reader.result as string);
+                            reader.onerror = () => setBannerError('Could not read that file — please try a different image.');
+                            reader.readAsDataURL(file);
+                          }}
+                        />
+                      </label>
+                    )}
+                    {bannerError && (
+                      <p className="flex items-center gap-1.5 text-xs text-red-700 mt-2">
+                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                        {bannerError}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -221,9 +287,21 @@ export default function SiteEditorPage() {
           )}
         </div>
 
-        <div className="p-6 border-t border-stone-200/70">
-          <button onClick={handleSave} disabled={isSaving} className="w-full btn-primary flex items-center justify-center gap-2">
-            {saved ? <><Check className="h-4 w-4" /> Saved!</> : isSaving ? 'Saving…' : 'Save Changes'}
+        <div className="p-6 border-t border-stone-200/70 space-y-2">
+          {hasUnsavedChanges && !isSaving && (
+            <p className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+              <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+              You have unsaved changes — click Save to publish them live.
+            </p>
+          )}
+          {saveError && (
+            <p className="flex items-center gap-1.5 text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+              <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+              {saveError}
+            </p>
+          )}
+          <button onClick={handleSave} disabled={isSaving || !hasUnsavedChanges} className="w-full btn-primary flex items-center justify-center gap-2">
+            {saved ? <><Check className="h-4 w-4" /> Saved!</> : isSaving ? 'Saving…' : hasUnsavedChanges ? 'Save Changes' : 'No Changes to Save'}
           </button>
         </div>
       </div>
@@ -232,12 +310,22 @@ export default function SiteEditorPage() {
       <div className="flex-1 flex flex-col bg-stone-100">
         <div className="flex items-center justify-between px-4 py-2 border-b border-stone-200/70 bg-white">
           <p className="text-xs text-stone-500">Preview — reflects your last saved changes</p>
-          <button
-            onClick={() => setPreviewKey((k) => k + 1)}
-            className="flex items-center gap-1.5 text-xs text-espresso/70 hover:text-espresso"
-          >
-            <RefreshCw className="h-3 w-3" /> Refresh
-          </button>
+          <div className="flex items-center gap-4">
+            <a
+              href="/shop"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-espresso/70 hover:text-espresso"
+            >
+              <ExternalLink className="h-3 w-3" /> View Live Site
+            </a>
+            <button
+              onClick={() => setPreviewKey((k) => k + 1)}
+              className="flex items-center gap-1.5 text-xs text-espresso/70 hover:text-espresso"
+            >
+              <RefreshCw className="h-3 w-3" /> Refresh
+            </button>
+          </div>
         </div>
         <iframe key={previewKey} src="/shop" className="flex-1 w-full border-0" title="Site preview" />
       </div>

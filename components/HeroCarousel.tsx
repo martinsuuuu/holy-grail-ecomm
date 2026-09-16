@@ -10,20 +10,31 @@ interface Slide {
   imageUrl: string;
 }
 
-export default function HeroCarousel({ slides }: { slides: Slide[] }) {
+export default function HeroCarousel({ slides, bannerImage }: { slides: Slide[]; bannerImage?: string | null }) {
   const router = useRouter();
   const [index, setIndex] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (slides.length <= 1) return;
+    if (bannerImage || slides.length <= 1) return;
     timerRef.current = setInterval(() => {
       setIndex((i) => (i + 1) % slides.length);
     }, 5000);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [slides.length]);
+  }, [slides.length, bannerImage]);
+
+  // A custom uploaded banner overrides the auto-generated product carousel
+  // with a single static image — no rotation, caption, or brand click-through.
+  if (bannerImage) {
+    return (
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url('${bannerImage}')` }}
+      />
+    );
+  }
 
   if (slides.length === 0) return null;
 

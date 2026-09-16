@@ -115,7 +115,7 @@ function ShopPageInner() {
 
       {/* Hero Banner — full-bleed carousel of featured brand photography */}
       <div className="relative text-cream bg-espresso overflow-hidden h-[420px] sm:h-[500px]">
-        <HeroCarousel slides={brandFeatured} />
+        <HeroCarousel slides={brandFeatured} bannerImage={siteConfig.heroBannerImage} />
         <div className="absolute inset-0 bg-gradient-to-t from-espresso/95 via-espresso/10 to-transparent" />
         <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-24 sm:pb-28">
           <div className="flex items-center gap-3 mb-2">
