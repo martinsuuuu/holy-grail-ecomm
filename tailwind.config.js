@@ -37,7 +37,7 @@ module.exports = {
       },
       fontFamily: {
         display: ['var(--font-display)', 'Arial Black', 'sans-serif'],
-        sans: ['var(--font-body)', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['var(--font-sans-active)', 'system-ui', '-apple-system', 'sans-serif'],
       },
       boxShadow: {
         soft: '0 1px 3px rgba(0, 0, 0, 0.06)',

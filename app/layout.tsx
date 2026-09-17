@@ -6,25 +6,30 @@ import { authOptions } from '@/lib/auth';
 import SessionProvider from '@/components/SessionProvider';
 import StoreHydration from '@/components/StoreHydration';
 import { fetchSiteConfig } from '@/lib/siteConfigServer';
-import { getThemePreset, getFontPairing, hexToRgbTriple } from '@/lib/siteConfig';
+import { getThemePreset, getFontOption, hexToRgbTriple } from '@/lib/siteConfig';
 
+// Each of these four families is loaded once, up front, with both a body
+// weight (400/500) and heading weights (700+) — so the site editor can pick
+// any of them for headings AND independently for body text, with no extra
+// network fetch when switching (the browser only downloads a family's file
+// once it's actually used to render text).
 const archivo = Archivo({
   subsets: ['latin'],
-  weight: ['700', '800', '900'],
+  weight: ['400', '500', '700', '800', '900'],
   variable: '--font-archivo',
   display: 'swap',
 });
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
-  weight: ['700', '800', '900'],
+  weight: ['400', '500', '700', '800', '900'],
   variable: '--font-playfair',
   display: 'swap',
 });
 
 const poppins = Poppins({
   subsets: ['latin'],
-  weight: ['700', '800'],
+  weight: ['400', '500', '700', '800'],
   variable: '--font-poppins',
   display: 'swap',
 });
@@ -48,7 +53,8 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions);
   const config = await fetchSiteConfig();
   const preset = getThemePreset(config.themePresetId);
-  const font = getFontPairing(config.fontPairingId);
+  const headingFont = getFontOption(config.headingFontId);
+  const bodyFont = getFontOption(config.bodyFontId);
 
   const themeStyle = {
     '--color-primary-50-rgb': hexToRgbTriple(preset.colors.primary['50']),
@@ -63,7 +69,8 @@ export default async function RootLayout({
     '--color-primary-900-rgb': hexToRgbTriple(preset.colors.primary['900']),
     '--color-espresso-rgb': hexToRgbTriple(preset.colors.espresso),
     '--color-cream-rgb': hexToRgbTriple(preset.colors.cream),
-    '--font-display': `var(${font.cssVar})`,
+    '--font-display': `var(${headingFont.cssVar})`,
+    '--font-sans-active': `var(${bodyFont.cssVar})`,
   } as React.CSSProperties;
 
   return (

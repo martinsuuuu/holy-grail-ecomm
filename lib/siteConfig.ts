@@ -92,62 +92,135 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
 ];
 
-export interface FontPairing {
+/** A font that can independently be picked for headings or body text. All
+ *  four are always loaded (see app/layout.tsx) so switching is instant —
+ *  no extra network fetch. */
+export interface FontOption {
   id: string;
   name: string;
   description: string;
   cssVar: string;
+  /** Tailwind class used only to render this option's own label in the picker. */
+  previewClass: string;
 }
 
-export const FONT_PAIRINGS: FontPairing[] = [
-  { id: 'bold', name: 'Bold Editorial', description: 'Archivo Black + Inter — the current look', cssVar: '--font-archivo' },
-  { id: 'luxury', name: 'Classic Luxury', description: 'Playfair Display serif + Inter', cssVar: '--font-playfair' },
-  { id: 'minimal', name: 'Modern Minimal', description: 'Poppins + Inter', cssVar: '--font-poppins' },
+export const FONT_OPTIONS: FontOption[] = [
+  { id: 'archivo', name: 'Archivo', description: 'Bold geometric sans-serif', cssVar: '--font-archivo', previewClass: 'font-black' },
+  { id: 'playfair', name: 'Playfair Display', description: 'Classic editorial serif', cssVar: '--font-playfair', previewClass: 'font-bold' },
+  { id: 'poppins', name: 'Poppins', description: 'Modern geometric sans-serif', cssVar: '--font-poppins', previewClass: 'font-bold' },
+  { id: 'inter', name: 'Inter', description: 'Clean neutral sans-serif', cssVar: '--font-body', previewClass: 'font-semibold' },
 ];
+
+/** One slide of the shop hero carousel. When `image` is empty, the site
+ *  falls back to auto-sampling one product photo per brand/category —
+ *  see app/shop/page.tsx. */
+export interface HeroSlide {
+  id: string;
+  image: string | null;
+  eyebrow: string;
+  caption: string;
+  subcaption: string;
+  /** Optional click-through, e.g. "/shop?category=Chanel". Blank = not clickable. */
+  link: string;
+}
+
+export interface TrustItem {
+  label: string;
+  desc: string;
+}
 
 export interface SiteConfig {
   themePresetId: string;
-  fontPairingId: string;
+  headingFontId: string;
+  bodyFontId: string;
   announcementEnabled: boolean;
   announcementMessages: string[];
-  showBrandGrid: boolean;
+
+  // Shop hero
   heroEyebrow: string;
   heroHeadline: string;
   heroSubtext: string;
-  /** Custom uploaded hero banner (data URL). When set, overrides the
-   *  auto-generated per-brand product carousel with a single static image. */
-  heroBannerImage: string | null;
+  /** Custom carousel slides. Empty = auto-generated from product photos. */
+  heroSlides: HeroSlide[];
+
+  // Trust strip (4 fixed icons: ShieldCheck, Lock, Truck, MessageCircle)
+  trustItems: TrustItem[];
+
+  // Personal sourcing / concierge section
+  sourcingEyebrow: string;
+  sourcingHeadline: string;
+  sourcingText: string;
+  sourcingImage: string;
+
+  // Shop by brand grid
+  showBrandGrid: boolean;
+  brandGridEyebrow: string;
+  brandGridHeading: string;
+  brandGridSubheading: string;
+
+  // Bottom "Experience" CTA section
+  ctaEyebrow: string;
+  ctaHeadline: string;
+  ctaText: string;
+
   footerTagline: string;
 }
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
   themePresetId: 'emerald-gold',
-  fontPairingId: 'bold',
+  headingFontId: 'archivo',
+  bodyFontId: 'inter',
   announcementEnabled: true,
   announcementMessages: [
     'Free authentication on every piece',
     'New arrivals added weekly',
     'Pasabuy pre-orders now open',
   ],
-  showBrandGrid: true,
+
   heroEyebrow: 'Curated. Authenticated.',
   heroHeadline: 'HOLY GRAIL',
   heroSubtext: "From the first mile to the final arrival — discover great deals across all our categories.",
-  heroBannerImage: null,
+  heroSlides: [],
+
+  trustItems: [
+    { label: 'Authenticity Checked', desc: 'Condition & provenance verified' },
+    { label: 'Secure Reservation', desc: 'Deposit-based checkout' },
+    { label: 'Pasabuy Sourcing', desc: 'We source it on request' },
+    { label: 'Sales Concierge', desc: 'Personal assistance, always' },
+  ],
+
+  sourcingEyebrow: 'Personal Sourcing',
+  sourcingHeadline: "Can't Find the Piece You Want?",
+  sourcingText: "Our Pasabuy service sources specific pieces on your behalf when they're not already in stock, backed by a dedicated sales concierge from inquiry to delivery.",
+  sourcingImage: 'https://images.unsplash.com/photo-1589731119540-c4586781dae1?w=1000&q=80',
+
+  showBrandGrid: true,
+  brandGridEyebrow: 'Maisons',
+  brandGridHeading: 'Shop by Brand',
+  brandGridSubheading: 'Curated houses, authenticated pieces',
+
+  ctaEyebrow: 'Every Order',
+  ctaHeadline: 'The Holy Grail Experience',
+  ctaText: 'Every order is backed by the same standard of care, from first inquiry to final delivery.',
+
   footerTagline: 'Sign up to receive exclusive content and updates on new arrivals.',
 };
 
-/** Max accepted upload size for the hero banner image, in bytes. Kept small
- *  since the image is stored inline as a base64 data URL in site_config,
- *  which is fetched on every page (footer/announcement bar included). */
-export const MAX_BANNER_IMAGE_BYTES = 1_200_000;
+/** Max accepted upload size per image, in bytes. Kept small since images are
+ *  stored inline as base64 data URLs in site_config, which is fetched on
+ *  every page (footer/announcement bar included). */
+export const MAX_IMAGE_BYTES = 900_000;
+
+/** Hard cap on the number of custom hero slides an admin can add, so the
+ *  site_config payload (fetched on every page load) can't grow unbounded. */
+export const MAX_HERO_SLIDES = 6;
 
 export function getThemePreset(id: string): ThemePreset {
   return THEME_PRESETS.find((p) => p.id === id) ?? THEME_PRESETS[0];
 }
 
-export function getFontPairing(id: string): FontPairing {
-  return FONT_PAIRINGS.find((f) => f.id === id) ?? FONT_PAIRINGS[0];
+export function getFontOption(id: string): FontOption {
+  return FONT_OPTIONS.find((f) => f.id === id) ?? FONT_OPTIONS[0];
 }
 
 export function mergeSiteConfig(partial: Partial<SiteConfig> | null | undefined): SiteConfig {

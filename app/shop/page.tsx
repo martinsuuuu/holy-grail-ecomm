@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
-import HeroCarousel from '@/components/HeroCarousel';
+import HeroCarousel, { Slide } from '@/components/HeroCarousel';
 import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle, Check } from 'lucide-react';
 import { DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/siteConfig';
 
@@ -109,13 +109,33 @@ function ShopPageInner() {
   const regularProducts = products.filter(p => p.type !== 'PASABUY');
   const isSearching = search.trim().length > 0;
 
+  // Custom slides from the site editor take priority; otherwise fall back to
+  // one auto-sampled product photo per brand/category.
+  const customSlides: Slide[] = siteConfig.heroSlides
+    .filter((s) => s.image)
+    .map((s) => ({
+      image: s.image!,
+      eyebrow: s.eyebrow || undefined,
+      caption: s.caption || undefined,
+      subcaption: s.subcaption || undefined,
+      href: s.link || undefined,
+    }));
+  const autoSlides: Slide[] = brandFeatured.map((b) => ({
+    image: b.imageUrl,
+    eyebrow: 'Now Featuring',
+    caption: b.category,
+    subcaption: b.name,
+    href: `/shop?category=${encodeURIComponent(b.category)}`,
+  }));
+  const heroSlides = customSlides.length > 0 ? customSlides : autoSlides;
+
   return (
     <div className="min-h-screen bg-cream">
       <Navbar />
 
       {/* Hero Banner — full-bleed carousel of featured brand photography */}
       <div className="relative text-cream bg-espresso overflow-hidden h-[420px] sm:h-[500px]">
-        <HeroCarousel slides={brandFeatured} bannerImage={siteConfig.heroBannerImage} />
+        <HeroCarousel slides={heroSlides} />
         <div className="absolute inset-0 bg-gradient-to-t from-espresso/95 via-espresso/10 to-transparent" />
         <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-24 sm:pb-28">
           <div className="flex items-center gap-3 mb-2">
@@ -134,22 +154,22 @@ function ShopPageInner() {
       {/* Trust strip */}
       <div className="bg-white border-b border-stone-200/70">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {[
-            { icon: ShieldCheck, label: 'Authenticity Checked', desc: 'Condition & provenance verified' },
-            { icon: Lock, label: 'Secure Reservation', desc: 'Deposit-based checkout' },
-            { icon: Truck, label: 'Pasabuy Sourcing', desc: 'We source it on request' },
-            { icon: MessageCircle, label: 'Sales Concierge', desc: 'Personal assistance, always' },
-          ].map(({ icon: Icon, label, desc }, i) => (
-            <div key={i} className="flex flex-col items-center text-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center">
-                <Icon className="h-5 w-5 text-primary-700" />
+          {[ShieldCheck, Lock, Truck, MessageCircle].map((Icon, i) => {
+            const item = siteConfig.trustItems[i];
+            if (!item) return null;
+            const { label, desc } = item;
+            return (
+              <div key={i} className="flex flex-col items-center text-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center">
+                  <Icon className="h-5 w-5 text-primary-700" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-espresso">{label}</p>
+                  <p className="text-xs text-espresso/50 mt-0.5">{desc}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-espresso">{label}</p>
-                <p className="text-xs text-espresso/50 mt-0.5">{desc}</p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -324,14 +344,13 @@ function ShopPageInner() {
           <div>
             <div className="flex items-center gap-3 mb-3">
               <span className="w-10 h-px bg-primary-500" />
-              <p className="text-xs uppercase tracking-[0.25em] text-primary-700 font-medium">Personal Sourcing</p>
+              <p className="text-xs uppercase tracking-[0.25em] text-primary-700 font-medium">{siteConfig.sourcingEyebrow}</p>
             </div>
             <h2 className="font-display font-black text-3xl sm:text-4xl text-espresso mb-4">
-              Can&apos;t Find the Piece You Want?
+              {siteConfig.sourcingHeadline}
             </h2>
             <p className="text-espresso/60 mb-8 max-w-md">
-              Our Pasabuy service sources specific pieces on your behalf when they&apos;re not already
-              in stock, backed by a dedicated sales concierge from inquiry to delivery.
+              {siteConfig.sourcingText}
             </p>
             <div className="space-y-4 mb-8">
               {[
@@ -354,7 +373,7 @@ function ShopPageInner() {
           </div>
           <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-warm">
             <img
-              src="https://images.unsplash.com/photo-1589731119540-c4586781dae1?w=1000&q=80"
+              src={siteConfig.sourcingImage}
               alt="Personal sourcing"
               className="absolute inset-0 w-full h-full object-cover"
             />
@@ -367,10 +386,10 @@ function ShopPageInner() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
           <div className="flex items-center gap-3 mb-1">
             <span className="w-10 h-px bg-primary-500" />
-            <p className="text-xs uppercase tracking-[0.25em] text-primary-700 font-medium">Maisons</p>
+            <p className="text-xs uppercase tracking-[0.25em] text-primary-700 font-medium">{siteConfig.brandGridEyebrow}</p>
           </div>
-          <h2 className="font-display font-black text-3xl text-espresso mb-1">Shop by Brand</h2>
-          <p className="text-espresso/50 text-sm mb-8">Curated houses, authenticated pieces</p>
+          <h2 className="font-display font-black text-3xl text-espresso mb-1">{siteConfig.brandGridHeading}</h2>
+          <p className="text-espresso/50 text-sm mb-8">{siteConfig.brandGridSubheading}</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
             {categories.map((cat) => {
               const sample = brandFeatured.find((b) => b.category === cat.name)?.imageUrl;
@@ -410,11 +429,11 @@ function ShopPageInner() {
       <div className="bg-espresso text-cream">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <span className="inline-block px-3 py-1 rounded-full bg-primary-500/20 text-primary-300 text-[11px] uppercase tracking-widest font-medium mb-4">
-            Every Order
+            {siteConfig.ctaEyebrow}
           </span>
-          <h2 className="font-display font-black text-3xl sm:text-4xl mb-3">The Holy Grail Experience</h2>
+          <h2 className="font-display font-black text-3xl sm:text-4xl mb-3">{siteConfig.ctaHeadline}</h2>
           <p className="text-cream/60 max-w-lg mx-auto mb-12">
-            Every order is backed by the same standard of care, from first inquiry to final delivery.
+            {siteConfig.ctaText}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12 text-left">
             {[

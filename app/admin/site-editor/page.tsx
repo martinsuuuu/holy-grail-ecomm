@@ -1,16 +1,56 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Palette, Type, MessageSquare, Layout, Check, RefreshCw, ExternalLink, AlertCircle, ImageUp } from 'lucide-react';
+import {
+  Palette, Type, MessageSquare, Layout, Check, RefreshCw, ExternalLink, AlertCircle, ImageUp,
+  Megaphone, GalleryHorizontal, ShieldCheck, Search, Grid3x3, Sparkles, PanelBottom,
+  Plus, Trash2, ChevronUp, ChevronDown,
+} from 'lucide-react';
 import {
   THEME_PRESETS,
-  FONT_PAIRINGS,
+  FONT_OPTIONS,
   DEFAULT_SITE_CONFIG,
-  MAX_BANNER_IMAGE_BYTES,
+  MAX_IMAGE_BYTES,
+  MAX_HERO_SLIDES,
   SiteConfig,
+  HeroSlide,
 } from '@/lib/siteConfig';
 
 type Tab = 'theme' | 'content';
+
+type SectionId = 'announcement' | 'hero' | 'trust' | 'sourcing' | 'brandGrid' | 'cta' | 'footer';
+
+const CONTENT_SECTIONS: { id: SectionId; label: string; icon: typeof Megaphone }[] = [
+  { id: 'announcement', label: 'Announcement Bar', icon: Megaphone },
+  { id: 'hero', label: 'Hero Carousel', icon: GalleryHorizontal },
+  { id: 'trust', label: 'Trust Strip', icon: ShieldCheck },
+  { id: 'sourcing', label: 'Personal Sourcing', icon: Search },
+  { id: 'brandGrid', label: 'Shop by Brand', icon: Grid3x3 },
+  { id: 'cta', label: 'Experience CTA', icon: Sparkles },
+  { id: 'footer', label: 'Footer', icon: PanelBottom },
+];
+
+function readImageFile(file: File, onLoaded: (dataUrl: string) => void, onError: (msg: string) => void) {
+  if (file.size > MAX_IMAGE_BYTES) {
+    onError(`Image is too large (${(file.size / 1_000_000).toFixed(1)} MB). Please use one under ${(MAX_IMAGE_BYTES / 1_000_000).toFixed(1)} MB.`);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => onLoaded(reader.result as string);
+  reader.onerror = () => onError('Could not read that file — please try a different image.');
+  reader.readAsDataURL(file);
+}
+
+function newSlide(): HeroSlide {
+  return {
+    id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `slide-${Date.now()}-${Math.random()}`,
+    image: null,
+    eyebrow: '',
+    caption: '',
+    subcaption: '',
+    link: '',
+  };
+}
 
 export default function SiteEditorPage() {
   const [config, setConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
@@ -19,8 +59,9 @@ export default function SiteEditorPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [bannerError, setBannerError] = useState('');
+  const [imageError, setImageError] = useState('');
   const [tab, setTab] = useState<Tab>('theme');
+  const [section, setSection] = useState<SectionId>('announcement');
   const [previewKey, setPreviewKey] = useState(0);
 
   useEffect(() => {
@@ -44,6 +85,28 @@ export default function SiteEditorPage() {
     const next = [...config.announcementMessages];
     next[index] = value;
     update('announcementMessages', next);
+  };
+
+  const updateTrustItem = (index: number, patch: Partial<{ label: string; desc: string }>) => {
+    const next = config.trustItems.map((item, i) => (i === index ? { ...item, ...patch } : item));
+    update('trustItems', next);
+  };
+
+  const updateSlide = (id: string, patch: Partial<HeroSlide>) => {
+    update('heroSlides', config.heroSlides.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  };
+  const addSlide = () => {
+    if (config.heroSlides.length >= MAX_HERO_SLIDES) return;
+    update('heroSlides', [...config.heroSlides, newSlide()]);
+  };
+  const removeSlide = (id: string) => update('heroSlides', config.heroSlides.filter((s) => s.id !== id));
+  const moveSlide = (id: string, dir: -1 | 1) => {
+    const idx = config.heroSlides.findIndex((s) => s.id === id);
+    const swapIdx = idx + dir;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= config.heroSlides.length) return;
+    const next = [...config.heroSlides];
+    [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
+    update('heroSlides', next);
   };
 
   const handleSave = async () => {
@@ -84,7 +147,7 @@ export default function SiteEditorPage() {
   return (
     <div className="flex h-screen">
       {/* Editor panel */}
-      <div className="w-[420px] flex-shrink-0 border-r border-stone-200/70 bg-white flex flex-col h-screen">
+      <div className="w-[440px] flex-shrink-0 border-r border-stone-200/70 bg-white flex flex-col h-screen">
         <div className="p-6 border-b border-stone-200/70">
           <h1 className="text-xl font-display font-black text-espresso flex items-center gap-2">
             <Layout className="h-5 w-5 text-primary-600" />
@@ -113,6 +176,25 @@ export default function SiteEditorPage() {
             Content
           </button>
         </div>
+
+        {tab === 'content' && (
+          <div className="flex flex-wrap gap-1.5 p-3 border-b border-stone-200/70 bg-stone-50/60">
+            {CONTENT_SECTIONS.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setSection(s.id)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                  section === s.id
+                    ? 'bg-espresso text-cream border-espresso'
+                    : 'bg-white text-espresso/70 border-stone-200 hover:border-primary-300'
+                }`}
+              >
+                <s.icon className="h-3.5 w-3.5" />
+                {s.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
           {tab === 'theme' && (
@@ -145,22 +227,45 @@ export default function SiteEditorPage() {
 
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-3 flex items-center gap-1.5">
-                  <Type className="h-3.5 w-3.5" /> Typography
+                  <Type className="h-3.5 w-3.5" /> Heading Font
                 </h3>
                 <div className="grid grid-cols-1 gap-2">
-                  {FONT_PAIRINGS.map((f) => (
+                  {FONT_OPTIONS.map((f) => (
                     <button
                       key={f.id}
-                      onClick={() => update('fontPairingId', f.id)}
+                      onClick={() => update('headingFontId', f.id)}
                       className={`flex items-center justify-between p-3 rounded-2xl border-2 text-left transition-all ${
-                        config.fontPairingId === f.id ? 'border-primary-500 bg-primary-50' : 'border-stone-200 hover:border-stone-300'
+                        config.headingFontId === f.id ? 'border-primary-500 bg-primary-50' : 'border-stone-200 hover:border-stone-300'
                       }`}
                     >
                       <div>
-                        <p className="text-sm font-semibold text-espresso">{f.name}</p>
+                        <p className={`text-base text-espresso ${f.previewClass}`} style={{ fontFamily: `var(${f.cssVar})` }}>{f.name}</p>
                         <p className="text-xs text-stone-500">{f.description}</p>
                       </div>
-                      {config.fontPairingId === f.id && <Check className="h-4 w-4 text-primary-600 flex-shrink-0" />}
+                      {config.headingFontId === f.id && <Check className="h-4 w-4 text-primary-600 flex-shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-3 flex items-center gap-1.5">
+                  <Type className="h-3.5 w-3.5" /> Body Font
+                </h3>
+                <div className="grid grid-cols-1 gap-2">
+                  {FONT_OPTIONS.map((f) => (
+                    <button
+                      key={f.id}
+                      onClick={() => update('bodyFontId', f.id)}
+                      className={`flex items-center justify-between p-3 rounded-2xl border-2 text-left transition-all ${
+                        config.bodyFontId === f.id ? 'border-primary-500 bg-primary-50' : 'border-stone-200 hover:border-stone-300'
+                      }`}
+                    >
+                      <div>
+                        <p className="text-sm text-espresso" style={{ fontFamily: `var(${f.cssVar})` }}>{f.name} — the quick brown fox</p>
+                        <p className="text-xs text-stone-500">{f.description}</p>
+                      </div>
+                      {config.bodyFontId === f.id && <Check className="h-4 w-4 text-primary-600 flex-shrink-0" />}
                     </button>
                   ))}
                 </div>
@@ -168,35 +273,37 @@ export default function SiteEditorPage() {
             </>
           )}
 
-          {tab === 'content' && (
-            <>
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400">Announcement Bar</h3>
-                  <label className="flex items-center gap-2 text-xs text-stone-500 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={config.announcementEnabled}
-                      onChange={(e) => update('announcementEnabled', e.target.checked)}
-                      className="rounded border-stone-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    Enabled
-                  </label>
-                </div>
-                <div className="space-y-2">
-                  {config.announcementMessages.map((msg, i) => (
-                    <input
-                      key={i}
-                      type="text"
-                      value={msg}
-                      onChange={(e) => updateMessage(i, e.target.value)}
-                      placeholder={`Message ${i + 1}`}
-                      className="input-field text-sm"
-                    />
-                  ))}
-                </div>
+          {tab === 'content' && section === 'announcement' && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400">Announcement Bar</h3>
+                <label className="flex items-center gap-2 text-xs text-stone-500 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={config.announcementEnabled}
+                    onChange={(e) => update('announcementEnabled', e.target.checked)}
+                    className="rounded border-stone-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  Enabled
+                </label>
               </div>
+              <div className="space-y-2">
+                {config.announcementMessages.map((msg, i) => (
+                  <input
+                    key={i}
+                    type="text"
+                    value={msg}
+                    onChange={(e) => updateMessage(i, e.target.value)}
+                    placeholder={`Message ${i + 1}`}
+                    className="input-field text-sm"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
+          {tab === 'content' && section === 'hero' && (
+            <>
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-3">Shop Hero</h3>
                 <div className="space-y-3">
@@ -212,78 +319,256 @@ export default function SiteEditorPage() {
                     <label className="label text-xs">Subtext</label>
                     <textarea value={config.heroSubtext} onChange={(e) => update('heroSubtext', e.target.value)} rows={3} className="input-field text-sm" />
                   </div>
-                  <div>
-                    <label className="label text-xs">Banner image</label>
-                    <p className="text-xs text-stone-400 mb-2">
-                      Optional — uploading a photo replaces the auto-rotating brand carousel with this single image. Max 1.2 MB.
-                    </p>
-                    {config.heroBannerImage ? (
-                      <div className="relative rounded-xl overflow-hidden border border-stone-200">
-                        <img src={config.heroBannerImage} alt="Banner preview" className="w-full h-32 object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => update('heroBannerImage', null)}
-                          className="absolute top-2 right-2 bg-espresso/80 hover:bg-espresso text-cream text-xs px-2.5 py-1 rounded-full"
-                        >
-                          Remove
-                        </button>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400">Carousel Slides</h3>
+                  <span className="text-[11px] text-stone-400">{config.heroSlides.length}/{MAX_HERO_SLIDES}</span>
+                </div>
+                <p className="text-xs text-stone-400 mb-3">
+                  Leave empty to auto-rotate one photo per brand. Add slides here to take full control — each can have its own image, caption, and link.
+                </p>
+
+                <div className="space-y-3">
+                  {config.heroSlides.map((slide, i) => (
+                    <div key={slide.id} className="border border-stone-200 rounded-2xl p-3 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-espresso">Slide {i + 1}</span>
+                        <div className="flex items-center gap-1">
+                          <button type="button" onClick={() => moveSlide(slide.id, -1)} disabled={i === 0} className="p-1 rounded text-stone-400 hover:text-espresso disabled:opacity-30 disabled:cursor-not-allowed">
+                            <ChevronUp className="h-3.5 w-3.5" />
+                          </button>
+                          <button type="button" onClick={() => moveSlide(slide.id, 1)} disabled={i === config.heroSlides.length - 1} className="p-1 rounded text-stone-400 hover:text-espresso disabled:opacity-30 disabled:cursor-not-allowed">
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          </button>
+                          <button type="button" onClick={() => removeSlide(slide.id)} className="p-1 rounded text-red-500 hover:text-red-700">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </div>
-                    ) : (
-                      <label className="flex flex-col items-center justify-center gap-1.5 border-2 border-dashed border-stone-200 rounded-xl py-6 cursor-pointer hover:border-primary-300 hover:bg-primary-50/40 transition-colors text-center">
-                        <ImageUp className="h-5 w-5 text-stone-400" />
-                        <span className="text-xs text-stone-500">Click to upload an image</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            e.target.value = '';
-                            if (!file) return;
-                            setBannerError('');
-                            if (file.size > MAX_BANNER_IMAGE_BYTES) {
-                              setBannerError(`Image is too large (${(file.size / 1_000_000).toFixed(1)} MB). Please use one under 1.2 MB.`);
-                              return;
-                            }
-                            const reader = new FileReader();
-                            reader.onload = () => update('heroBannerImage', reader.result as string);
-                            reader.onerror = () => setBannerError('Could not read that file — please try a different image.');
-                            reader.readAsDataURL(file);
-                          }}
-                        />
-                      </label>
-                    )}
-                    {bannerError && (
-                      <p className="flex items-center gap-1.5 text-xs text-red-700 mt-2">
-                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
-                        {bannerError}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
 
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-3">Footer</h3>
-                <div>
-                  <label className="label text-xs">Newsletter tagline</label>
-                  <textarea value={config.footerTagline} onChange={(e) => update('footerTagline', e.target.value)} rows={2} className="input-field text-sm" />
-                </div>
-              </div>
+                      {slide.image ? (
+                        <div className="relative rounded-xl overflow-hidden border border-stone-200">
+                          <img src={slide.image} alt={`Slide ${i + 1} preview`} className="w-full h-28 object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => updateSlide(slide.id, { image: null })}
+                            className="absolute top-2 right-2 bg-espresso/80 hover:bg-espresso text-cream text-xs px-2.5 py-1 rounded-full"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center gap-1 border-2 border-dashed border-stone-200 rounded-xl py-4 cursor-pointer hover:border-primary-300 hover:bg-primary-50/40 transition-colors text-center">
+                          <ImageUp className="h-4 w-4 text-stone-400" />
+                          <span className="text-xs text-stone-500">Upload an image</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              e.target.value = '';
+                              if (!file) return;
+                              setImageError('');
+                              readImageFile(file, (url) => updateSlide(slide.id, { image: url }), setImageError);
+                            }}
+                          />
+                        </label>
+                      )}
 
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-3">Layout</h3>
-                <label className="flex items-center gap-2 text-sm text-espresso/80 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={config.showBrandGrid}
-                    onChange={(e) => update('showBrandGrid', e.target.checked)}
-                    className="rounded border-stone-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  Show "Shop by Brand" section
-                </label>
+                      <input
+                        type="text"
+                        value={slide.eyebrow}
+                        onChange={(e) => updateSlide(slide.id, { eyebrow: e.target.value })}
+                        placeholder="Eyebrow (e.g. Now Featuring)"
+                        className="input-field text-xs"
+                      />
+                      <input
+                        type="text"
+                        value={slide.caption}
+                        onChange={(e) => updateSlide(slide.id, { caption: e.target.value })}
+                        placeholder="Caption (e.g. Chanel)"
+                        className="input-field text-xs"
+                      />
+                      <input
+                        type="text"
+                        value={slide.subcaption}
+                        onChange={(e) => updateSlide(slide.id, { subcaption: e.target.value })}
+                        placeholder="Subcaption (e.g. product name)"
+                        className="input-field text-xs"
+                      />
+                      <input
+                        type="text"
+                        value={slide.link}
+                        onChange={(e) => updateSlide(slide.id, { link: e.target.value })}
+                        placeholder="Link when clicked (e.g. /shop?category=Chanel)"
+                        className="input-field text-xs"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {imageError && (
+                  <p className="flex items-center gap-1.5 text-xs text-red-700 mt-2">
+                    <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                    {imageError}
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={addSlide}
+                  disabled={config.heroSlides.length >= MAX_HERO_SLIDES}
+                  className="w-full flex items-center justify-center gap-1.5 mt-3 py-2.5 rounded-xl border-2 border-dashed border-stone-200 text-sm text-espresso/70 hover:border-primary-300 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Plus className="h-4 w-4" /> Add Slide
+                </button>
               </div>
             </>
+          )}
+
+          {tab === 'content' && section === 'trust' && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-1">Trust Strip</h3>
+              <p className="text-xs text-stone-400 mb-3">The four icons under the hero banner.</p>
+              <div className="space-y-3">
+                {config.trustItems.map((item, i) => (
+                  <div key={i} className="border border-stone-200 rounded-2xl p-3 space-y-2">
+                    <input
+                      type="text"
+                      value={item.label}
+                      onChange={(e) => updateTrustItem(i, { label: e.target.value })}
+                      placeholder="Label"
+                      className="input-field text-sm"
+                    />
+                    <input
+                      type="text"
+                      value={item.desc}
+                      onChange={(e) => updateTrustItem(i, { desc: e.target.value })}
+                      placeholder="Description"
+                      className="input-field text-xs"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tab === 'content' && section === 'sourcing' && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-3">Personal Sourcing</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="label text-xs">Eyebrow text</label>
+                  <input type="text" value={config.sourcingEyebrow} onChange={(e) => update('sourcingEyebrow', e.target.value)} className="input-field text-sm" />
+                </div>
+                <div>
+                  <label className="label text-xs">Headline</label>
+                  <input type="text" value={config.sourcingHeadline} onChange={(e) => update('sourcingHeadline', e.target.value)} className="input-field text-sm" />
+                </div>
+                <div>
+                  <label className="label text-xs">Body text</label>
+                  <textarea value={config.sourcingText} onChange={(e) => update('sourcingText', e.target.value)} rows={4} className="input-field text-sm" />
+                </div>
+                <div>
+                  <label className="label text-xs">Image</label>
+                  <div className="relative rounded-xl overflow-hidden border border-stone-200 mb-2">
+                    <img src={config.sourcingImage} alt="Sourcing preview" className="w-full h-32 object-cover" />
+                  </div>
+                  <div className="flex gap-2">
+                    <label className="flex-1 flex items-center justify-center gap-1.5 border-2 border-dashed border-stone-200 rounded-xl py-2.5 cursor-pointer hover:border-primary-300 hover:bg-primary-50/40 transition-colors text-center">
+                      <ImageUp className="h-4 w-4 text-stone-400" />
+                      <span className="text-xs text-stone-500">Change image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          e.target.value = '';
+                          if (!file) return;
+                          setImageError('');
+                          readImageFile(file, (url) => update('sourcingImage', url), setImageError);
+                        }}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => update('sourcingImage', DEFAULT_SITE_CONFIG.sourcingImage)}
+                      className="px-3 py-2.5 rounded-xl border border-stone-200 text-xs text-espresso/70 hover:border-primary-300"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                  {imageError && (
+                    <p className="flex items-center gap-1.5 text-xs text-red-700 mt-2">
+                      <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                      {imageError}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {tab === 'content' && section === 'brandGrid' && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-3">Shop by Brand</h3>
+              <label className="flex items-center gap-2 text-sm text-espresso/80 cursor-pointer mb-4">
+                <input
+                  type="checkbox"
+                  checked={config.showBrandGrid}
+                  onChange={(e) => update('showBrandGrid', e.target.checked)}
+                  className="rounded border-stone-300 text-primary-600 focus:ring-primary-500"
+                />
+                Show this section
+              </label>
+              <div className="space-y-3">
+                <div>
+                  <label className="label text-xs">Eyebrow text</label>
+                  <input type="text" value={config.brandGridEyebrow} onChange={(e) => update('brandGridEyebrow', e.target.value)} className="input-field text-sm" />
+                </div>
+                <div>
+                  <label className="label text-xs">Headline</label>
+                  <input type="text" value={config.brandGridHeading} onChange={(e) => update('brandGridHeading', e.target.value)} className="input-field text-sm" />
+                </div>
+                <div>
+                  <label className="label text-xs">Subheading</label>
+                  <input type="text" value={config.brandGridSubheading} onChange={(e) => update('brandGridSubheading', e.target.value)} className="input-field text-sm" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {tab === 'content' && section === 'cta' && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-3">Experience CTA</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="label text-xs">Eyebrow text</label>
+                  <input type="text" value={config.ctaEyebrow} onChange={(e) => update('ctaEyebrow', e.target.value)} className="input-field text-sm" />
+                </div>
+                <div>
+                  <label className="label text-xs">Headline</label>
+                  <input type="text" value={config.ctaHeadline} onChange={(e) => update('ctaHeadline', e.target.value)} className="input-field text-sm" />
+                </div>
+                <div>
+                  <label className="label text-xs">Body text</label>
+                  <textarea value={config.ctaText} onChange={(e) => update('ctaText', e.target.value)} rows={3} className="input-field text-sm" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {tab === 'content' && section === 'footer' && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-3">Footer</h3>
+              <label className="label text-xs">Newsletter tagline</label>
+              <textarea value={config.footerTagline} onChange={(e) => update('footerTagline', e.target.value)} rows={2} className="input-field text-sm" />
+            </div>
           )}
         </div>
 
