@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import HeroCarousel, { Slide } from '@/components/HeroCarousel';
-import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle, Check } from 'lucide-react';
+import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle, Check, ArrowUpRight } from 'lucide-react';
 import { DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/siteConfig';
 
 interface Product {
@@ -148,6 +148,26 @@ function ShopPageInner() {
           <p className="text-cream/60 max-w-sm text-sm">
             {siteConfig.heroSubtext}
           </p>
+        </div>
+      </div>
+
+      {/* Quick actions */}
+      <div className="bg-stone-50 border-b border-stone-200/70">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {siteConfig.quickActions.map((action, i) => (
+            <Link
+              key={i}
+              href={action.href}
+              className="group flex items-start justify-between gap-4 bg-white border border-stone-200/70 rounded-2xl p-5 hover:border-primary-300 hover:shadow-soft transition-all"
+            >
+              <div>
+                <p className="text-[11px] font-semibold text-primary-600 mb-1">{String(i + 1).padStart(2, '0')}</p>
+                <p className="text-sm font-semibold text-espresso mb-1">{action.label}</p>
+                <p className="text-xs text-espresso/50 leading-relaxed">{action.desc}</p>
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-espresso/30 group-hover:text-primary-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all flex-shrink-0 mt-1" />
+            </Link>
+          ))}
         </div>
       </div>
 
@@ -424,6 +444,23 @@ function ShopPageInner() {
           </div>
         </div>
       )}
+
+      {/* By the numbers */}
+      <div className="bg-primary-50 border-y border-primary-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+          <p className="text-center text-xs uppercase tracking-[0.25em] text-primary-700 font-medium mb-8">
+            {siteConfig.statsEyebrow}
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            {siteConfig.statsItems.map((stat, i) => (
+              <div key={i}>
+                <p className="font-display font-black text-3xl sm:text-4xl text-espresso">{stat.value}</p>
+                <p className="text-xs text-espresso/50 mt-1">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Experience / CTA */}
       <div className="bg-espresso text-cream">

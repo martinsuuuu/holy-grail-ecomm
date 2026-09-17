@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import {
   Palette, Type, MessageSquare, Layout, Check, RefreshCw, ExternalLink, AlertCircle, ImageUp,
-  Megaphone, GalleryHorizontal, ShieldCheck, Search, Grid3x3, Sparkles, PanelBottom,
+  Megaphone, GalleryHorizontal, ShieldCheck, Search, Grid3x3, Sparkles, PanelBottom, Zap, BarChart3,
   Plus, Trash2, ChevronUp, ChevronDown,
 } from 'lucide-react';
 import {
@@ -18,14 +18,16 @@ import {
 
 type Tab = 'theme' | 'content';
 
-type SectionId = 'announcement' | 'hero' | 'trust' | 'sourcing' | 'brandGrid' | 'cta' | 'footer';
+type SectionId = 'announcement' | 'hero' | 'quickActions' | 'trust' | 'sourcing' | 'brandGrid' | 'stats' | 'cta' | 'footer';
 
 const CONTENT_SECTIONS: { id: SectionId; label: string; icon: typeof Megaphone }[] = [
   { id: 'announcement', label: 'Announcement Bar', icon: Megaphone },
   { id: 'hero', label: 'Hero Carousel', icon: GalleryHorizontal },
+  { id: 'quickActions', label: 'Quick Actions', icon: Zap },
   { id: 'trust', label: 'Trust Strip', icon: ShieldCheck },
   { id: 'sourcing', label: 'Personal Sourcing', icon: Search },
   { id: 'brandGrid', label: 'Shop by Brand', icon: Grid3x3 },
+  { id: 'stats', label: 'By the Numbers', icon: BarChart3 },
   { id: 'cta', label: 'Experience CTA', icon: Sparkles },
   { id: 'footer', label: 'Footer', icon: PanelBottom },
 ];
@@ -90,6 +92,16 @@ export default function SiteEditorPage() {
   const updateTrustItem = (index: number, patch: Partial<{ label: string; desc: string }>) => {
     const next = config.trustItems.map((item, i) => (i === index ? { ...item, ...patch } : item));
     update('trustItems', next);
+  };
+
+  const updateQuickAction = (index: number, patch: Partial<{ label: string; desc: string; href: string }>) => {
+    const next = config.quickActions.map((item, i) => (i === index ? { ...item, ...patch } : item));
+    update('quickActions', next);
+  };
+
+  const updateStatItem = (index: number, patch: Partial<{ value: string; label: string }>) => {
+    const next = config.statsItems.map((item, i) => (i === index ? { ...item, ...patch } : item));
+    update('statsItems', next);
   };
 
   const updateSlide = (id: string, patch: Partial<HeroSlide>) => {
@@ -430,6 +442,40 @@ export default function SiteEditorPage() {
             </>
           )}
 
+          {tab === 'content' && section === 'quickActions' && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-1">Quick Actions</h3>
+              <p className="text-xs text-stone-400 mb-3">Three clickable cards directly under the hero banner.</p>
+              <div className="space-y-3">
+                {config.quickActions.map((action, i) => (
+                  <div key={i} className="border border-stone-200 rounded-2xl p-3 space-y-2">
+                    <input
+                      type="text"
+                      value={action.label}
+                      onChange={(e) => updateQuickAction(i, { label: e.target.value })}
+                      placeholder="Label"
+                      className="input-field text-sm"
+                    />
+                    <input
+                      type="text"
+                      value={action.desc}
+                      onChange={(e) => updateQuickAction(i, { desc: e.target.value })}
+                      placeholder="Description"
+                      className="input-field text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={action.href}
+                      onChange={(e) => updateQuickAction(i, { href: e.target.value })}
+                      placeholder="Link (e.g. /contact)"
+                      className="input-field text-xs"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {tab === 'content' && section === 'trust' && (
             <div>
               <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-1">Trust Strip</h3>
@@ -539,6 +585,36 @@ export default function SiteEditorPage() {
                   <label className="label text-xs">Subheading</label>
                   <input type="text" value={config.brandGridSubheading} onChange={(e) => update('brandGridSubheading', e.target.value)} className="input-field text-sm" />
                 </div>
+              </div>
+            </div>
+          )}
+
+          {tab === 'content' && section === 'stats' && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-3">By the Numbers</h3>
+              <div className="mb-3">
+                <label className="label text-xs">Eyebrow text</label>
+                <input type="text" value={config.statsEyebrow} onChange={(e) => update('statsEyebrow', e.target.value)} className="input-field text-sm" />
+              </div>
+              <div className="space-y-3">
+                {config.statsItems.map((stat, i) => (
+                  <div key={i} className="border border-stone-200 rounded-2xl p-3 flex gap-2">
+                    <input
+                      type="text"
+                      value={stat.value}
+                      onChange={(e) => updateStatItem(i, { value: e.target.value })}
+                      placeholder="500+"
+                      className="input-field text-sm w-24"
+                    />
+                    <input
+                      type="text"
+                      value={stat.label}
+                      onChange={(e) => updateStatItem(i, { label: e.target.value })}
+                      placeholder="Label"
+                      className="input-field text-sm flex-1"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           )}

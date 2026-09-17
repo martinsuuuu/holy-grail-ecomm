@@ -129,6 +129,17 @@ export interface TrustItem {
   desc: string;
 }
 
+export interface QuickAction {
+  label: string;
+  desc: string;
+  href: string;
+}
+
+export interface StatItem {
+  value: string;
+  label: string;
+}
+
 export interface SiteConfig {
   themePresetId: string;
   headingFontId: string;
@@ -142,6 +153,9 @@ export interface SiteConfig {
   heroSubtext: string;
   /** Custom carousel slides. Empty = auto-generated from product photos. */
   heroSlides: HeroSlide[];
+
+  // Quick action cards, directly under the hero
+  quickActions: QuickAction[];
 
   // Trust strip (4 fixed icons: ShieldCheck, Lock, Truck, MessageCircle)
   trustItems: TrustItem[];
@@ -157,6 +171,10 @@ export interface SiteConfig {
   brandGridEyebrow: string;
   brandGridHeading: string;
   brandGridSubheading: string;
+
+  // "By the numbers" social-proof band
+  statsEyebrow: string;
+  statsItems: StatItem[];
 
   // Bottom "Experience" CTA section
   ctaEyebrow: string;
@@ -182,6 +200,12 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   heroSubtext: "From the first mile to the final arrival — discover great deals across all our categories.",
   heroSlides: [],
 
+  quickActions: [
+    { label: 'Browse the Collection', desc: 'Explore every piece currently on hand and ready to ship.', href: '/shop#collection' },
+    { label: 'Request a Pasabuy', desc: "Send us the piece you want — we'll source it on your behalf.", href: '/contact' },
+    { label: 'Talk to a Concierge', desc: 'Get a personal recommendation from our sales team.', href: '/contact' },
+  ],
+
   trustItems: [
     { label: 'Authenticity Checked', desc: 'Condition & provenance verified' },
     { label: 'Secure Reservation', desc: 'Deposit-based checkout' },
@@ -198,6 +222,14 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   brandGridEyebrow: 'Maisons',
   brandGridHeading: 'Shop by Brand',
   brandGridSubheading: 'Curated houses, authenticated pieces',
+
+  statsEyebrow: 'By The Numbers',
+  statsItems: [
+    { value: '500+', label: 'Pieces Authenticated' },
+    { value: '1,200+', label: 'Happy Clients' },
+    { value: '5+', label: 'Years Curating' },
+    { value: '24h', label: 'Average Response' },
+  ],
 
   ctaEyebrow: 'Every Order',
   ctaHeadline: 'The Holy Grail Experience',
