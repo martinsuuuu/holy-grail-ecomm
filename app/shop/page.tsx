@@ -152,13 +152,13 @@ function ShopPageInner() {
       </div>
 
       {/* Quick actions */}
-      <div className="bg-stone-50 border-b border-stone-200/70">
+      <div className="bg-cream">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
           {siteConfig.quickActions.map((action, i) => (
             <Link
               key={i}
               href={action.href}
-              className="group flex items-start justify-between gap-4 bg-white border border-stone-200/70 rounded-2xl p-5 hover:border-primary-300 hover:shadow-soft transition-all"
+              className="group flex items-start justify-between gap-4 bg-white border border-stone-200 rounded-2xl p-5 hover:border-primary-300 hover:shadow-soft transition-all"
             >
               <div>
                 <p className="text-[11px] font-semibold text-primary-600 mb-1">{String(i + 1).padStart(2, '0')}</p>
@@ -463,8 +463,8 @@ function ShopPageInner() {
       </div>
 
       {/* Experience / CTA */}
-      <div className="bg-espresso text-cream">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+      <div className="bg-cream py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto bg-espresso text-cream rounded-3xl px-6 sm:px-10 py-16 sm:py-20 text-center">
           <span className="inline-block px-3 py-1 rounded-full bg-primary-500/20 text-primary-300 text-[11px] uppercase tracking-widest font-medium mb-4">
             {siteConfig.ctaEyebrow}
           </span>
