@@ -7,6 +7,7 @@ import { ShoppingCart, Heart, User, LogOut, Settings, ChevronDown, Menu, X, Sear
 import NotificationBell from './NotificationBell';
 import HGMonogram from './HGMonogram';
 import AnnouncementBar from './AnnouncementBar';
+import { SOCIAL_LINKS } from './SocialIcons';
 import { useCartStore } from '@/lib/cartStore';
 import { useWishlistStore } from '@/lib/wishlistStore';
 
@@ -202,6 +203,20 @@ export default function Navbar() {
       <div className="hidden md:block border-b border-stone-200/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex items-center justify-center gap-8 h-12">
+            <div className="absolute left-4 lg:left-6 flex items-center gap-3.5">
+              {SOCIAL_LINKS.map(({ label, Icon, href }) =>
+                href ? (
+                  <Link key={label} href={href} aria-label={label} className="text-espresso/60 hover:text-espresso transition-colors">
+                    <Icon className="h-4 w-4" />
+                  </Link>
+                ) : (
+                  <span key={label} aria-label={label} className="text-espresso/60">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                )
+              )}
+            </div>
+
             <NavDropdown label="Shop by Brands" categories={categories} hrefFor={categoryHref} />
             <NavDropdown label="Shop by Categories" categories={categories} hrefFor={categoryHref} />
             <Link href="/about" className="text-espresso/80 hover:text-espresso text-sm font-medium tracking-wide uppercase transition-colors">
