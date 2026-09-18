@@ -148,6 +148,8 @@ export default function Navbar() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [featuredByBrand, setFeaturedByBrand] = useState<FeaturedByCategory[]>([]);
   const [featuredByType, setFeaturedByType] = useState<FeaturedByCategory[]>([]);
+  const [apparelBrands, setApparelBrands] = useState<Category[]>([]);
+  const [featuredApparel, setFeaturedApparel] = useState<FeaturedByCategory[]>([]);
   const cartItemCount = useCartStore((state) => state.getTotalItems());
   const wishlistCount = useWishlistStore((state) => state.items.length);
   const fetchWishlist = useWishlistStore((state) => state.fetchWishlist);
@@ -179,6 +181,19 @@ export default function Navbar() {
         };
         setFeaturedByBrand(sampleOnePer('category'));
         setFeaturedByType(sampleOnePer('itemType'));
+
+        // Brands that carry at least one Apparels item, and one featured
+        // photo per such brand — for the "Fashion" nav dropdown.
+        const apparelSeen = new Set<string>();
+        const apparelFeatured: FeaturedByCategory[] = [];
+        for (const p of data) {
+          if (p.itemType === 'Apparels' && p.category && p.imageUrl && !apparelSeen.has(p.category)) {
+            apparelSeen.add(p.category);
+            apparelFeatured.push({ category: p.category, name: p.name, imageUrl: p.imageUrl });
+          }
+        }
+        setApparelBrands([...apparelSeen].map((name) => ({ id: name, name })));
+        setFeaturedApparel(apparelFeatured);
       })
       .catch(() => {});
   }, []);
@@ -190,6 +205,7 @@ export default function Navbar() {
   const categoryHref = (name: string) => `/shop?category=${encodeURIComponent(name)}`;
   const itemTypeHref = (name: string) => `/shop?itemType=${encodeURIComponent(name)}`;
   const itemTypeOptions: Category[] = ITEM_TYPES.map((t) => ({ id: t, name: t }));
+  const apparelBrandHref = (name: string) => `/shop?category=${encodeURIComponent(name)}&itemType=Apparels`;
 
   return (
     <>
@@ -336,9 +352,7 @@ export default function Navbar() {
             </Link>
             <NavDropdown label="Shop by Brands" categories={categories} hrefFor={categoryHref} featured={featuredByBrand} listLabel="Brands" allLabel="Shop All" allHref="/shop" />
             <NavDropdown label="Shop by Categories" categories={itemTypeOptions} hrefFor={itemTypeHref} featured={featuredByType} listLabel="Categories" allLabel="Shop All" allHref="/shop" />
-            <Link href="/shop?itemType=Apparels" className="text-espresso/80 hover:text-espresso text-sm font-medium tracking-wide uppercase transition-colors">
-              Fashion
-            </Link>
+            <NavDropdown label="Fashion" categories={apparelBrands} hrefFor={apparelBrandHref} featured={featuredApparel} listLabel="Fashion Brands" allLabel="All Fashion" allHref="/shop?itemType=Apparels" />
             <Link href="/about" className="text-espresso/80 hover:text-espresso text-sm font-medium tracking-wide uppercase transition-colors">
               About
             </Link>
