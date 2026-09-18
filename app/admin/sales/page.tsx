@@ -18,6 +18,11 @@ interface SalesSummary {
   netProfit: number;
 }
 
+// Fixed (not random) so server and client render identical markup — a
+// randomized loading skeleton causes a hydration mismatch since the server
+// and client each compute their own random values independently.
+const SKELETON_BAR_HEIGHTS = [45, 70, 35, 85, 55, 40, 75, 60];
+
 export default function AdminSalesPage() {
   const [period, setPeriod] = useState('monthly');
   const [salesData, setSalesData] = useState<SalesData[]>([]);
@@ -115,8 +120,8 @@ export default function AdminSalesPage() {
 
         {isLoading ? (
           <div className="flex items-end gap-2 h-48">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex-1 bg-stone-200 rounded-t animate-pulse" style={{ height: `${Math.random() * 80 + 20}%` }} />
+            {SKELETON_BAR_HEIGHTS.map((h, i) => (
+              <div key={i} className="flex-1 bg-stone-200 rounded-t animate-pulse" style={{ height: `${h}%` }} />
             ))}
           </div>
         ) : salesData.length === 0 ? (
@@ -131,17 +136,23 @@ export default function AdminSalesPage() {
             {salesData.map((data, index) => {
               const height = maxRevenue > 0 ? (data.revenue / maxRevenue) * 100 : 0;
               return (
-                <div key={index} className="flex flex-col items-center gap-1 flex-1 min-w-12 group relative">
+                <div key={index} className="flex flex-col items-center gap-1 flex-1 min-w-12 h-full group relative">
                   {/* Tooltip */}
                   <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-espresso text-cream text-xs rounded-xl px-2 py-1.5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                     <p className="font-medium">{data.date}</p>
                     <p>Revenue: {formatCurrency(data.revenue)}</p>
                     <p>Orders: {data.orders}</p>
                   </div>
-                  <div
-                    className="w-full bg-primary-500 hover:bg-primary-600 rounded-t transition-all cursor-pointer"
-                    style={{ height: `${Math.max(height, 2)}%` }}
-                  />
+                  {/* This inner cell is what gives the bar below a definite
+                      height to compute its percentage against — a flex
+                      column's auto-sized children can't resolve a % height
+                      on their own. */}
+                  <div className="w-full flex-1 flex items-end">
+                    <div
+                      className="w-full bg-primary-500 hover:bg-primary-600 rounded-t transition-all cursor-pointer"
+                      style={{ height: `${Math.max(height, 2)}%` }}
+                    />
+                  </div>
                   <p className="text-xs text-stone-400 w-full text-center truncate">{data.date}</p>
                 </div>
               );
