@@ -8,6 +8,7 @@ import { eq, gt, or, ilike, desc, asc } from 'drizzle-orm';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const category = searchParams.get('category');
+  const itemType = searchParams.get('itemType');
   const search = searchParams.get('search');
   const inStockOnly = searchParams.get('inStockOnly') === 'true';
   const sort = searchParams.get('sort'); // 'price_asc' | 'price_desc'
@@ -18,6 +19,10 @@ export async function GET(request: NextRequest) {
 
   if (category && category !== 'all') {
     conditions.push(eq(products.category, category));
+  }
+
+  if (itemType && itemType !== 'all') {
+    conditions.push(eq(products.itemType, itemType));
   }
 
   if (search) {
@@ -52,7 +57,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name, description, price, stock, category, imageUrl, type, etaStart, etaEnd } = body;
+  const { name, description, price, stock, category, itemType, imageUrl, type, etaStart, etaEnd } = body;
 
   if (!name || price === undefined) {
     return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
@@ -64,6 +69,7 @@ export async function POST(request: NextRequest) {
     price: parseFloat(price),
     stock: parseInt(stock) || 0,
     category,
+    itemType: itemType || null,
     imageUrl,
     type: type === 'PASABUY' ? 'PASABUY' : 'ONHAND',
     etaStart: etaStart ? new Date(etaStart) : null,

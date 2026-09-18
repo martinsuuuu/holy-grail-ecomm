@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency } from '@/lib/utils';
 import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck } from 'lucide-react';
+import { ITEM_TYPES } from '@/lib/productTypes';
 
 type ProductType = 'ONHAND' | 'PASABUY';
 
@@ -14,6 +15,7 @@ interface Product {
   stock: number;
   reserved: number;
   category: string | null;
+  itemType: string | null;
   imageUrl: string | null;
   type: ProductType;
   etaStart: string | null;
@@ -51,6 +53,7 @@ export default function AdminProductsPage() {
     price: '',
     stock: '',
     category: '',
+    itemType: '',
     imageUrl: '',
     etaStart: '',
     etaEnd: '',
@@ -94,7 +97,7 @@ export default function AdminProductsPage() {
   const openCreateModal = () => {
     setEditingProduct(null);
     setSelectedType('ONHAND');
-    setFormData({ name: '', description: '', price: '', stock: '', category: '', imageUrl: '', etaStart: '', etaEnd: '' });
+    setFormData({ name: '', description: '', price: '', stock: '', category: '', itemType: '', imageUrl: '', etaStart: '', etaEnd: '' });
     setError('');
     setModalStep('type');
   };
@@ -108,6 +111,7 @@ export default function AdminProductsPage() {
       price: product.price.toString(),
       stock: product.stock.toString(),
       category: product.category || '',
+      itemType: product.itemType || '',
       imageUrl: product.imageUrl || '',
       etaStart: toDateInput(product.etaStart),
       etaEnd: toDateInput(product.etaEnd),
@@ -182,7 +186,8 @@ export default function AdminProductsPage() {
             <tr>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Product</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Type</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Category</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Brand</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Item Type</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Price</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Stock / ETA</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Actions</th>
@@ -201,7 +206,7 @@ export default function AdminProductsPage() {
               ))
             ) : products.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-stone-500">
+                <td colSpan={7} className="px-6 py-12 text-center text-stone-500">
                   <Package className="h-8 w-8 mx-auto mb-2 text-stone-300" />
                   <p>No products found</p>
                 </td>
@@ -238,6 +243,9 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-stone-600">{product.category || '—'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-stone-600">{product.itemType || '—'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="font-semibold text-sm text-espresso">{formatCurrency(product.price)}</span>
@@ -446,18 +454,33 @@ export default function AdminProductsPage() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="label">Category</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="input-field"
-                >
-                  <option value="">Select category</option>
-                  {categories.map(c => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="label">Brand</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="input-field"
+                  >
+                    <option value="">Select brand</option>
+                    {categories.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Item Type</label>
+                  <select
+                    value={formData.itemType}
+                    onChange={(e) => setFormData({ ...formData, itemType: e.target.value })}
+                    className="input-field"
+                  >
+                    <option value="">Select type</option>
+                    {ITEM_TYPES.map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* ETA — Pasabuy only */}

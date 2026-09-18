@@ -10,6 +10,7 @@ import AnnouncementBar from './AnnouncementBar';
 import { SOCIAL_LINKS } from './SocialIcons';
 import { useCartStore } from '@/lib/cartStore';
 import { useWishlistStore } from '@/lib/wishlistStore';
+import { ITEM_TYPES } from '@/lib/productTypes';
 
 interface Category {
   id: string;
@@ -31,11 +32,17 @@ function NavDropdown({
   categories,
   hrefFor,
   featured,
+  listLabel = 'Brands',
+  allLabel = 'Shop All',
+  allHref = '/shop',
 }: {
   label: string;
   categories: Category[];
   hrefFor: (name: string) => string;
   featured: FeaturedByCategory[];
+  listLabel?: string;
+  allLabel?: string;
+  allHref?: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -84,7 +91,7 @@ function NavDropdown({
       {open && (
         <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-[420px] bg-white rounded-2xl shadow-warm border border-stone-200/70 p-5 z-50 flex gap-5">
           <div className="w-32 flex-shrink-0">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-stone-400 mb-2">Brands</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-stone-400 mb-2">{listLabel}</p>
             <div className="space-y-1.5 mb-3">
               {categories.map((cat) => (
                 <Link
@@ -98,11 +105,11 @@ function NavDropdown({
               ))}
             </div>
             <Link
-              href="/shop"
+              href={allHref}
               onClick={() => setOpen(false)}
               className="inline-block text-[11px] uppercase tracking-widest font-semibold bg-espresso text-cream px-3 py-1.5 rounded-full hover:bg-primary-800 transition-colors"
             >
-              Shop All
+              {allLabel}
             </Link>
           </div>
 
@@ -139,7 +146,8 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [featured, setFeatured] = useState<FeaturedByCategory[]>([]);
+  const [featuredByBrand, setFeaturedByBrand] = useState<FeaturedByCategory[]>([]);
+  const [featuredByType, setFeaturedByType] = useState<FeaturedByCategory[]>([]);
   const cartItemCount = useCartStore((state) => state.getTotalItems());
   const wishlistCount = useWishlistStore((state) => state.items.length);
   const fetchWishlist = useWishlistStore((state) => state.fetchWishlist);
@@ -151,21 +159,26 @@ export default function Navbar() {
       .catch(() => {});
   }, []);
 
-  // One representative product photo per brand, for the nav dropdown's
-  // featured tiles.
+  // One representative product photo per brand, and per item type, for the
+  // nav dropdowns' featured tiles.
   useEffect(() => {
     fetch('/api/products')
       .then((r) => r.json())
-      .then((data: { category: string | null; name: string; imageUrl: string | null }[]) => {
-        const seen = new Set<string>();
-        const result: FeaturedByCategory[] = [];
-        for (const p of data) {
-          if (p.category && p.imageUrl && !seen.has(p.category)) {
-            seen.add(p.category);
-            result.push({ category: p.category, name: p.name, imageUrl: p.imageUrl });
+      .then((data: { category: string | null; itemType: string | null; name: string; imageUrl: string | null }[]) => {
+        const sampleOnePer = (key: 'category' | 'itemType') => {
+          const seen = new Set<string>();
+          const result: FeaturedByCategory[] = [];
+          for (const p of data) {
+            const value = p[key];
+            if (value && p.imageUrl && !seen.has(value)) {
+              seen.add(value);
+              result.push({ category: value, name: p.name, imageUrl: p.imageUrl });
+            }
           }
-        }
-        setFeatured(result);
+          return result;
+        };
+        setFeaturedByBrand(sampleOnePer('category'));
+        setFeaturedByType(sampleOnePer('itemType'));
       })
       .catch(() => {});
   }, []);
@@ -175,6 +188,8 @@ export default function Navbar() {
   }, [session?.user.role, fetchWishlist]);
 
   const categoryHref = (name: string) => `/shop?category=${encodeURIComponent(name)}`;
+  const itemTypeHref = (name: string) => `/shop?itemType=${encodeURIComponent(name)}`;
+  const itemTypeOptions: Category[] = ITEM_TYPES.map((t) => ({ id: t, name: t }));
 
   return (
     <>
@@ -316,8 +331,8 @@ export default function Navbar() {
               )}
             </div>
 
-            <NavDropdown label="Shop by Brands" categories={categories} hrefFor={categoryHref} featured={featured} />
-            <NavDropdown label="Shop by Categories" categories={categories} hrefFor={categoryHref} featured={featured} />
+            <NavDropdown label="Shop by Brands" categories={categories} hrefFor={categoryHref} featured={featuredByBrand} listLabel="Brands" allLabel="Shop All" allHref="/shop" />
+            <NavDropdown label="Shop by Categories" categories={itemTypeOptions} hrefFor={itemTypeHref} featured={featuredByType} listLabel="Categories" allLabel="Shop All" allHref="/shop" />
             <Link href="/about" className="text-espresso/80 hover:text-espresso text-sm font-medium tracking-wide uppercase transition-colors">
               About
             </Link>

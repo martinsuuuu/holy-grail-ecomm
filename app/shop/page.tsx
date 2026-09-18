@@ -9,6 +9,7 @@ import ProductCard from '@/components/ProductCard';
 import HeroCarousel, { Slide } from '@/components/HeroCarousel';
 import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle, Check, ArrowUpRight } from 'lucide-react';
 import { DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/siteConfig';
+import { ITEM_TYPES } from '@/lib/productTypes';
 
 interface Product {
   id: string;
@@ -18,6 +19,7 @@ interface Product {
   stock: number;
   reserved: number;
   category: string | null;
+  itemType: string | null;
   imageUrl: string | null;
   type: string | null;
   etaStart: string | null;
@@ -38,15 +40,17 @@ function ShopPageInner() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
+  const [selectedItemType, setSelectedItemType] = useState(searchParams.get('itemType') || 'all');
   const [showInStockOnly, setShowInStockOnly] = useState(true);
   const [sort, setSort] = useState<SortOption>('');
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
 
-  // Keep the filter in sync when the ?category= URL param changes from a
-  // same-page navigation (hero carousel, brand tiles, navbar dropdown) —
-  // the useState above only reads it on first mount.
+  // Keep the filters in sync when the ?category=/?itemType= URL params change
+  // from a same-page navigation (hero carousel, brand tiles, navbar
+  // dropdown) — the useState above only reads them on first mount.
   useEffect(() => {
     setSelectedCategory(searchParams.get('category') || 'all');
+    setSelectedItemType(searchParams.get('itemType') || 'all');
   }, [searchParams]);
 
   const [brandFeatured, setBrandFeatured] = useState<{ category: string; name: string; imageUrl: string }[]>([]);
@@ -89,6 +93,7 @@ function ShopPageInner() {
     setIsLoading(true);
     const params = new URLSearchParams();
     if (selectedCategory !== 'all') params.set('category', selectedCategory);
+    if (selectedItemType !== 'all') params.set('itemType', selectedItemType);
     if (search) params.set('search', search);
     // Pasabuy items don't have traditional stock — don't filter them out
     if (showInStockOnly) params.set('inStockOnly', 'true');
@@ -103,7 +108,7 @@ function ShopPageInner() {
   useEffect(() => {
     const timer = setTimeout(fetchProducts, 300);
     return () => clearTimeout(timer);
-  }, [search, selectedCategory, showInStockOnly, sort]);
+  }, [search, selectedCategory, selectedItemType, showInStockOnly, sort]);
 
   const pasabuyProducts = products.filter(p => p.type === 'PASABUY');
   const regularProducts = products.filter(p => p.type !== 'PASABUY');
@@ -242,6 +247,33 @@ function ShopPageInner() {
                 }`}
               >
                 {cat.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Item type filters */}
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setSelectedItemType('all')}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                selectedItemType === 'all'
+                  ? 'bg-primary-700 text-white border-primary-700'
+                  : 'bg-white text-espresso/70 border-stone-200 hover:border-primary-300 hover:text-primary-700'
+              }`}
+            >
+              All Types
+            </button>
+            {ITEM_TYPES.map((t) => (
+              <button
+                key={t}
+                onClick={() => setSelectedItemType(t)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                  selectedItemType === t
+                    ? 'bg-primary-700 text-white border-primary-700'
+                    : 'bg-white text-espresso/70 border-stone-200 hover:border-primary-300 hover:text-primary-700'
+                }`}
+              >
+                {t}
               </button>
             ))}
           </div>

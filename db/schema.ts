@@ -28,7 +28,8 @@ export const products = pgTable('products', {
   price: doublePrecision('price').notNull(),
   stock: integer('stock').notNull().default(0),
   reserved: integer('reserved').notNull().default(0),
-  category: text('category'),
+  category: text('category'), // brand, e.g. 'Chanel'
+  itemType: text('item_type'), // 'Bags' | 'Jewelries' | 'Watches' | 'Apparels'
   imageUrl: text('image_url'),
   type: text('type').notNull().default('ONHAND'), // 'ONHAND' | 'PASABUY'
   etaStart: timestamp('eta_start'),
