@@ -128,7 +128,7 @@ export default function ProductDetailPage() {
     <div className="min-h-screen bg-cream">
       {showModal && (
         <AddToCartModal
-          product={{ name: product.name, price: product.price, availableStock }}
+          product={{ name: product.name, price: product.price, availableStock: isPasabuy ? 999 : availableStock }}
           onConfirm={handleConfirm}
           onClose={() => setShowModal(false)}
         />
