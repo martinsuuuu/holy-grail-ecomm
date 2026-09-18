@@ -16,9 +16,30 @@ interface Category {
   name: string;
 }
 
-function NavDropdown({ label, categories, hrefFor }: { label: string; categories: Category[]; hrefFor: (name: string) => string }) {
+interface FeaturedByCategory {
+  category: string;
+  name: string;
+  imageUrl: string;
+}
+
+// Hover-triggered mega menu: a text list of brands on the left plus a
+// couple of featured product tiles on the right, so hovering a nav tab
+// surfaces more than just a plain link list. Click still works too, for
+// touch devices and keyboard users.
+function NavDropdown({
+  label,
+  categories,
+  hrefFor,
+  featured,
+}: {
+  label: string;
+  categories: Category[];
+  hrefFor: (name: string) => string;
+  featured: FeaturedByCategory[];
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -28,27 +49,85 @@ function NavDropdown({ label, categories, hrefFor }: { label: string; categories
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const cancelClose = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = setTimeout(() => setOpen(false), 150);
+  };
+
+  const tiles = featured.slice(0, 2);
+
   return (
-    <div className="relative" ref={ref}>
+    <div
+      className="relative"
+      ref={ref}
+      onMouseEnter={() => {
+        cancelClose();
+        setOpen(true);
+      }}
+      onMouseLeave={scheduleClose}
+    >
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 text-espresso/80 hover:text-espresso text-sm font-medium tracking-wide uppercase transition-colors"
+        className={`flex items-center gap-1 text-sm font-medium tracking-wide uppercase transition-colors ${
+          open ? 'text-espresso' : 'text-espresso/80 hover:text-espresso'
+        }`}
       >
         {label}
-        <ChevronDown className="h-3 w-3" />
+        <ChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute left-0 mt-3 w-56 bg-white shadow-warm border border-stone-200/70 py-2 z-50">
-          {categories.map((cat) => (
+        <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-[420px] bg-white rounded-2xl shadow-warm border border-stone-200/70 p-5 z-50 flex gap-5">
+          <div className="w-32 flex-shrink-0">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-stone-400 mb-2">Brands</p>
+            <div className="space-y-1.5 mb-3">
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={hrefFor(cat.name)}
+                  className="block text-sm text-espresso/80 hover:text-primary-700"
+                  onClick={() => setOpen(false)}
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </div>
             <Link
-              key={cat.id}
-              href={hrefFor(cat.name)}
-              className="block px-4 py-2 text-sm text-espresso/80 hover:bg-stone-50 hover:text-espresso"
+              href="/shop"
               onClick={() => setOpen(false)}
+              className="inline-block text-[11px] uppercase tracking-widest font-semibold bg-espresso text-cream px-3 py-1.5 rounded-full hover:bg-primary-800 transition-colors"
             >
-              {cat.name}
+              Shop All
             </Link>
-          ))}
+          </div>
+
+          {tiles.length > 0 && (
+            <div className="flex-1 grid grid-cols-2 gap-3">
+              {tiles.map((tile) => (
+                <Link
+                  key={tile.category}
+                  href={hrefFor(tile.category)}
+                  onClick={() => setOpen(false)}
+                  className="group block"
+                >
+                  <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-stone-100 mb-1.5">
+                    <img
+                      src={tile.imageUrl}
+                      alt={tile.category}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <p className="text-xs font-semibold text-espresso group-hover:text-primary-700">{tile.category}</p>
+                  <p className="text-[11px] text-espresso/40 truncate">{tile.name}</p>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -60,6 +139,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [featured, setFeatured] = useState<FeaturedByCategory[]>([]);
   const cartItemCount = useCartStore((state) => state.getTotalItems());
   const wishlistCount = useWishlistStore((state) => state.items.length);
   const fetchWishlist = useWishlistStore((state) => state.fetchWishlist);
@@ -68,6 +148,25 @@ export default function Navbar() {
     fetch('/api/categories')
       .then((r) => r.json())
       .then(setCategories)
+      .catch(() => {});
+  }, []);
+
+  // One representative product photo per brand, for the nav dropdown's
+  // featured tiles.
+  useEffect(() => {
+    fetch('/api/products')
+      .then((r) => r.json())
+      .then((data: { category: string | null; name: string; imageUrl: string | null }[]) => {
+        const seen = new Set<string>();
+        const result: FeaturedByCategory[] = [];
+        for (const p of data) {
+          if (p.category && p.imageUrl && !seen.has(p.category)) {
+            seen.add(p.category);
+            result.push({ category: p.category, name: p.name, imageUrl: p.imageUrl });
+          }
+        }
+        setFeatured(result);
+      })
       .catch(() => {});
   }, []);
 
@@ -217,8 +316,8 @@ export default function Navbar() {
               )}
             </div>
 
-            <NavDropdown label="Shop by Brands" categories={categories} hrefFor={categoryHref} />
-            <NavDropdown label="Shop by Categories" categories={categories} hrefFor={categoryHref} />
+            <NavDropdown label="Shop by Brands" categories={categories} hrefFor={categoryHref} featured={featured} />
+            <NavDropdown label="Shop by Categories" categories={categories} hrefFor={categoryHref} featured={featured} />
             <Link href="/about" className="text-espresso/80 hover:text-espresso text-sm font-medium tracking-wide uppercase transition-colors">
               About
             </Link>
