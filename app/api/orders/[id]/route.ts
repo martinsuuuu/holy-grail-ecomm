@@ -71,6 +71,10 @@ export async function PATCH(
   // Admin can update order status and confirm deposit
   let pendingNotification: { userId: string; title: string; message: string; type: string } | null = null;
   let deductStock = false;
+  // On-hand items reserve stock at order creation (see POST /api/orders) and
+  // release it either on confirm (deductStock, below) or here on cancel —
+  // otherwise a cancelled order's reservation is never returned to the pool.
+  let releaseReserved = false;
 
   if (session.user.role === 'ADMIN') {
     if (status) {
@@ -84,6 +88,10 @@ export async function PATCH(
           message: `Great news! Your pasabuy items for order #${order.id.slice(-8).toUpperCase()} have arrived and your order is now confirmed.`,
           type: 'ORDER',
         };
+      }
+
+      if (status === 'CANCELLED' && (order.status === 'PENDING_DEPOSIT' || order.status === 'DEPOSIT_SUBMITTED')) {
+        releaseReserved = true;
       }
     }
 
@@ -139,6 +147,18 @@ export async function PATCH(
           stock: sql`${products.stock} - ${item.quantity}`,
           reserved: sql`${products.reserved} - ${item.quantity}`,
         })
+        .where(eq(products.id, item.productId));
+    }
+  }
+
+  // Cancelling before confirmation returns the reservation (stock itself was
+  // never touched at this point, so only `reserved` needs to come back down).
+  // Pasabuy items never incremented `reserved` in the first place — skip them.
+  if (releaseReserved) {
+    for (const item of order.items) {
+      if (item.product.type === 'PASABUY') continue;
+      await db.update(products)
+        .set({ reserved: sql`${products.reserved} - ${item.quantity}` })
         .where(eq(products.id, item.productId));
     }
   }
