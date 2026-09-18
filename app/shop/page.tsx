@@ -89,6 +89,20 @@ function ShopPageInner() {
       .catch(() => {});
   }, []);
 
+  // When embedded as the Site Editor's live preview iframe, the editor posts
+  // the admin's in-progress (unsaved) config on every change so they can see
+  // edits before saving — this page never initiates that itself.
+  useEffect(() => {
+    function handlePreviewMessage(e: MessageEvent) {
+      if (e.origin !== window.location.origin) return;
+      if (e.data?.type === 'HOLY_GRAIL_PREVIEW_CONFIG') {
+        setSiteConfig(e.data.config);
+      }
+    }
+    window.addEventListener('message', handlePreviewMessage);
+    return () => window.removeEventListener('message', handlePreviewMessage);
+  }, []);
+
   const fetchProducts = async () => {
     setIsLoading(true);
     const params = new URLSearchParams();

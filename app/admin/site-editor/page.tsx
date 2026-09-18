@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Palette, Type, MessageSquare, Layout, Check, RefreshCw, ExternalLink, AlertCircle, ImageUp,
   Megaphone, GalleryHorizontal, ShieldCheck, Search, Grid3x3, Sparkles, PanelBottom, Zap, BarChart3,
-  Plus, Trash2, ChevronUp, ChevronDown,
+  Plus, Trash2, ChevronUp, ChevronDown, RotateCcw, Sparkle,
 } from 'lucide-react';
 import {
   THEME_PRESETS,
@@ -65,6 +65,39 @@ export default function SiteEditorPage() {
   const [tab, setTab] = useState<Tab>('theme');
   const [section, setSection] = useState<SectionId>('announcement');
   const [previewKey, setPreviewKey] = useState(0);
+  const [autoSlides, setAutoSlides] = useState<{ category: string; name: string; imageUrl: string }[]>([]);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // What the live carousel currently auto-generates when no custom slides
+  // are set — shown so admins can see what's already there before deciding
+  // whether/how to customize it.
+  useEffect(() => {
+    fetch('/api/products')
+      .then((r) => r.json())
+      .then((data: { category: string | null; name: string; imageUrl: string | null }[]) => {
+        const seen = new Set<string>();
+        const result: { category: string; name: string; imageUrl: string }[] = [];
+        for (const p of data) {
+          if (p.category && p.imageUrl && !seen.has(p.category)) {
+            seen.add(p.category);
+            result.push({ category: p.category, name: p.name, imageUrl: p.imageUrl });
+          }
+        }
+        setAutoSlides(result);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Push the in-progress (unsaved) config into the preview iframe on every
+  // change, so the admin can see edits live before saving — the iframe only
+  // ever fetches the real saved state on its own for a genuinely fresh load.
+  const postPreview = (cfg: SiteConfig) => {
+    iframeRef.current?.contentWindow?.postMessage({ type: 'HOLY_GRAIL_PREVIEW_CONFIG', config: cfg }, window.location.origin);
+  };
+
+  useEffect(() => {
+    postPreview(config);
+  }, [config]);
 
   useEffect(() => {
     fetch('/api/admin/site-config')
@@ -112,6 +145,17 @@ export default function SiteEditorPage() {
     update('heroSlides', [...config.heroSlides, newSlide()]);
   };
   const removeSlide = (id: string) => update('heroSlides', config.heroSlides.filter((s) => s.id !== id));
+  const seedSlidesFromAuto = () => {
+    const seeded: HeroSlide[] = autoSlides.slice(0, MAX_HERO_SLIDES).map((p) => ({
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `slide-${Date.now()}-${Math.random()}`,
+      image: p.imageUrl,
+      eyebrow: 'Now Featuring',
+      caption: p.category,
+      subcaption: p.name,
+      link: `/shop?category=${encodeURIComponent(p.category)}`,
+    }));
+    update('heroSlides', seeded);
+  };
   const moveSlide = (id: string, dir: -1 | 1) => {
     const idx = config.heroSlides.findIndex((s) => s.id === id);
     const swapIdx = idx + dir;
@@ -343,6 +387,26 @@ export default function SiteEditorPage() {
                   Leave empty to auto-rotate one photo per brand. Add slides here to take full control — each can have its own image, caption, and link.
                 </p>
 
+                {config.heroSlides.length === 0 && autoSlides.length > 0 && (
+                  <div className="mb-4 p-3 bg-stone-50 border border-stone-200 rounded-2xl">
+                    <p className="text-xs font-semibold text-espresso mb-2">Currently showing (auto-rotating)</p>
+                    <div className="grid grid-cols-4 gap-1.5 mb-2.5">
+                      {autoSlides.slice(0, MAX_HERO_SLIDES).map((s) => (
+                        <div key={s.category} className="relative aspect-[5/2] rounded-lg overflow-hidden border border-stone-200">
+                          <img src={s.imageUrl} alt={s.category} className="absolute inset-0 w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={seedSlidesFromAuto}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-white border border-stone-200 text-xs font-medium text-espresso/80 hover:border-primary-300 hover:text-primary-700 transition-colors"
+                    >
+                      <Sparkle className="h-3.5 w-3.5" /> Use these as a starting point
+                    </button>
+                  </div>
+                )}
+
                 <div className="space-y-3">
                   {config.heroSlides.map((slide, i) => (
                     <div key={slide.id} className="border border-stone-200 rounded-2xl p-3 space-y-2.5">
@@ -362,8 +426,8 @@ export default function SiteEditorPage() {
                       </div>
 
                       {slide.image ? (
-                        <div className="relative rounded-xl overflow-hidden border border-stone-200">
-                          <img src={slide.image} alt={`Slide ${i + 1} preview`} className="w-full h-28 object-cover" />
+                        <div className="relative aspect-[5/2] rounded-xl overflow-hidden border border-stone-200">
+                          <img src={slide.image} alt={`Slide ${i + 1} preview`} className="absolute inset-0 w-full h-full object-cover" />
                           <button
                             type="button"
                             onClick={() => updateSlide(slide.id, { image: null })}
@@ -373,7 +437,7 @@ export default function SiteEditorPage() {
                           </button>
                         </div>
                       ) : (
-                        <label className="flex flex-col items-center justify-center gap-1 border-2 border-dashed border-stone-200 rounded-xl py-4 cursor-pointer hover:border-primary-300 hover:bg-primary-50/40 transition-colors text-center">
+                        <label className="flex flex-col items-center justify-center gap-1 aspect-[5/2] border-2 border-dashed border-stone-200 rounded-xl cursor-pointer hover:border-primary-300 hover:bg-primary-50/40 transition-colors text-center">
                           <ImageUp className="h-4 w-4 text-stone-400" />
                           <span className="text-xs text-stone-500">Upload an image</span>
                           <input
@@ -661,16 +725,35 @@ export default function SiteEditorPage() {
               {saveError}
             </p>
           )}
-          <button onClick={handleSave} disabled={isSaving || !hasUnsavedChanges} className="w-full btn-primary flex items-center justify-center gap-2">
-            {saved ? <><Check className="h-4 w-4" /> Saved!</> : isSaving ? 'Saving…' : hasUnsavedChanges ? 'Save Changes' : 'No Changes to Save'}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setConfig(savedConfig)}
+              disabled={isSaving || !hasUnsavedChanges}
+              title="Discard unsaved changes and go back to what's currently live"
+              className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full border border-stone-200 text-sm font-medium text-espresso/70 hover:border-red-300 hover:text-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <RotateCcw className="h-3.5 w-3.5" /> Revert
+            </button>
+            <button onClick={handleSave} disabled={isSaving || !hasUnsavedChanges} className="flex-1 btn-primary flex items-center justify-center gap-2">
+              {saved ? <><Check className="h-4 w-4" /> Saved!</> : isSaving ? 'Saving…' : hasUnsavedChanges ? 'Save Changes' : 'No Changes to Save'}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Live preview */}
       <div className="flex-1 flex flex-col bg-stone-100">
         <div className="flex items-center justify-between px-4 py-2 border-b border-stone-200/70 bg-white">
-          <p className="text-xs text-stone-500">Preview — reflects your last saved changes</p>
+          <p className="text-xs text-stone-500 flex items-center gap-1.5">
+            {hasUnsavedChanges ? (
+              <>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                Live preview — showing your unsaved edits
+              </>
+            ) : (
+              'Live preview — matches what\'s currently saved'
+            )}
+          </p>
           <div className="flex items-center gap-4">
             <a
               href="/shop"
@@ -688,7 +771,14 @@ export default function SiteEditorPage() {
             </button>
           </div>
         </div>
-        <iframe key={previewKey} src="/shop" className="flex-1 w-full border-0" title="Site preview" />
+        <iframe
+          key={previewKey}
+          ref={iframeRef}
+          src="/shop"
+          onLoad={() => postPreview(config)}
+          className="flex-1 w-full border-0"
+          title="Site preview"
+        />
       </div>
     </div>
   );
