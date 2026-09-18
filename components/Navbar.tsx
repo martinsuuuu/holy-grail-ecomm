@@ -331,8 +331,14 @@ export default function Navbar() {
               )}
             </div>
 
+            <Link href="/shop" className="text-espresso/80 hover:text-espresso text-sm font-medium tracking-wide uppercase transition-colors">
+              New In
+            </Link>
             <NavDropdown label="Shop by Brands" categories={categories} hrefFor={categoryHref} featured={featuredByBrand} listLabel="Brands" allLabel="Shop All" allHref="/shop" />
             <NavDropdown label="Shop by Categories" categories={itemTypeOptions} hrefFor={itemTypeHref} featured={featuredByType} listLabel="Categories" allLabel="Shop All" allHref="/shop" />
+            <Link href="/shop?itemType=Apparels" className="text-espresso/80 hover:text-espresso text-sm font-medium tracking-wide uppercase transition-colors">
+              Fashion
+            </Link>
             <Link href="/about" className="text-espresso/80 hover:text-espresso text-sm font-medium tracking-wide uppercase transition-colors">
               About
             </Link>
@@ -376,7 +382,13 @@ export default function Navbar() {
             Search
           </Link>
           <Link href="/shop" className="block py-2 text-espresso/70 hover:text-espresso font-medium" onClick={() => setIsMenuOpen(false)}>
+            New In
+          </Link>
+          <Link href="/shop" className="block py-2 text-espresso/70 hover:text-espresso font-medium" onClick={() => setIsMenuOpen(false)}>
             Shop All
+          </Link>
+          <Link href="/shop?itemType=Apparels" className="block py-2 text-espresso/70 hover:text-espresso font-medium" onClick={() => setIsMenuOpen(false)}>
+            Fashion
           </Link>
           {categories.length > 0 && (
             <div className="py-2">
