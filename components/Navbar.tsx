@@ -87,9 +87,9 @@ export default function Navbar() {
           <div className="grid grid-cols-2 md:grid-cols-3 items-center h-16">
             <div className="hidden md:block" />
 
-            <Link href="/shop" className="flex items-center gap-2.5 justify-self-start md:justify-self-center">
-              <HGMonogram className="h-9 w-9" />
-              <span className="font-display font-black text-xl tracking-wide text-espresso">HOLY GRAIL</span>
+            <Link href="/shop" className="flex items-center gap-2 sm:gap-2.5 justify-self-start md:justify-self-center min-w-0">
+              <HGMonogram className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0" />
+              <span className="font-display font-black text-base sm:text-xl tracking-wide text-espresso whitespace-nowrap">HOLY GRAIL</span>
             </Link>
 
             <div className="flex items-center gap-3 justify-self-end">
@@ -253,6 +253,14 @@ export default function Navbar() {
       {/* Mobile menu */}
       {isMenuOpen && (
         <div className="md:hidden border-t border-stone-100 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <Link
+            href="/shop"
+            className="flex items-center gap-2 py-2 text-espresso/70 hover:text-espresso"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <Search className="h-4 w-4" />
+            Search
+          </Link>
           <Link href="/shop" className="block py-2 text-espresso/70 hover:text-espresso font-medium" onClick={() => setIsMenuOpen(false)}>
             Shop All
           </Link>
@@ -290,6 +298,20 @@ export default function Navbar() {
               Shipper Panel
             </Link>
           )}
+
+          <div className="flex items-center gap-5 pt-4 mt-2 border-t border-stone-100">
+            {SOCIAL_LINKS.map(({ label, Icon, href }) =>
+              href ? (
+                <Link key={label} href={href} aria-label={label} className="text-espresso/60 hover:text-espresso transition-colors">
+                  <Icon className="h-5 w-5" />
+                </Link>
+              ) : (
+                <span key={label} aria-label={label} className="text-espresso/60">
+                  <Icon className="h-5 w-5" />
+                </span>
+              )
+            )}
+          </div>
         </div>
       )}
     </nav>
