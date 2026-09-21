@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   Palette, Type, MessageSquare, Layout, Check, RefreshCw, ExternalLink, AlertCircle, ImageUp,
-  Megaphone, GalleryHorizontal, ShieldCheck, Search, Grid3x3, Sparkles, PanelBottom, Zap, BarChart3,
+  Megaphone, GalleryHorizontal, ShieldCheck, Search, Grid3x3, LayoutGrid, Sparkles, PanelBottom, Zap, BarChart3,
   Plus, Trash2, ChevronUp, ChevronDown, RotateCcw, Sparkle,
 } from 'lucide-react';
 import {
@@ -15,10 +15,11 @@ import {
   SiteConfig,
   HeroSlide,
 } from '@/lib/siteConfig';
+import { ITEM_TYPES } from '@/lib/productTypes';
 
 type Tab = 'theme' | 'content';
 
-type SectionId = 'announcement' | 'hero' | 'quickActions' | 'trust' | 'sourcing' | 'brandGrid' | 'stats' | 'cta' | 'footer';
+type SectionId = 'announcement' | 'hero' | 'quickActions' | 'trust' | 'sourcing' | 'categoryGrid' | 'brandGrid' | 'stats' | 'cta' | 'footer';
 
 const CONTENT_SECTIONS: { id: SectionId; label: string; icon: typeof Megaphone }[] = [
   { id: 'announcement', label: 'Announcement Bar', icon: Megaphone },
@@ -26,6 +27,7 @@ const CONTENT_SECTIONS: { id: SectionId; label: string; icon: typeof Megaphone }
   { id: 'quickActions', label: 'Quick Actions', icon: Zap },
   { id: 'trust', label: 'Trust Strip', icon: ShieldCheck },
   { id: 'sourcing', label: 'Personal Sourcing', icon: Search },
+  { id: 'categoryGrid', label: 'Shop by Categories', icon: LayoutGrid },
   { id: 'brandGrid', label: 'Shop by Brand', icon: Grid3x3 },
   { id: 'stats', label: 'By the Numbers', icon: BarChart3 },
   { id: 'cta', label: 'Experience CTA', icon: Sparkles },
@@ -66,15 +68,17 @@ export default function SiteEditorPage() {
   const [section, setSection] = useState<SectionId>('announcement');
   const [previewKey, setPreviewKey] = useState(0);
   const [autoSlides, setAutoSlides] = useState<{ category: string; name: string; imageUrl: string }[]>([]);
+  const [autoCategoryImages, setAutoCategoryImages] = useState<Record<string, string>>({});
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // What the live carousel currently auto-generates when no custom slides
-  // are set — shown so admins can see what's already there before deciding
-  // whether/how to customize it.
+  // are set, and one auto-sampled photo per item type for the "Shop by
+  // Categories" panel's fallback preview — shown so admins can see what's
+  // already there before deciding whether/how to customize it.
   useEffect(() => {
     fetch('/api/products')
       .then((r) => r.json())
-      .then((data: { category: string | null; name: string; imageUrl: string | null }[]) => {
+      .then((data: { category: string | null; itemType: string | null; name: string; imageUrl: string | null }[]) => {
         const seen = new Set<string>();
         const result: { category: string; name: string; imageUrl: string }[] = [];
         for (const p of data) {
@@ -84,6 +88,16 @@ export default function SiteEditorPage() {
           }
         }
         setAutoSlides(result);
+
+        const typeSeen = new Set<string>();
+        const typeResult: Record<string, string> = {};
+        for (const p of data) {
+          if (p.itemType && p.imageUrl && !typeSeen.has(p.itemType)) {
+            typeSeen.add(p.itemType);
+            typeResult[p.itemType] = p.imageUrl;
+          }
+        }
+        setAutoCategoryImages(typeResult);
       })
       .catch(() => {});
   }, []);
@@ -135,6 +149,13 @@ export default function SiteEditorPage() {
   const updateStatItem = (index: number, patch: Partial<{ value: string; label: string }>) => {
     const next = config.statsItems.map((item, i) => (i === index ? { ...item, ...patch } : item));
     update('statsItems', next);
+  };
+
+  const setCategoryImage = (type: string, image: string | null) => {
+    const next = { ...config.categoryImages };
+    if (image) next[type] = image;
+    else delete next[type];
+    update('categoryImages', next);
   };
 
   const updateSlide = (id: string, patch: Partial<HeroSlide>) => {
@@ -621,6 +642,70 @@ export default function SiteEditorPage() {
                   )}
                 </div>
               </div>
+            </div>
+          )}
+
+          {tab === 'content' && section === 'categoryGrid' && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-1">Shop by Categories</h3>
+              <p className="text-xs text-stone-400 mb-3">
+                The image shown for each type in the header's hover panel. Leave a type without an upload and it falls back to a photo sampled from that type's products.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {ITEM_TYPES.map((type) => {
+                  const custom = config.categoryImages[type];
+                  const preview = custom || autoCategoryImages[type];
+                  return (
+                    <div key={type} className="border border-stone-200 rounded-2xl p-2.5">
+                      <p className="text-xs font-semibold text-espresso mb-2">{type}</p>
+                      {preview ? (
+                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-stone-200 mb-2">
+                          <img src={preview} alt={type} className="absolute inset-0 w-full h-full object-cover" />
+                          {!custom && (
+                            <span className="absolute bottom-1.5 left-1.5 bg-espresso/70 text-cream text-[10px] px-2 py-0.5 rounded-full">Auto</span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="aspect-[4/3] rounded-xl border-2 border-dashed border-stone-200 mb-2 flex items-center justify-center text-stone-300 text-[11px] text-center px-2">
+                          No products yet
+                        </div>
+                      )}
+                      <div className="flex gap-1.5">
+                        <label className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg border border-stone-200 cursor-pointer hover:border-primary-300 hover:bg-primary-50/40 transition-colors text-[11px] text-espresso/70">
+                          <ImageUp className="h-3 w-3" /> {custom ? 'Replace' : 'Upload'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              e.target.value = '';
+                              if (!file) return;
+                              setImageError('');
+                              readImageFile(file, (url) => setCategoryImage(type, url), setImageError);
+                            }}
+                          />
+                        </label>
+                        {custom && (
+                          <button
+                            type="button"
+                            onClick={() => setCategoryImage(type, null)}
+                            className="px-2.5 py-1.5 rounded-lg border border-stone-200 text-[11px] text-red-600 hover:border-red-300 hover:bg-red-50 transition-colors"
+                          >
+                            Reset
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {imageError && (
+                <p className="flex items-center gap-1.5 text-xs text-red-700 mt-2">
+                  <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                  {imageError}
+                </p>
+              )}
             </div>
           )}
 

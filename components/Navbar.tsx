@@ -141,6 +141,107 @@ function NavDropdown({
   );
 }
 
+// "Shop by Categories" gets its own layout — a fixed set of exactly four
+// item types, each best represented by its own photo rather than a plain
+// text link, so hovering shows a 2x2 image grid instead of the
+// list-plus-two-tiles layout used for brands (which can be any count).
+function CategoryNavDropdown({
+  label,
+  categories,
+  hrefFor,
+  featured,
+  allHref = '/shop',
+}: {
+  label: string;
+  categories: Category[];
+  hrefFor: (name: string) => string;
+  featured: FeaturedByCategory[];
+  allHref?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const cancelClose = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = setTimeout(() => setOpen(false), 150);
+  };
+
+  const imageFor = (name: string) => featured.find((f) => f.category === name)?.imageUrl;
+
+  return (
+    <div
+      className="relative"
+      ref={ref}
+      onMouseEnter={() => {
+        cancelClose();
+        setOpen(true);
+      }}
+      onMouseLeave={scheduleClose}
+    >
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={`flex items-center gap-1 text-sm font-medium tracking-wide uppercase transition-colors ${
+          open ? 'text-espresso' : 'text-espresso/80 hover:text-espresso'
+        }`}
+      >
+        {label}
+        <ChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-[360px] bg-white rounded-2xl shadow-warm border border-stone-200/70 p-4 z-50">
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            {categories.map((cat) => {
+              const image = imageFor(cat.name);
+              return (
+                <Link
+                  key={cat.id}
+                  href={hrefFor(cat.name)}
+                  onClick={() => setOpen(false)}
+                  className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-stone-100"
+                >
+                  {image ? (
+                    <img
+                      src={image}
+                      alt={cat.name}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : null}
+                  <div className="absolute inset-0 bg-gradient-to-t from-espresso/80 via-espresso/10 to-transparent" />
+                  <span className="absolute bottom-2 left-2.5 text-xs font-semibold text-cream drop-shadow-sm">
+                    {cat.name}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+          <Link
+            href={allHref}
+            onClick={() => setOpen(false)}
+            className="block text-center text-[11px] uppercase tracking-widest font-semibold bg-espresso text-cream px-3 py-2 rounded-full hover:bg-primary-800 transition-colors"
+          >
+            Shop All
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Navbar() {
   const { data: session } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -150,6 +251,7 @@ export default function Navbar() {
   const [featuredByType, setFeaturedByType] = useState<FeaturedByCategory[]>([]);
   const [apparelBrands, setApparelBrands] = useState<Category[]>([]);
   const [featuredApparel, setFeaturedApparel] = useState<FeaturedByCategory[]>([]);
+  const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
   const cartItemCount = useCartStore((state) => state.getTotalItems());
   const wishlistCount = useWishlistStore((state) => state.items.length);
   const fetchWishlist = useWishlistStore((state) => state.fetchWishlist);
@@ -202,10 +304,27 @@ export default function Navbar() {
     if (session?.user.role === 'CUSTOMER') fetchWishlist();
   }, [session?.user.role, fetchWishlist]);
 
+  // Admin-set custom images for the "Shop by Categories" panel, layered
+  // over the auto-sampled product photo for any type without one.
+  useEffect(() => {
+    fetch('/api/site-config')
+      .then((r) => r.json())
+      .then((data: { categoryImages?: Record<string, string> }) => setCategoryImages(data.categoryImages || {}))
+      .catch(() => {});
+  }, []);
+
   const categoryHref = (name: string) => `/shop?category=${encodeURIComponent(name)}`;
   const itemTypeHref = (name: string) => `/shop?itemType=${encodeURIComponent(name)}`;
   const itemTypeOptions: Category[] = ITEM_TYPES.map((t) => ({ id: t, name: t }));
   const apparelBrandHref = (name: string) => `/shop?category=${encodeURIComponent(name)}&itemType=Apparels`;
+  const featuredByTypeWithOverrides: FeaturedByCategory[] = itemTypeOptions.map((t) => {
+    const auto = featuredByType.find((f) => f.category === t.name);
+    return {
+      category: t.name,
+      name: auto?.name ?? t.name,
+      imageUrl: categoryImages[t.name] || auto?.imageUrl || '',
+    };
+  }).filter((f) => f.imageUrl);
 
   return (
     <>
@@ -351,7 +470,7 @@ export default function Navbar() {
               New In
             </Link>
             <NavDropdown label="Shop by Brands" categories={categories} hrefFor={categoryHref} featured={featuredByBrand} listLabel="Brands" allLabel="Shop All" allHref="/shop" />
-            <NavDropdown label="Shop by Categories" categories={itemTypeOptions} hrefFor={itemTypeHref} featured={featuredByType} listLabel="Categories" allLabel="Shop All" allHref="/shop" />
+            <CategoryNavDropdown label="Shop by Categories" categories={itemTypeOptions} hrefFor={itemTypeHref} featured={featuredByTypeWithOverrides} allHref="/shop" />
             <NavDropdown label="Fashion" categories={apparelBrands} hrefFor={apparelBrandHref} featured={featuredApparel} listLabel="Fashion Brands" allLabel="All Fashion" allHref="/shop?itemType=Apparels" />
             <Link href="/about" className="text-espresso/80 hover:text-espresso text-sm font-medium tracking-wide uppercase transition-colors">
               About

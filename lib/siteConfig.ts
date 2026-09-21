@@ -172,6 +172,11 @@ export interface SiteConfig {
   brandGridHeading: string;
   brandGridSubheading: string;
 
+  /** Custom images for the "Shop by Categories" nav panel, keyed by item
+   *  type (Jewelries/Watches/Apparels/Bags). A type with no entry here
+   *  falls back to an auto-sampled photo from that type's products. */
+  categoryImages: Record<string, string>;
+
   // "By the numbers" social-proof band
   statsEyebrow: string;
   statsItems: StatItem[];
@@ -222,6 +227,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   brandGridEyebrow: 'Maisons',
   brandGridHeading: 'Shop by Brand',
   brandGridSubheading: 'Curated houses, authenticated pieces',
+  categoryImages: {},
 
   statsEyebrow: 'By The Numbers',
   statsItems: [

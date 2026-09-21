@@ -19,3 +19,4 @@ npm-debug.log*
 # typescript build info
 *.tsbuildinfo
 .vercel
+qa-tmp*.mjs
