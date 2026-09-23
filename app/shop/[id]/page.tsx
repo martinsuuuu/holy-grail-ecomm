@@ -174,7 +174,7 @@ export default function ProductDetailPage() {
                 <div className="bg-plum-50 border border-plum-200 rounded-2xl p-4 mb-4 space-y-2">
                   <div className="flex items-center gap-2 text-plum-700 font-semibold text-sm">
                     <Truck className="h-4 w-4 flex-shrink-0" />
-                    Pasabuy Item
+                    Personal Shopping
                   </div>
                   <p className="text-plum-600 text-xs">We source this on your behalf when you order.</p>
                   {product.etaStart && product.etaEnd ? (

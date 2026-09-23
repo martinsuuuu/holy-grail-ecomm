@@ -11,8 +11,8 @@ const FAQS = [
     a: 'We accept GCash and direct bank transfer. Available payment methods and their QR codes/account details are shown at checkout — simply select one, complete the transfer, and upload your proof of payment.',
   },
   {
-    q: 'What is a "Pasabuy" item?',
-    a: "Pasabuy items are pieces we don't currently hold in stock but can source on your behalf. When you order a Pasabuy item, we begin sourcing it for you — the product page shows an expected arrival window so you know roughly when to expect it. Pasabuy items aren't subject to the same stock-reservation limits as on-hand items.",
+    q: 'What is a "Personal Shopping Service" item?',
+    a: "Personal Shopping Service items are pieces we don't currently hold in stock but can source on your behalf. When you order one, we begin sourcing it for you — the product page shows an expected arrival window so you know roughly when to expect it. Personal Shopping Service items aren't subject to the same stock-reservation limits as on-hand items.",
   },
   {
     q: 'What delivery options are available?',

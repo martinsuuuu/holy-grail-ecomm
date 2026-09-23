@@ -31,7 +31,7 @@ const TYPE_META: Record<ProductType, { label: string; color: string; bg: string;
     dot: 'bg-emerald-500',
   },
   PASABUY: {
-    label: 'Pasabuy',
+    label: 'Personal Shopping',
     color: 'text-plum-700',
     bg: 'bg-plum-100',
     dot: 'bg-plum-500',
@@ -339,7 +339,7 @@ export default function AdminProductsPage() {
                   <Truck className="h-6 w-6 text-plum-600" />
                 </div>
                 <div>
-                  <p className="font-semibold text-espresso">Pasabuy</p>
+                  <p className="font-semibold text-espresso">Personal Shopping</p>
                   <p className="text-sm text-stone-500 mt-0.5">Product sourced on request — order before we buy</p>
                 </div>
               </button>

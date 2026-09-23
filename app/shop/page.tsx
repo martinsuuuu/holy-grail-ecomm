@@ -343,7 +343,7 @@ function ShopPageInner() {
               {pasabuyProducts.length > 0 && (
                 <span className="ml-2 inline-flex items-center gap-1 text-plum-600 font-medium">
                   <Truck className="h-3.5 w-3.5" />
-                  {pasabuyProducts.length} pasabuy
+                  {pasabuyProducts.length} personal shopping
                 </span>
               )}
             </p>
@@ -363,7 +363,7 @@ function ShopPageInner() {
                 <div className="flex items-center gap-3 mb-4">
                   <div className="flex items-center gap-2 bg-plum-600 text-white px-4 py-2 rounded-full">
                     <Truck className="h-4 w-4" />
-                    <span className="font-semibold text-sm">Pasabuy Items</span>
+                    <span className="font-semibold text-sm">Personal Shopping Items</span>
                   </div>
                   <p className="text-sm text-espresso/50">Order now and we&apos;ll source it for you</p>
                 </div>
@@ -522,7 +522,7 @@ function ShopPageInner() {
             {[
               { icon: ShieldCheck, title: 'Authenticated Pieces', desc: 'Condition and provenance checked before every sale.' },
               { icon: Lock, title: 'Secure Checkout', desc: 'Deposit-based reservation with a 24-hour hold.' },
-              { icon: Truck, title: 'Global Sourcing', desc: 'Pasabuy sourcing for pieces not already in stock.' },
+              { icon: Truck, title: 'Global Sourcing', desc: 'Personal shopping service for pieces not already in stock.' },
               { icon: MessageCircle, title: 'Sales Concierge', desc: 'Personal assistance on every order.' },
             ].map(({ icon: Icon, title, desc }, i) => (
               <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-5">

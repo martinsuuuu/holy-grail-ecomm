@@ -41,7 +41,7 @@ export default function ProductCard({ product }: { product: Product }) {
       {isPasabuy && (
         <div className="flex items-center gap-1.5 bg-plum-600 text-white text-xs font-semibold px-3 py-1.5 tracking-wide">
           <Truck className="h-3 w-3" />
-          Pasabuy Item
+          Personal Shopping
         </div>
       )}
 

@@ -323,7 +323,7 @@ export default function AccountPage() {
                         {getOrderStatusLabel(order.status)}
                       </span>
                       {order.items.some(i => i.product.type === 'PASABUY')
-                        ? <span className="badge text-xs bg-plum-100 text-plum-700">Pasabuy</span>
+                        ? <span className="badge text-xs bg-plum-100 text-plum-700">Personal Shopping</span>
                         : <span className="badge text-xs bg-emerald-100 text-emerald-700">On Hand</span>
                       }
                       <span className="font-bold text-primary-700 text-sm">

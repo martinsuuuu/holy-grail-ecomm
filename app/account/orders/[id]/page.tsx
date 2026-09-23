@@ -191,7 +191,7 @@ export default function OrderDetailPage() {
           </div>
           <div className="ml-auto flex items-center gap-2">
             {hasPasabuy
-              ? <span className="badge text-xs bg-plum-100 text-plum-700">Pasabuy</span>
+              ? <span className="badge text-xs bg-plum-100 text-plum-700">Personal Shopping</span>
               : <span className="badge text-xs bg-emerald-100 text-emerald-700">On Hand</span>
             }
             <span className={`badge ${getOrderStatusColor(order.status)}`}>
@@ -473,7 +473,7 @@ export default function OrderDetailPage() {
               <div>
                 <p className="font-semibold text-orange-800">Waiting for Arrival</p>
                 <p className="text-sm text-orange-600 mt-1">
-                  Your deposit has been confirmed! Your pasabuy items are currently being sourced.
+                  Your deposit has been confirmed! Your personal shopping items are currently being sourced.
                   We&apos;ll notify you as soon as they arrive.
                 </p>
                 <div className="mt-3 flex items-center gap-2 text-xs text-orange-500">

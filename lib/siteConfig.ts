@@ -197,7 +197,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   announcementMessages: [
     'Free authentication on every piece',
     'New arrivals added weekly',
-    'Pasabuy pre-orders now open',
+    'Personal shopping pre-orders now open',
   ],
 
   heroEyebrow: 'Curated. Authenticated.',
@@ -207,20 +207,20 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
 
   quickActions: [
     { label: 'Browse the Collection', desc: 'Explore every piece currently on hand and ready to ship.', href: '/shop#collection' },
-    { label: 'Request a Pasabuy', desc: "Send us the piece you want — we'll source it on your behalf.", href: '/contact' },
+    { label: 'Request Personal Shopping', desc: "Send us the piece you want — we'll source it on your behalf.", href: '/contact' },
     { label: 'Talk to a Concierge', desc: 'Get a personal recommendation from our sales team.', href: '/contact' },
   ],
 
   trustItems: [
     { label: 'Authenticity Checked', desc: 'Condition & provenance verified' },
     { label: 'Secure Reservation', desc: 'Deposit-based checkout' },
-    { label: 'Pasabuy Sourcing', desc: 'We source it on request' },
+    { label: 'Personal Shopping', desc: 'We source it on request' },
     { label: 'Sales Concierge', desc: 'Personal assistance, always' },
   ],
 
   sourcingEyebrow: 'Personal Sourcing',
   sourcingHeadline: "Can't Find the Piece You Want?",
-  sourcingText: "Our Pasabuy service sources specific pieces on your behalf when they're not already in stock, backed by a dedicated sales concierge from inquiry to delivery.",
+  sourcingText: "Our Personal Shopping Service sources specific pieces on your behalf when they're not already in stock, backed by a dedicated sales concierge from inquiry to delivery.",
   sourcingImage: 'https://images.unsplash.com/photo-1589731119540-c4586781dae1?w=1000&q=80',
 
   showBrandGrid: true,

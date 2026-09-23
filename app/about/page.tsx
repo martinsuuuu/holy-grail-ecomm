@@ -21,9 +21,9 @@ export default function AboutPage() {
           </p>
           <p>
             We believe a great piece should feel effortless to find. Our team sources on-hand
-            inventory ready to ship, and also offers Pasabuy — a pre-order service where we source
-            specific pieces on your behalf when they aren&apos;t already in stock, with a clear
-            expected-arrival window so you always know what to expect.
+            inventory ready to ship, and also offers a Personal Shopping Service — a pre-order
+            service where we source specific pieces on your behalf when they aren&apos;t already
+            in stock, with a clear expected-arrival window so you always know what to expect.
           </p>
           <p>
             From the first inquiry to the final handoff, our goal is a shopping experience that

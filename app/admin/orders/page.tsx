@@ -40,7 +40,7 @@ function orderType(order: Order): 'PASABUY' | 'ONHAND' {
 
 function OrderTypeBadge({ type }: { type: 'PASABUY' | 'ONHAND' }) {
   return type === 'PASABUY'
-    ? <span className="badge text-xs bg-plum-100 text-plum-700">Pasabuy</span>
+    ? <span className="badge text-xs bg-plum-100 text-plum-700">Personal Shopping</span>
     : <span className="badge text-xs bg-emerald-100 text-emerald-700">On Hand</span>;
 }
 
@@ -301,7 +301,7 @@ function OrdersContent() {
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-500">Order Type</span>
                   <span className="font-medium">
-                    {orderType(selectedOrder) === 'PASABUY' ? 'Pasabuy (Pre-order)' : 'On Hand'}
+                    {orderType(selectedOrder) === 'PASABUY' ? 'Personal Shopping (Pre-order)' : 'On Hand'}
                   </span>
                 </div>
                 {selectedOrder.discountAmount > 0 && (
@@ -376,7 +376,7 @@ function OrdersContent() {
                 <div className="mb-2">
                   <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-3 py-2 mb-2">
                     <Truck className="h-4 w-4 text-orange-500 flex-shrink-0" />
-                    <p className="text-xs text-orange-700 font-medium">Pasabuy order — waiting for items to arrive</p>
+                    <p className="text-xs text-orange-700 font-medium">Personal Shopping order — waiting for items to arrive</p>
                   </div>
                   <button
                     onClick={() => handleStatusUpdate(selectedOrder.id, 'CONFIRMED')}

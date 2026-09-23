@@ -85,7 +85,7 @@ export async function PATCH(
         pendingNotification = {
           userId: order.userId,
           title: 'Items Arrived!',
-          message: `Great news! Your pasabuy items for order #${order.id.slice(-8).toUpperCase()} have arrived and your order is now confirmed.`,
+          message: `Great news! Your personal shopping items for order #${order.id.slice(-8).toUpperCase()} have arrived and your order is now confirmed.`,
           type: 'ORDER',
         };
       }
@@ -104,7 +104,7 @@ export async function PATCH(
           pendingNotification = {
             userId: order.userId,
             title: 'Deposit Confirmed',
-            message: `Your deposit for order #${order.id.slice(-8).toUpperCase()} has been confirmed. Your pasabuy items are being sourced — we'll notify you when they arrive!`,
+            message: `Your deposit for order #${order.id.slice(-8).toUpperCase()} has been confirmed. Your personal shopping items are being sourced — we'll notify you when they arrive!`,
             type: 'ORDER',
           };
         } else {
