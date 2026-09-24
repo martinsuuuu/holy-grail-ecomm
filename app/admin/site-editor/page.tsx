@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Palette, Type, MessageSquare, Layout, Check, RefreshCw, ExternalLink, AlertCircle, ImageUp,
   Megaphone, GalleryHorizontal, ShieldCheck, Search, Grid3x3, LayoutGrid, Sparkles, PanelBottom, Zap, BarChart3,
-  Plus, Trash2, ChevronUp, ChevronDown, RotateCcw, Sparkle,
+  Plus, Trash2, ChevronUp, ChevronDown, RotateCcw, Sparkle, Quote, Star,
 } from 'lucide-react';
 import {
   THEME_PRESETS,
@@ -12,14 +12,16 @@ import {
   DEFAULT_SITE_CONFIG,
   MAX_IMAGE_BYTES,
   MAX_HERO_SLIDES,
+  MAX_TESTIMONIALS,
   SiteConfig,
   HeroSlide,
+  Testimonial,
 } from '@/lib/siteConfig';
 import { ITEM_TYPES } from '@/lib/productTypes';
 
 type Tab = 'theme' | 'content';
 
-type SectionId = 'announcement' | 'hero' | 'quickActions' | 'trust' | 'sourcing' | 'categoryGrid' | 'brandGrid' | 'stats' | 'cta' | 'footer';
+type SectionId = 'announcement' | 'hero' | 'quickActions' | 'trust' | 'sourcing' | 'categoryGrid' | 'brandGrid' | 'stats' | 'testimonials' | 'cta' | 'footer';
 
 const CONTENT_SECTIONS: { id: SectionId; label: string; icon: typeof Megaphone }[] = [
   { id: 'announcement', label: 'Announcement Bar', icon: Megaphone },
@@ -30,6 +32,7 @@ const CONTENT_SECTIONS: { id: SectionId; label: string; icon: typeof Megaphone }
   { id: 'categoryGrid', label: 'Shop by Categories', icon: LayoutGrid },
   { id: 'brandGrid', label: 'Shop by Brand', icon: Grid3x3 },
   { id: 'stats', label: 'By the Numbers', icon: BarChart3 },
+  { id: 'testimonials', label: 'Customer Feedback', icon: Quote },
   { id: 'cta', label: 'Experience CTA', icon: Sparkles },
   { id: 'footer', label: 'Footer', icon: PanelBottom },
 ];
@@ -184,6 +187,24 @@ export default function SiteEditorPage() {
     const next = [...config.heroSlides];
     [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
     update('heroSlides', next);
+  };
+
+  const updateTestimonial = (id: string, patch: Partial<Testimonial>) => {
+    update('testimonials', config.testimonials.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+  };
+  const addTestimonial = () => {
+    if (config.testimonials.length >= MAX_TESTIMONIALS) return;
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `testimonial-${Date.now()}-${Math.random()}`;
+    update('testimonials', [...config.testimonials, { id, name: '', text: '', rating: 5, image: '', productName: '' }]);
+  };
+  const removeTestimonial = (id: string) => update('testimonials', config.testimonials.filter((t) => t.id !== id));
+  const moveTestimonial = (id: string, dir: -1 | 1) => {
+    const idx = config.testimonials.findIndex((t) => t.id === id);
+    const swapIdx = idx + dir;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= config.testimonials.length) return;
+    const next = [...config.testimonials];
+    [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
+    update('testimonials', next);
   };
 
   const handleSave = async () => {
@@ -774,6 +795,124 @@ export default function SiteEditorPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {tab === 'content' && section === 'testimonials' && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400">Customer Feedback</h3>
+                <span className="text-[11px] text-stone-400">{config.testimonials.length}/{MAX_TESTIMONIALS}</span>
+              </div>
+              <p className="text-xs text-stone-400 mb-3">Shown as cards right below the "By the Numbers" band, each with a photo of the product the customer bought.</p>
+
+              <div className="space-y-3 mb-3">
+                <div>
+                  <label className="label text-xs">Eyebrow text</label>
+                  <input type="text" value={config.testimonialsEyebrow} onChange={(e) => update('testimonialsEyebrow', e.target.value)} className="input-field text-sm" />
+                </div>
+                <div>
+                  <label className="label text-xs">Headline</label>
+                  <input type="text" value={config.testimonialsHeading} onChange={(e) => update('testimonialsHeading', e.target.value)} className="input-field text-sm" />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {config.testimonials.map((t, i) => (
+                  <div key={t.id} className="border border-stone-200 rounded-2xl p-3 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-espresso">Review {i + 1}</span>
+                      <div className="flex items-center gap-1">
+                        <button type="button" onClick={() => moveTestimonial(t.id, -1)} disabled={i === 0} className="p-1 rounded text-stone-400 hover:text-espresso disabled:opacity-30 disabled:cursor-not-allowed">
+                          <ChevronUp className="h-3.5 w-3.5" />
+                        </button>
+                        <button type="button" onClick={() => moveTestimonial(t.id, 1)} disabled={i === config.testimonials.length - 1} className="p-1 rounded text-stone-400 hover:text-espresso disabled:opacity-30 disabled:cursor-not-allowed">
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        </button>
+                        <button type="button" onClick={() => removeTestimonial(t.id)} className="p-1 rounded text-red-500 hover:text-red-700">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {t.image ? (
+                      <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-stone-200">
+                        <img src={t.image} alt={t.productName || 'Product'} className="absolute inset-0 w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => updateTestimonial(t.id, { image: '' })}
+                          className="absolute top-2 right-2 bg-espresso/80 hover:bg-espresso text-cream text-xs px-2.5 py-1 rounded-full"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center gap-1 aspect-[4/3] border-2 border-dashed border-stone-200 rounded-xl cursor-pointer hover:border-primary-300 hover:bg-primary-50/40 transition-colors text-center">
+                        <ImageUp className="h-4 w-4 text-stone-400" />
+                        <span className="text-xs text-stone-500">Upload product photo</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            e.target.value = '';
+                            if (!file) return;
+                            setImageError('');
+                            readImageFile(file, (url) => updateTestimonial(t.id, { image: url }), setImageError);
+                          }}
+                        />
+                      </label>
+                    )}
+
+                    <input
+                      type="text"
+                      value={t.name}
+                      onChange={(e) => updateTestimonial(t.id, { name: e.target.value })}
+                      placeholder="Customer name (e.g. Andrea L.)"
+                      className="input-field text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={t.productName}
+                      onChange={(e) => updateTestimonial(t.id, { productName: e.target.value })}
+                      placeholder="Product they bought (e.g. Dior Saddle Bag)"
+                      className="input-field text-xs"
+                    />
+                    <textarea
+                      value={t.text}
+                      onChange={(e) => updateTestimonial(t.id, { text: e.target.value })}
+                      placeholder="Review text"
+                      rows={3}
+                      className="input-field text-xs"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-stone-400 mr-1">Rating:</span>
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button key={n} type="button" onClick={() => updateTestimonial(t.id, { rating: n })}>
+                          <Star className={`h-4 w-4 ${n <= t.rating ? 'fill-primary-500 text-primary-500' : 'text-stone-200'}`} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {imageError && (
+                <p className="flex items-center gap-1.5 text-xs text-red-700 mt-2">
+                  <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                  {imageError}
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={addTestimonial}
+                disabled={config.testimonials.length >= MAX_TESTIMONIALS}
+                className="w-full flex items-center justify-center gap-1.5 mt-3 py-2.5 rounded-xl border-2 border-dashed border-stone-200 text-sm text-espresso/70 hover:border-primary-300 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <Plus className="h-4 w-4" /> Add Review
+              </button>
             </div>
           )}
 

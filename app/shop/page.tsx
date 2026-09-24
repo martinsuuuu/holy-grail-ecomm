@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import HeroCarousel, { Slide } from '@/components/HeroCarousel';
-import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle, Check, ArrowUpRight } from 'lucide-react';
+import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle, Check, ArrowUpRight, Star } from 'lucide-react';
 import { DEFAULT_SITE_CONFIG, SiteConfig, THEME_TEXTURE_URL } from '@/lib/siteConfig';
 import { ITEM_TYPES } from '@/lib/productTypes';
 
@@ -507,6 +507,40 @@ function ShopPageInner() {
           </div>
         </div>
       </div>
+
+      {/* Customer feedback */}
+      {siteConfig.testimonials.length > 0 && (
+        <div className="bg-cream py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-3 mb-1">
+              <span className="w-10 h-px bg-primary-500" />
+              <p className="text-xs uppercase tracking-[0.25em] text-primary-700 font-medium">{siteConfig.testimonialsEyebrow}</p>
+            </div>
+            <h2 className="font-display font-black text-3xl text-espresso mb-8">{siteConfig.testimonialsHeading}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {siteConfig.testimonials.map((t) => (
+                <div key={t.id} className="bg-white rounded-2xl shadow-soft border border-stone-200/70 overflow-hidden flex flex-col">
+                  <div className="relative aspect-[4/3]">
+                    <img src={t.image} alt={t.productName} className="absolute inset-0 w-full h-full object-cover" />
+                  </div>
+                  <div className="p-5 flex flex-col flex-1">
+                    <div className="flex items-center gap-0.5 mb-2">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className={`h-3.5 w-3.5 ${i < t.rating ? 'fill-primary-500 text-primary-500' : 'text-stone-200'}`} />
+                      ))}
+                    </div>
+                    <p className="text-sm text-espresso/70 leading-relaxed flex-1 mb-4">&ldquo;{t.text}&rdquo;</p>
+                    <div className="pt-3 border-t border-stone-100">
+                      <p className="text-sm font-semibold text-espresso">{t.name}</p>
+                      <p className="text-xs text-espresso/40">Purchased: {t.productName}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Experience / CTA */}
       <div className="bg-cream py-16 px-4 sm:px-6 lg:px-8">

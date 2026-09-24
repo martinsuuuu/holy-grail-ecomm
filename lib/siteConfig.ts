@@ -140,6 +140,16 @@ export interface StatItem {
   label: string;
 }
 
+export interface Testimonial {
+  id: string;
+  name: string;
+  text: string;
+  rating: number;
+  /** Photo of the product the customer bought/selected. */
+  image: string;
+  productName: string;
+}
+
 export interface SiteConfig {
   themePresetId: string;
   headingFontId: string;
@@ -180,6 +190,11 @@ export interface SiteConfig {
   // "By the numbers" social-proof band
   statsEyebrow: string;
   statsItems: StatItem[];
+
+  // Customer feedback / testimonials, shown right below the stats band
+  testimonialsEyebrow: string;
+  testimonialsHeading: string;
+  testimonials: Testimonial[];
 
   // Bottom "Experience" CTA section
   ctaEyebrow: string;
@@ -241,6 +256,43 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     { value: '24h', label: 'Average Response' },
   ],
 
+  testimonialsEyebrow: 'Customer Feedback',
+  testimonialsHeading: 'What Our Clients Say',
+  testimonials: [
+    {
+      id: 'testimonial-1',
+      name: 'Andrea L.',
+      text: "The Saddle Bag arrived exactly as photographed — authentication paperwork included and the leather smells brand new. Deposit-based checkout made me nervous at first but the concierge kept me updated the whole way.",
+      rating: 5,
+      image: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=600&q=80',
+      productName: 'Dior Saddle Bag',
+    },
+    {
+      id: 'testimonial-2',
+      name: 'Marco R.',
+      text: "Sourced my Submariner through their personal shopping service after striking out everywhere else locally. Took about two weeks and every detail matched what I asked for — hardware, box, papers.",
+      rating: 5,
+      image: 'https://images.unsplash.com/photo-1758071348980-d1eed770f34f?w=1000&q=80',
+      productName: 'Rolex Submariner Date',
+    },
+    {
+      id: 'testimonial-3',
+      name: 'Sophia T.',
+      text: "This is my third piece from Holy Grail and the quality check is consistently thorough. The Classic Flap had a tiny scuff they actually flagged before I even asked — appreciated the honesty.",
+      rating: 4,
+      image: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=600&q=80',
+      productName: 'Chanel Classic Flap Medium',
+    },
+    {
+      id: 'testimonial-4',
+      name: 'Julia M.',
+      text: "Ordered the Love Bracelet as a gift and they packaged it beautifully with authentication card and receipt copy. Delivery was faster than the estimate too.",
+      rating: 5,
+      image: 'https://images.unsplash.com/photo-1758995115643-1e8348bfde39?w=1000&q=80',
+      productName: 'Cartier Love Bracelet',
+    },
+  ],
+
   ctaEyebrow: 'Every Order',
   ctaHeadline: 'The Holy Grail Experience',
   ctaText: 'Every order is backed by the same standard of care, from first inquiry to final delivery.',
@@ -258,6 +310,9 @@ export const MAX_IMAGE_BYTES = 900_000;
 /** Hard cap on the number of custom hero slides an admin can add, so the
  *  site_config payload (fetched on every page load) can't grow unbounded. */
 export const MAX_HERO_SLIDES = 6;
+
+/** Hard cap on the number of testimonial cards an admin can add. */
+export const MAX_TESTIMONIALS = 8;
 
 /** Textured overlay used behind dark (espresso) sections when
  *  `themeTextureEnabled` is on. */
