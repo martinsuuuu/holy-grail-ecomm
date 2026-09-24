@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Globe, Share2 } from 'lucide-react';
 import HGMonogram from './HGMonogram';
-import { DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/siteConfig';
+import { DEFAULT_SITE_CONFIG, SiteConfig, THEME_TEXTURE_URL } from '@/lib/siteConfig';
 
 interface Category {
   id: string;
@@ -28,7 +28,10 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-espresso text-cream mt-16">
+    <footer
+      className="bg-espresso text-cream mt-16 bg-cover bg-center"
+      style={config.themeTextureEnabled ? { backgroundImage: `url('${THEME_TEXTURE_URL}')` } : undefined}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
         {/* Newsletter */}
         <div className="md:col-span-1">

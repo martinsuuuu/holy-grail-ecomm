@@ -300,6 +300,15 @@ export default function SiteEditorPage() {
                     </button>
                   ))}
                 </div>
+                <label className="flex items-center gap-2 text-sm text-espresso/80 cursor-pointer mt-3">
+                  <input
+                    type="checkbox"
+                    checked={config.themeTextureEnabled}
+                    onChange={(e) => update('themeTextureEnabled', e.target.checked)}
+                    className="rounded border-stone-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  Textured background on dark sections (CTA card &amp; footer)
+                </label>
               </div>
 
               <div>

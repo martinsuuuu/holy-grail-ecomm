@@ -187,6 +187,10 @@ export interface SiteConfig {
   ctaText: string;
 
   footerTagline: string;
+
+  /** Textured overlay behind the dark (espresso) sections — the CTA card
+   *  and the footer — instead of a flat color. */
+  themeTextureEnabled: boolean;
 }
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
@@ -241,6 +245,8 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   ctaHeadline: 'The Holy Grail Experience',
   ctaText: 'Every order is backed by the same standard of care, from first inquiry to final delivery.',
 
+  themeTextureEnabled: true,
+
   footerTagline: 'Sign up to receive exclusive content and updates on new arrivals.',
 };
 
@@ -252,6 +258,10 @@ export const MAX_IMAGE_BYTES = 900_000;
 /** Hard cap on the number of custom hero slides an admin can add, so the
  *  site_config payload (fetched on every page load) can't grow unbounded. */
 export const MAX_HERO_SLIDES = 6;
+
+/** Textured overlay used behind dark (espresso) sections when
+ *  `themeTextureEnabled` is on. */
+export const THEME_TEXTURE_URL = '/assets/green-texture.jpg';
 
 export function getThemePreset(id: string): ThemePreset {
   return THEME_PRESETS.find((p) => p.id === id) ?? THEME_PRESETS[0];

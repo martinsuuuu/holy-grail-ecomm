@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import HeroCarousel, { Slide } from '@/components/HeroCarousel';
 import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle, Check, ArrowUpRight } from 'lucide-react';
-import { DEFAULT_SITE_CONFIG, SiteConfig } from '@/lib/siteConfig';
+import { DEFAULT_SITE_CONFIG, SiteConfig, THEME_TEXTURE_URL } from '@/lib/siteConfig';
 import { ITEM_TYPES } from '@/lib/productTypes';
 
 interface Product {
@@ -510,7 +510,10 @@ function ShopPageInner() {
 
       {/* Experience / CTA */}
       <div className="bg-cream py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto bg-espresso text-cream rounded-3xl px-6 sm:px-10 py-16 sm:py-20 text-center">
+        <div
+          className="max-w-6xl mx-auto bg-espresso text-cream rounded-3xl px-6 sm:px-10 py-16 sm:py-20 text-center bg-cover bg-center"
+          style={siteConfig.themeTextureEnabled ? { backgroundImage: `url('${THEME_TEXTURE_URL}')` } : undefined}
+        >
           <span className="inline-block px-3 py-1 rounded-full bg-primary-500/20 text-primary-300 text-[11px] uppercase tracking-widest font-medium mb-4">
             {siteConfig.ctaEyebrow}
           </span>
