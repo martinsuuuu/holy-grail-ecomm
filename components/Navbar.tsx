@@ -333,12 +333,12 @@ export default function Navbar() {
       {/* Row 1: logo + account actions */}
       <div className="border-b border-stone-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 items-center h-16">
+          <div className="grid grid-cols-2 md:grid-cols-3 items-center h-20">
             <div className="hidden md:block" />
 
-            <Link href="/shop" className="flex items-center gap-2 sm:gap-2.5 justify-self-start md:justify-self-center min-w-0">
-              <HGMonogram className="h-9 w-9 sm:h-11 sm:w-11 flex-shrink-0" />
-              <span className="font-display font-black text-lg sm:text-2xl tracking-wide text-espresso whitespace-nowrap">HOLY GRAIL</span>
+            <Link href="/shop" className="flex items-center gap-2 sm:gap-3 justify-self-start md:justify-self-center min-w-0">
+              <HGMonogram className="h-9 w-9 sm:h-12 sm:w-12 md:h-14 md:w-14 flex-shrink-0" />
+              <span className="font-display font-black text-lg sm:text-2xl md:text-3xl tracking-wide text-espresso whitespace-nowrap">HOLY GRAIL</span>
             </Link>
 
             <div className="flex items-center gap-3 justify-self-end">
