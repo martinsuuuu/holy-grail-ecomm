@@ -23,6 +23,7 @@ import {
   Palette,
 } from 'lucide-react';
 import HGMonogram from './HGMonogram';
+import { DEFAULT_SITE_CONFIG, SiteConfig, THEME_TEXTURE_URL } from '@/lib/siteConfig';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -44,6 +45,11 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const [noActivePayment, setNoActivePayment] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
+
+  useEffect(() => {
+    fetch('/api/site-config').then((r) => r.json()).then(setSiteConfig).catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch('/api/admin/payment-methods')
@@ -56,7 +62,10 @@ export default function AdminSidebar() {
   }, [pathname]);
 
   return (
-    <aside className="w-64 bg-espresso min-h-screen flex flex-col">
+    <aside
+      className="w-64 bg-espresso min-h-screen flex flex-col bg-cover bg-center"
+      style={siteConfig.themeTextureEnabled ? { backgroundImage: `url('${THEME_TEXTURE_URL}')` } : undefined}
+    >
       {/* Logo */}
       <div className="px-6 py-5 border-b border-white/10">
         <Link href="/admin" className="flex items-center gap-2.5">
