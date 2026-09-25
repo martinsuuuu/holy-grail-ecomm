@@ -337,8 +337,8 @@ export default function Navbar() {
             <div className="hidden md:block" />
 
             <Link href="/shop" className="flex items-center gap-2 sm:gap-3 justify-self-start md:justify-self-center min-w-0">
-              <HGMonogram className="h-9 w-9 sm:h-12 sm:w-12 md:h-14 md:w-14 flex-shrink-0" />
-              <span className="font-display font-black text-lg sm:text-2xl md:text-3xl tracking-wide text-espresso whitespace-nowrap">HOLY GRAIL</span>
+              <HGMonogram className="h-11 w-11 sm:h-12 sm:w-12 md:h-14 md:w-14 flex-shrink-0" />
+              <span className="hidden min-[400px]:inline font-display font-black text-lg sm:text-2xl md:text-3xl tracking-wide text-espresso whitespace-nowrap">HOLY GRAIL</span>
             </Link>
 
             <div className="flex items-center gap-3 justify-self-end">
