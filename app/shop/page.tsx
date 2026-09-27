@@ -213,6 +213,20 @@ function ShopPageInner() {
         </div>
       </div>
 
+      {/* Video carousel */}
+      {siteConfig.videos.length > 0 && (
+        <div className="bg-cream py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-3 mb-1">
+              <span className="w-10 h-px bg-primary-500" />
+              <p className="text-xs uppercase tracking-[0.25em] text-primary-700 font-medium">{siteConfig.videosEyebrow}</p>
+            </div>
+            <h2 className="font-display font-black text-3xl text-espresso mb-8">{siteConfig.videosHeading}</h2>
+            <VideoCarousel videos={siteConfig.videos} />
+          </div>
+        </div>
+      )}
+
       <div id="collection" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-center gap-3 mb-1">
           <span className="w-10 h-px bg-primary-500" />
@@ -488,20 +502,6 @@ function ShopPageInner() {
                 </button>
               );
             })}
-          </div>
-        </div>
-      )}
-
-      {/* Video carousel */}
-      {siteConfig.videos.length > 0 && (
-        <div className="bg-cream py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3 mb-1">
-              <span className="w-10 h-px bg-primary-500" />
-              <p className="text-xs uppercase tracking-[0.25em] text-primary-700 font-medium">{siteConfig.videosEyebrow}</p>
-            </div>
-            <h2 className="font-display font-black text-3xl text-espresso mb-8">{siteConfig.videosHeading}</h2>
-            <VideoCarousel videos={siteConfig.videos} />
           </div>
         </div>
       )}
