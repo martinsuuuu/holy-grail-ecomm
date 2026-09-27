@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import HeroCarousel, { Slide } from '@/components/HeroCarousel';
+import VideoCarousel from '@/components/VideoCarousel';
 import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle, Check, ArrowUpRight, Star } from 'lucide-react';
 import { DEFAULT_SITE_CONFIG, SiteConfig, THEME_TEXTURE_URL } from '@/lib/siteConfig';
 import { ITEM_TYPES } from '@/lib/productTypes';
@@ -487,6 +488,20 @@ function ShopPageInner() {
                 </button>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Video carousel */}
+      {siteConfig.videos.length > 0 && (
+        <div className="bg-cream py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-3 mb-1">
+              <span className="w-10 h-px bg-primary-500" />
+              <p className="text-xs uppercase tracking-[0.25em] text-primary-700 font-medium">{siteConfig.videosEyebrow}</p>
+            </div>
+            <h2 className="font-display font-black text-3xl text-espresso mb-8">{siteConfig.videosHeading}</h2>
+            <VideoCarousel videos={siteConfig.videos} />
           </div>
         </div>
       )}

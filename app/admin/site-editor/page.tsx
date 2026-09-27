@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Palette, Type, MessageSquare, Layout, Check, RefreshCw, ExternalLink, AlertCircle, ImageUp,
   Megaphone, GalleryHorizontal, ShieldCheck, Search, Grid3x3, LayoutGrid, Sparkles, PanelBottom, Zap, BarChart3,
-  Plus, Trash2, ChevronUp, ChevronDown, RotateCcw, Sparkle, Quote, Star,
+  Plus, Trash2, ChevronUp, ChevronDown, RotateCcw, Sparkle, Quote, Star, Film,
 } from 'lucide-react';
 import {
   THEME_PRESETS,
@@ -13,15 +13,17 @@ import {
   MAX_IMAGE_BYTES,
   MAX_HERO_SLIDES,
   MAX_TESTIMONIALS,
+  MAX_VIDEOS,
   SiteConfig,
   HeroSlide,
   Testimonial,
+  VideoItem,
 } from '@/lib/siteConfig';
 import { ITEM_TYPES } from '@/lib/productTypes';
 
 type Tab = 'theme' | 'content';
 
-type SectionId = 'announcement' | 'hero' | 'quickActions' | 'trust' | 'sourcing' | 'categoryGrid' | 'brandGrid' | 'stats' | 'testimonials' | 'cta' | 'footer';
+type SectionId = 'announcement' | 'hero' | 'quickActions' | 'trust' | 'sourcing' | 'categoryGrid' | 'brandGrid' | 'videos' | 'stats' | 'testimonials' | 'cta' | 'footer';
 
 const CONTENT_SECTIONS: { id: SectionId; label: string; icon: typeof Megaphone }[] = [
   { id: 'announcement', label: 'Announcement Bar', icon: Megaphone },
@@ -31,6 +33,7 @@ const CONTENT_SECTIONS: { id: SectionId; label: string; icon: typeof Megaphone }
   { id: 'sourcing', label: 'Personal Sourcing', icon: Search },
   { id: 'categoryGrid', label: 'Shop by Categories', icon: LayoutGrid },
   { id: 'brandGrid', label: 'Shop by Brand', icon: Grid3x3 },
+  { id: 'videos', label: 'Video Carousel', icon: Film },
   { id: 'stats', label: 'By the Numbers', icon: BarChart3 },
   { id: 'testimonials', label: 'Customer Feedback', icon: Quote },
   { id: 'cta', label: 'Experience CTA', icon: Sparkles },
@@ -205,6 +208,24 @@ export default function SiteEditorPage() {
     const next = [...config.testimonials];
     [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
     update('testimonials', next);
+  };
+
+  const updateVideo = (id: string, patch: Partial<VideoItem>) => {
+    update('videos', config.videos.map((v) => (v.id === id ? { ...v, ...patch } : v)));
+  };
+  const addVideo = () => {
+    if (config.videos.length >= MAX_VIDEOS) return;
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `video-${Date.now()}-${Math.random()}`;
+    update('videos', [...config.videos, { id, url: '', title: '', caption: '' }]);
+  };
+  const removeVideo = (id: string) => update('videos', config.videos.filter((v) => v.id !== id));
+  const moveVideo = (id: string, dir: -1 | 1) => {
+    const idx = config.videos.findIndex((v) => v.id === id);
+    const swapIdx = idx + dir;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= config.videos.length) return;
+    const next = [...config.videos];
+    [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
+    update('videos', next);
   };
 
   const handleSave = async () => {
@@ -765,6 +786,81 @@ export default function SiteEditorPage() {
                   <input type="text" value={config.brandGridSubheading} onChange={(e) => update('brandGridSubheading', e.target.value)} className="input-field text-sm" />
                 </div>
               </div>
+            </div>
+          )}
+
+          {tab === 'content' && section === 'videos' && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400">Video Carousel</h3>
+                <span className="text-[11px] text-stone-400">{config.videos.length}/{MAX_VIDEOS}</span>
+              </div>
+              <p className="text-xs text-stone-400 mb-3">A scrollable row of playable clips, shown between "Shop by Brand" and "By the Numbers". Paste a direct .mp4 URL for each — no upload here since video files are far larger than the image limit.</p>
+
+              <div className="space-y-3 mb-3">
+                <div>
+                  <label className="label text-xs">Eyebrow text</label>
+                  <input type="text" value={config.videosEyebrow} onChange={(e) => update('videosEyebrow', e.target.value)} className="input-field text-sm" />
+                </div>
+                <div>
+                  <label className="label text-xs">Headline</label>
+                  <input type="text" value={config.videosHeading} onChange={(e) => update('videosHeading', e.target.value)} className="input-field text-sm" />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {config.videos.map((v, i) => (
+                  <div key={v.id} className="border border-stone-200 rounded-2xl p-3 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-espresso">Video {i + 1}</span>
+                      <div className="flex items-center gap-1">
+                        <button type="button" onClick={() => moveVideo(v.id, -1)} disabled={i === 0} className="p-1 rounded text-stone-400 hover:text-espresso disabled:opacity-30 disabled:cursor-not-allowed">
+                          <ChevronUp className="h-3.5 w-3.5" />
+                        </button>
+                        <button type="button" onClick={() => moveVideo(v.id, 1)} disabled={i === config.videos.length - 1} className="p-1 rounded text-stone-400 hover:text-espresso disabled:opacity-30 disabled:cursor-not-allowed">
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        </button>
+                        <button type="button" onClick={() => removeVideo(v.id)} className="p-1 rounded text-red-500 hover:text-red-700">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    {v.url && (
+                      <video src={v.url} className="w-full aspect-[9/16] rounded-xl bg-stone-100 object-cover" preload="metadata" muted />
+                    )}
+                    <input
+                      type="text"
+                      value={v.url}
+                      onChange={(e) => updateVideo(v.id, { url: e.target.value })}
+                      placeholder="Direct video URL (.mp4)"
+                      className="input-field text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={v.title}
+                      onChange={(e) => updateVideo(v.id, { title: e.target.value })}
+                      placeholder="Title (e.g. In the Boutique)"
+                      className="input-field text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={v.caption}
+                      onChange={(e) => updateVideo(v.id, { caption: e.target.value })}
+                      placeholder="Short caption"
+                      className="input-field text-xs"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={addVideo}
+                disabled={config.videos.length >= MAX_VIDEOS}
+                className="w-full flex items-center justify-center gap-1.5 mt-3 py-2.5 rounded-xl border-2 border-dashed border-stone-200 text-sm text-espresso/70 hover:border-primary-300 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <Plus className="h-4 w-4" /> Add Video
+              </button>
             </div>
           )}
 

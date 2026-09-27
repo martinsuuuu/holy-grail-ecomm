@@ -150,6 +150,14 @@ export interface Testimonial {
   productName: string;
 }
 
+export interface VideoItem {
+  id: string;
+  /** Direct video file URL (mp4). */
+  url: string;
+  title: string;
+  caption: string;
+}
+
 export interface SiteConfig {
   themePresetId: string;
   headingFontId: string;
@@ -186,6 +194,12 @@ export interface SiteConfig {
    *  type (Jewelries/Watches/Apparels/Bags). A type with no entry here
    *  falls back to an auto-sampled photo from that type's products. */
   categoryImages: Record<string, string>;
+
+  // Video carousel — a row of playable clips, shown between the brand grid
+  // and the stats band
+  videosEyebrow: string;
+  videosHeading: string;
+  videos: VideoItem[];
 
   // "By the numbers" social-proof band
   statsEyebrow: string;
@@ -293,6 +307,23 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     },
   ],
 
+  videosEyebrow: 'See It In Person',
+  videosHeading: 'Watch & Discover',
+  videos: [
+    {
+      id: 'video-1',
+      url: 'https://videos.pexels.com/video-files/6649430/6649430-sd_960_506_25fps.mp4',
+      title: 'In the Boutique',
+      caption: 'A closer look at how each piece is presented before it ships.',
+    },
+    {
+      id: 'video-2',
+      url: 'https://videos.pexels.com/video-files/5815082/5815082-hd_1920_1080_25fps.mp4',
+      title: 'Gold Detailing',
+      caption: 'The kind of craftsmanship our authentication team checks for.',
+    },
+  ],
+
   ctaEyebrow: 'Every Order',
   ctaHeadline: 'The Holy Grail Experience',
   ctaText: 'Every order is backed by the same standard of care, from first inquiry to final delivery.',
@@ -313,6 +344,9 @@ export const MAX_HERO_SLIDES = 6;
 
 /** Hard cap on the number of testimonial cards an admin can add. */
 export const MAX_TESTIMONIALS = 8;
+
+/** Hard cap on the number of video cards an admin can add. */
+export const MAX_VIDEOS = 8;
 
 /** Textured overlay used behind dark (espresso) sections when
  *  `themeTextureEnabled` is on. */
