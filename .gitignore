@@ -20,3 +20,4 @@ npm-debug.log*
 *.tsbuildinfo
 .vercel
 qa-tmp*.mjs
+public/logo-mark-new.png
