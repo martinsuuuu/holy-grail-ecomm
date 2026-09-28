@@ -158,6 +158,12 @@ function CategoryNavDropdown({
   featured: FeaturedByCategory[];
   allHref?: string;
 }) {
+  // Only types with a real (custom or auto-sampled) photo get an image
+  // tile; the rest of the taxonomy shows as a compact text list below so
+  // the panel doesn't fill up with empty gray boxes once there are many
+  // item types.
+  const pictured = categories.filter((c) => featured.some((f) => f.category === c.name));
+  const textOnly = categories.filter((c) => !featured.some((f) => f.category === c.name));
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -203,32 +209,48 @@ function CategoryNavDropdown({
         <ChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-[360px] bg-white rounded-2xl shadow-warm border border-stone-200/70 p-4 z-50">
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            {categories.map((cat) => {
-              const image = imageFor(cat.name);
-              return (
+        <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-[380px] max-h-[75vh] overflow-y-auto bg-white rounded-2xl shadow-warm border border-stone-200/70 p-4 z-50">
+          {pictured.length > 0 && (
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              {pictured.map((cat) => {
+                const image = imageFor(cat.name);
+                return (
+                  <Link
+                    key={cat.id}
+                    href={hrefFor(cat.name)}
+                    onClick={() => setOpen(false)}
+                    className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-stone-100"
+                  >
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={cat.name}
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : null}
+                    <div className="absolute inset-0 bg-gradient-to-t from-espresso/80 via-espresso/10 to-transparent" />
+                    <span className="absolute bottom-2 left-2.5 text-xs font-semibold text-cream drop-shadow-sm">
+                      {cat.name}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+          {textOnly.length > 0 && (
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mb-3 pt-1">
+              {textOnly.map((cat) => (
                 <Link
                   key={cat.id}
                   href={hrefFor(cat.name)}
                   onClick={() => setOpen(false)}
-                  className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-stone-100"
+                  className="text-xs text-espresso/60 hover:text-primary-700 py-1 truncate"
                 >
-                  {image ? (
-                    <img
-                      src={image}
-                      alt={cat.name}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : null}
-                  <div className="absolute inset-0 bg-gradient-to-t from-espresso/80 via-espresso/10 to-transparent" />
-                  <span className="absolute bottom-2 left-2.5 text-xs font-semibold text-cream drop-shadow-sm">
-                    {cat.name}
-                  </span>
+                  {cat.name}
                 </Link>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
           <Link
             href={allHref}
             onClick={() => setOpen(false)}
