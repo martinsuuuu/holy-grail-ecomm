@@ -6,20 +6,13 @@ import { Globe, Share2 } from 'lucide-react';
 import HGMonogram from './HGMonogram';
 import { DEFAULT_SITE_CONFIG, SiteConfig, THEME_TEXTURE_URL } from '@/lib/siteConfig';
 
-interface Category {
-  id: string;
-  name: string;
-}
-
 export default function Footer() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [config, setConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
-  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     fetch('/api/site-config').then((r) => r.json()).then(setConfig).catch(() => {});
-    fetch('/api/categories').then((r) => r.json()).then(setCategories).catch(() => {});
   }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
@@ -85,18 +78,15 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Shop — real brand categories */}
+        {/* Shop — kept short; full brand/category browsing lives in the navbar dropdowns */}
         <div>
           <h4 className="font-display font-bold text-sm uppercase tracking-widest mb-4">Shop</h4>
           <ul className="space-y-2 text-sm text-cream/60">
             <li><Link href="/shop" className="hover:text-cream transition-colors">All Products</Link></li>
-            {categories.map((cat) => (
-              <li key={cat.id}>
-                <Link href={`/shop?category=${encodeURIComponent(cat.name)}`} className="hover:text-cream transition-colors">
-                  {cat.name}
-                </Link>
-              </li>
-            ))}
+            <li><Link href="/shop?itemType=Bags" className="hover:text-cream transition-colors">Bags</Link></li>
+            <li><Link href="/shop?itemType=Watches" className="hover:text-cream transition-colors">Watches</Link></li>
+            <li><Link href="/shop?itemType=Jewelries" className="hover:text-cream transition-colors">Jewelries</Link></li>
+            <li><Link href="/shop?itemType=Apparels" className="hover:text-cream transition-colors">Apparels</Link></li>
           </ul>
         </div>
 
