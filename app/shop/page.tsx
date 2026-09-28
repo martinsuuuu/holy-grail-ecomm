@@ -58,6 +58,8 @@ function ShopPageInner() {
   }, [searchParams]);
 
   const [brandFeatured, setBrandFeatured] = useState<{ category: string; name: string; imageUrl: string }[]>([]);
+  const [brandCounts, setBrandCounts] = useState<Record<string, number>>({});
+  const [showAllBrands, setShowAllBrands] = useState(false);
 
   useEffect(() => {
     fetch('/api/categories')
@@ -75,13 +77,16 @@ function ShopPageInner() {
       .then((data: Product[]) => {
         const seen = new Set<string>();
         const featured: { category: string; name: string; imageUrl: string }[] = [];
+        const counts: Record<string, number> = {};
         for (const p of data) {
+          if (p.category) counts[p.category] = (counts[p.category] || 0) + 1;
           if (p.category && p.imageUrl && !seen.has(p.category)) {
             seen.add(p.category);
             featured.push({ category: p.category, name: p.name, imageUrl: p.imageUrl });
           }
         }
         setBrandFeatured(featured);
+        setBrandCounts(counts);
       })
       .catch(() => {});
   }, []);
@@ -157,6 +162,12 @@ function ShopPageInner() {
     href: `/shop?category=${encodeURIComponent(b.category)}`,
   }));
   const heroSlides = customSlides.length > 0 ? customSlides : autoSlides;
+
+  const BRAND_GRID_LIMIT = 8;
+  const sortedCategories = [...categories].sort(
+    (a, b) => (brandCounts[b.name] || 0) - (brandCounts[a.name] || 0)
+  );
+  const visibleCategories = showAllBrands ? sortedCategories : sortedCategories.slice(0, BRAND_GRID_LIMIT);
 
   return (
     <div className="min-h-screen bg-cream">
@@ -497,10 +508,22 @@ function ShopPageInner() {
             <span className="w-10 h-px bg-primary-500" />
             <p className="text-xs uppercase tracking-[0.25em] text-primary-700 font-medium">{siteConfig.brandGridEyebrow}</p>
           </div>
-          <h2 className="font-display font-black text-3xl text-espresso mb-1">{siteConfig.brandGridHeading}</h2>
-          <p className="text-espresso/50 text-sm mb-8">{siteConfig.brandGridSubheading}</p>
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8">
+            <div>
+              <h2 className="font-display font-black text-3xl text-espresso mb-1">{siteConfig.brandGridHeading}</h2>
+              <p className="text-espresso/50 text-sm">{siteConfig.brandGridSubheading}</p>
+            </div>
+            {categories.length > BRAND_GRID_LIMIT && (
+              <button
+                onClick={() => setShowAllBrands((v) => !v)}
+                className="flex-shrink-0 px-5 py-2 rounded-full border border-stone-200 text-sm font-medium text-espresso/70 hover:border-primary-300 hover:text-primary-700 transition-colors"
+              >
+                {showAllBrands ? 'Show Top 8' : `View All ${categories.length} Brands`}
+              </button>
+            )}
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
-            {categories.map((cat) => {
+            {visibleCategories.map((cat) => {
               const sample = brandFeatured.find((b) => b.category === cat.name)?.imageUrl;
               return (
                 <button
