@@ -79,7 +79,9 @@ export default function Footer() {
           <div className="mt-4 space-y-1 text-sm text-cream/60">
             <p>By appointment only</p>
             <p>10am – 7pm (GMT+8)</p>
-            <p>Metro Manila, Philippines</p>
+            <p>Unit 2Y, Lee Gardens Condominium</p>
+            <p>Lee St. cor. Shaw Boulevard, Brgy. Wack Wack</p>
+            <p>Mandaluyong City, Philippines</p>
           </div>
         </div>
 
@@ -104,8 +106,8 @@ export default function Footer() {
           <ul className="space-y-2 text-sm text-cream/60">
             <li><Link href="/faq" className="hover:text-cream transition-colors">FAQ</Link></li>
             <li><Link href="/contact" className="hover:text-cream transition-colors">Contact Us</Link></li>
-            <li><Link href="/faq" className="hover:text-cream transition-colors">Return Policy</Link></li>
-            <li><Link href="/shop" className="hover:text-cream transition-colors">Privacy Policy</Link></li>
+            <li><Link href="/returns" className="hover:text-cream transition-colors">Return Policy</Link></li>
+            <li><Link href="/privacy" className="hover:text-cream transition-colors">Privacy Policy</Link></li>
           </ul>
         </div>
       </div>

@@ -24,7 +24,7 @@ const FAQS = [
   },
   {
     q: 'What is your return policy?',
-    a: "Because we deal in curated, often one-of-a-kind luxury pieces, return eligibility is assessed case by case. If something isn't right with your order, please contact us directly and we'll work with you on next steps.",
+    a: "Return requests must be submitted within 7 calendar days of receiving your item, and the item must come back in its original condition with all accessories and packaging included. Change of mind isn't a valid reason for a return. See our full Return Policy for details.",
   },
   {
     q: 'How do I save items for later?',

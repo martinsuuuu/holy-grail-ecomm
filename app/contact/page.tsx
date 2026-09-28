@@ -7,6 +7,7 @@ import { CheckCircle } from 'lucide-react';
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [consent, setConsent] = useState(false);
   const [sent, setSent] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,7 +34,9 @@ export default function ContactPage() {
             </div>
             <div>
               <h3 className="font-display font-bold text-sm uppercase tracking-widest text-espresso mb-2">Showroom</h3>
-              <p className="text-sm">Metro Manila, Philippines</p>
+              <p className="text-sm">Unit 2Y, Lee Gardens Condominium</p>
+              <p className="text-sm">Lee St. cor. Shaw Boulevard, Brgy. Wack Wack</p>
+              <p className="text-sm">Mandaluyong City, Philippines</p>
             </div>
             <div>
               <h3 className="font-display font-bold text-sm uppercase tracking-widest text-espresso mb-2">General Inquiries</h3>
@@ -83,7 +86,22 @@ export default function ContactPage() {
                     className="input-field"
                   />
                 </div>
-                <button type="submit" className="btn-primary w-full">Send Message</button>
+                <label className="flex items-start gap-2.5 text-xs text-espresso/60 leading-relaxed">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-stone-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span>
+                    I have read and understood the Holygrail Inc.{' '}
+                    <a href="/privacy" className="underline hover:text-espresso">Privacy Policy</a> and
+                    agree to the collection and processing of my personal information for the purposes
+                    stated therein.
+                  </span>
+                </label>
+                <button type="submit" disabled={!consent} className="btn-primary w-full disabled:opacity-40 disabled:cursor-not-allowed">Send Message</button>
               </form>
             )}
           </div>
