@@ -34,6 +34,8 @@ interface Category {
 
 type SortOption = '' | 'price_desc' | 'price_asc';
 
+const COLLECTION_DISPLAY_LIMIT = 16;
+
 function ShopPageInner() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
@@ -44,6 +46,7 @@ function ShopPageInner() {
   const [selectedItemType, setSelectedItemType] = useState(searchParams.get('itemType') || 'all');
   const [showInStockOnly, setShowInStockOnly] = useState(true);
   const [sort, setSort] = useState<SortOption>('');
+  const [showAllCollection, setShowAllCollection] = useState(false);
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
 
   // Keep the filters in sync when the ?category=/?itemType= URL params change
@@ -123,6 +126,12 @@ function ShopPageInner() {
   useEffect(() => {
     const timer = setTimeout(fetchProducts, 300);
     return () => clearTimeout(timer);
+  }, [search, selectedCategory, selectedItemType, showInStockOnly, sort]);
+
+  // Start back at the 16-item cap whenever the filtered set changes, so
+  // "Show All" doesn't stay expanded across an unrelated filter switch.
+  useEffect(() => {
+    setShowAllCollection(false);
   }, [search, selectedCategory, selectedItemType, showInStockOnly, sort]);
 
   const pasabuyProducts = products.filter(p => p.type === 'PASABUY');
@@ -407,12 +416,31 @@ function ShopPageInner() {
                   {regularProducts.length} product{regularProducts.length !== 1 ? 's' : ''}
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 items-stretch">
-                  {regularProducts.map((product) => (
+                  {(showAllCollection ? regularProducts : regularProducts.slice(0, COLLECTION_DISPLAY_LIMIT)).map((product) => (
                     <div key={product.id} className="flex">
                       <ProductCard product={product} />
                     </div>
                   ))}
                 </div>
+                {regularProducts.length > COLLECTION_DISPLAY_LIMIT && (
+                  <div className="flex justify-center mt-8">
+                    {showAllCollection ? (
+                      <button
+                        onClick={() => setShowAllCollection(false)}
+                        className="px-6 py-2.5 rounded-full border border-stone-200 text-sm font-medium text-espresso/70 hover:border-primary-300 hover:text-primary-700 transition-colors"
+                      >
+                        Show Less
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setShowAllCollection(true)}
+                        className="px-6 py-2.5 rounded-full bg-espresso text-cream text-sm font-medium hover:bg-primary-800 transition-colors"
+                      >
+                        Show All {regularProducts.length} Items
+                      </button>
+                    )}
+                  </div>
+                )}
               </section>
             )}
           </>
