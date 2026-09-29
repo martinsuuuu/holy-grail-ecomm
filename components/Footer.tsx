@@ -60,9 +60,9 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={label}
-                className="w-9 h-9 rounded-full border border-cream/30 flex items-center justify-center text-cream/60 hover:text-cream hover:border-cream/60 transition-colors"
+                className="w-11 h-11 rounded-full border border-cream/40 flex items-center justify-center text-cream/80 hover:text-cream hover:border-cream/70 transition-colors"
               >
-                <Icon className="h-[18px] w-[18px]" />
+                <Icon className="h-6 w-6" />
               </a>
             ))}
           </div>

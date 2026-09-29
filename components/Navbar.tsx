@@ -477,12 +477,12 @@ export default function Navbar() {
             <div className="absolute left-4 lg:left-6 flex items-center gap-3.5">
               {SOCIAL_LINKS.map(({ label, Icon, href }) =>
                 href ? (
-                  <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="text-espresso/60 hover:text-espresso transition-colors">
-                    <Icon className="h-5 w-5" />
+                  <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="text-espresso/75 hover:text-espresso transition-colors">
+                    <Icon className="h-6 w-6" />
                   </a>
                 ) : (
-                  <span key={label} aria-label={label} className="text-espresso/60">
-                    <Icon className="h-5 w-5" />
+                  <span key={label} aria-label={label} className="text-espresso/75">
+                    <Icon className="h-6 w-6" />
                   </span>
                 )
               )}
@@ -583,12 +583,12 @@ export default function Navbar() {
           <div className="flex items-center gap-5 pt-4 mt-2 border-t border-stone-100">
             {SOCIAL_LINKS.map(({ label, Icon, href }) =>
               href ? (
-                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="text-espresso/60 hover:text-espresso transition-colors">
-                  <Icon className="h-6 w-6" />
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="text-espresso/75 hover:text-espresso transition-colors">
+                  <Icon className="h-7 w-7" />
                 </a>
               ) : (
-                <span key={label} aria-label={label} className="text-espresso/60">
-                  <Icon className="h-6 w-6" />
+                <span key={label} aria-label={label} className="text-espresso/75">
+                  <Icon className="h-7 w-7" />
                 </span>
               )
             )}
