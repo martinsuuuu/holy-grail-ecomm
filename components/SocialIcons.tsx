@@ -44,6 +44,15 @@ export function YoutubeIcon({ className }: IconProps) {
   );
 }
 
+export function TikTokIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M14 3.5v11.2a3.8 3.8 0 1 1-3.8-3.8c.3 0 .6 0 .9.08" />
+      <path d="M14 3.5c.4 2.9 2.5 5.1 5.4 5.4" />
+    </svg>
+  );
+}
+
 export interface SocialLink {
   label: string;
   Icon: ComponentType<IconProps>;
@@ -51,8 +60,7 @@ export interface SocialLink {
 }
 
 export const SOCIAL_LINKS: SocialLink[] = [
-  { label: 'Instagram', Icon: InstagramIcon },
-  { label: 'Facebook', Icon: FacebookIcon },
-  { label: 'Pinterest', Icon: PinterestIcon },
-  { label: 'YouTube', Icon: YoutubeIcon },
+  { label: 'Instagram', Icon: InstagramIcon, href: 'https://www.instagram.com/holygrailphilippines?igsh=Ync4NTBzbGIwN3Nw' },
+  { label: 'Facebook', Icon: FacebookIcon, href: 'https://www.facebook.com/share/1LmUTQyrUH/?mibextid=wwXIfr' },
+  { label: 'TikTok', Icon: TikTokIcon, href: 'https://www.tiktok.com/@holy.grail79?_r=1&_t=ZS-9A7xIcXETVh' },
 ];

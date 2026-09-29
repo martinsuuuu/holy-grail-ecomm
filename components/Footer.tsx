@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Globe, Share2 } from 'lucide-react';
 import HGMonogram from './HGMonogram';
+import { SOCIAL_LINKS } from './SocialIcons';
 import { DEFAULT_SITE_CONFIG, SiteConfig, THEME_TEXTURE_URL } from '@/lib/siteConfig';
 
 export default function Footer() {
@@ -53,12 +53,18 @@ export default function Footer() {
             </form>
           )}
           <div className="flex items-center gap-3">
-            <span className="w-8 h-8 rounded-full border border-cream/30 flex items-center justify-center text-cream/60">
-              <Globe className="h-4 w-4" />
-            </span>
-            <span className="w-8 h-8 rounded-full border border-cream/30 flex items-center justify-center text-cream/60">
-              <Share2 className="h-4 w-4" />
-            </span>
+            {SOCIAL_LINKS.map(({ label, Icon, href }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                className="w-9 h-9 rounded-full border border-cream/30 flex items-center justify-center text-cream/60 hover:text-cream hover:border-cream/60 transition-colors"
+              >
+                <Icon className="h-[18px] w-[18px]" />
+              </a>
+            ))}
           </div>
         </div>
 
