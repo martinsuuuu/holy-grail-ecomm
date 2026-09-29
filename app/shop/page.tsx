@@ -522,7 +522,7 @@ function ShopPageInner() {
               </button>
             )}
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {visibleCategories.map((cat) => {
               const sample = brandFeatured.find((b) => b.category === cat.name)?.imageUrl;
               return (
@@ -532,7 +532,7 @@ function ShopPageInner() {
                     setSelectedCategory(cat.name);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-espresso shadow-soft hover:shadow-warm transition-shadow duration-300"
+                  className="group relative aspect-[4/3.3] overflow-hidden rounded-2xl bg-espresso shadow-soft hover:shadow-warm transition-shadow duration-300"
                 >
                   {sample ? (
                     <img
@@ -542,11 +542,11 @@ function ShopPageInner() {
                     />
                   ) : null}
                   <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/50 to-espresso/10 group-hover:via-espresso/70 transition-colors duration-300" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-end text-center p-6">
-                    <span className="font-display font-black text-2xl sm:text-3xl text-cream tracking-wide drop-shadow-sm">
+                  <div className="absolute inset-0 flex flex-col items-center justify-end text-center p-4">
+                    <span className="font-display font-black text-lg sm:text-xl text-cream tracking-wide drop-shadow-sm">
                       {cat.name}
                     </span>
-                    <span className="mt-3 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-primary-300 border-b border-primary-400/60 pb-1 group-hover:text-primary-200 group-hover:border-primary-200 transition-colors">
+                    <span className="mt-2 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-primary-300 border-b border-primary-400/60 pb-1 group-hover:text-primary-200 group-hover:border-primary-200 transition-colors">
                       Discover the Collection
                     </span>
                   </div>
