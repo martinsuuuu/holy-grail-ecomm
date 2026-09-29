@@ -154,16 +154,22 @@ function ShopPageInner() {
       subcaption: s.subcaption || undefined,
       href: s.link || undefined,
     }));
-  const autoSlides: Slide[] = brandFeatured.map((b) => ({
-    image: b.imageUrl,
-    eyebrow: 'Now Featuring',
-    caption: b.category,
-    subcaption: b.name,
-    href: `/shop?category=${encodeURIComponent(b.category)}`,
-  }));
+  const BRAND_GRID_LIMIT = 8;
+  // Auto-generated hero slides are capped to the top brands by stock —
+  // with 40+ brands, one slide per brand made the dot pagination row
+  // unreadably crowded and took several minutes to cycle through once.
+  const autoSlides: Slide[] = [...brandFeatured]
+    .sort((a, b) => (brandCounts[b.category] || 0) - (brandCounts[a.category] || 0))
+    .slice(0, BRAND_GRID_LIMIT)
+    .map((b) => ({
+      image: b.imageUrl,
+      eyebrow: 'Now Featuring',
+      caption: b.category,
+      subcaption: b.name,
+      href: `/shop?category=${encodeURIComponent(b.category)}`,
+    }));
   const heroSlides = customSlides.length > 0 ? customSlides : autoSlides;
 
-  const BRAND_GRID_LIMIT = 8;
   const sortedCategories = [...categories].sort(
     (a, b) => (brandCounts[b.name] || 0) - (brandCounts[a.name] || 0)
   );

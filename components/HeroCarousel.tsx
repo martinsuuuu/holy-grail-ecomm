@@ -39,7 +39,7 @@ export default function HeroCarousel({ slides }: { slides: Slide[] }) {
   const hasCaption = Boolean(slide.eyebrow || slide.caption || slide.subcaption);
 
   const caption = hasCaption && (
-    <div className="absolute bottom-24 sm:bottom-28 right-4 sm:right-10 z-10 text-right max-w-[220px]">
+    <div className="hidden sm:block absolute bottom-24 sm:bottom-28 right-4 sm:right-10 z-10 text-right max-w-[220px]">
       {slide.eyebrow && <p className="text-[11px] uppercase tracking-[0.25em] text-primary-300 mb-1">{slide.eyebrow}</p>}
       {slide.caption && (
         <p className="font-display font-black text-2xl sm:text-3xl text-cream leading-tight group-hover:text-primary-200 transition-colors">

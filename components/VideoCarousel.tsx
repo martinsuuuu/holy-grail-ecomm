@@ -117,6 +117,26 @@ function FullscreenPlayer({ video, onClose }: { video: VideoItem; onClose: () =>
 export default function VideoCarousel({ videos }: { videos: VideoItem[] }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState<VideoItem | null>(null);
+  // Only show scroll arrows when the row actually overflows its
+  // container — otherwise (e.g. just 1-2 videos on a wide screen) the
+  // wrapper stretches full-width while the cards stay narrow, and a
+  // right arrow anchored to the wrapper's edge ends up floating in a
+  // block of empty space far from the actual last card.
+  const [canScroll, setCanScroll] = useState(false);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const check = () => setCanScroll(el.scrollWidth > el.clientWidth + 4);
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    window.addEventListener('resize', check);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', check);
+    };
+  }, [videos]);
 
   const scrollBy = (dir: -1 | 1) => {
     scrollerRef.current?.scrollBy({ left: dir * 340, behavior: 'smooth' });
@@ -134,7 +154,7 @@ export default function VideoCarousel({ videos }: { videos: VideoItem[] }) {
           <VideoCard key={v.id} video={v} onSelect={() => setActive(v)} />
         ))}
       </div>
-      {videos.length > 1 && (
+      {canScroll && (
         <>
           <button
             onClick={() => scrollBy(-1)}
