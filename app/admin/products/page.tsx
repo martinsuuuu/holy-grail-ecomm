@@ -212,17 +212,30 @@ export default function AdminProductsPage() {
         />
       </div>
 
-      {/* Products Table */}
+      {/* Products Table — wide, with every inventory detail field as its own
+          column. Scroll horizontally to see them all. */}
       <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 overflow-hidden">
-        <table className="w-full">
+        <p className="sm:hidden text-xs text-stone-400 px-4 pt-3">Scroll sideways to see all columns →</p>
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[2100px]">
           <thead className="bg-stone-50 border-b border-stone-200">
             <tr>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Product</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Type</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Brand</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Item Type</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Price</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Stock / ETA</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Type</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Brand</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Item Type</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Model</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Subcategory</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Color</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Size</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Dimension</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Leather / Hardware</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Stamp</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Authenticated</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">SRP</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Cost</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Stock / ETA</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Inclusions</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Actions</th>
             </tr>
           </thead>
@@ -230,7 +243,7 @@ export default function AdminProductsPage() {
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i}>
-                  {Array.from({ length: 6 }).map((_, j) => (
+                  {Array.from({ length: 17 }).map((_, j) => (
                     <td key={j} className="px-6 py-4">
                       <div className="h-4 bg-stone-200 rounded animate-pulse" />
                     </td>
@@ -239,7 +252,7 @@ export default function AdminProductsPage() {
               ))
             ) : products.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-stone-500">
+                <td colSpan={17} className="px-6 py-12 text-center text-stone-500">
                   <Package className="h-8 w-8 mx-auto mb-2 text-stone-300" />
                   <p>No products found</p>
                 </td>
@@ -248,7 +261,7 @@ export default function AdminProductsPage() {
               products.map((product) => {
                 const typeMeta = TYPE_META[product.type ?? 'ONHAND'];
                 return (
-                  <tr key={product.id} className="hover:bg-stone-50/60">
+                  <tr key={product.id} className="hover:bg-stone-50/60 group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-stone-100 rounded-xl overflow-hidden flex-shrink-0">
@@ -261,7 +274,7 @@ export default function AdminProductsPage() {
                           )}
                         </div>
                         <div>
-                          <p className="font-medium text-espresso text-sm">{product.name}</p>
+                          <p className="font-medium text-espresso text-sm whitespace-nowrap">{product.name}</p>
                           {product.description && (
                             <p className="text-xs text-stone-500 truncate max-w-40">{product.description}</p>
                           )}
@@ -269,23 +282,55 @@ export default function AdminProductsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${typeMeta.bg} ${typeMeta.color}`}>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${typeMeta.bg} ${typeMeta.color}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${typeMeta.dot}`} />
                         {typeMeta.label}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-stone-600">{product.category || '—'}</span>
+                      <span className="text-sm text-stone-600 whitespace-nowrap">{product.category || '—'}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-stone-600">{product.itemType || '—'}</span>
+                      <span className="text-sm text-stone-600 whitespace-nowrap">{product.itemType || '—'}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-semibold text-sm text-espresso">{formatCurrency(product.price)}</span>
+                      <span className="text-sm text-stone-600 whitespace-nowrap">{product.model || '—'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-stone-600 whitespace-nowrap">{product.subcategory || '—'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-stone-600 whitespace-nowrap">{product.color || '—'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-stone-600 whitespace-nowrap">{product.size || '—'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-stone-600 whitespace-nowrap">{product.dimension || '—'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-stone-600 whitespace-nowrap">{product.hardware || '—'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-stone-600 whitespace-nowrap">{product.stamp || '—'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                        product.authenticated ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${product.authenticated ? 'bg-emerald-500' : 'bg-stone-400'}`} />
+                        {product.authenticated ? 'Yes' : 'No'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-semibold text-sm text-espresso whitespace-nowrap">{formatCurrency(product.price)}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-stone-600 whitespace-nowrap">{product.costPrice != null ? formatCurrency(product.costPrice) : '—'}</span>
                     </td>
                     <td className="px-6 py-4">
                       {product.type === 'PASABUY' ? (
-                        <div className="text-xs text-plum-700 space-y-0.5">
+                        <div className="text-xs text-plum-700 space-y-0.5 whitespace-nowrap">
                           {product.etaStart && product.etaEnd ? (
                             <>
                               <p className="font-medium">
@@ -299,7 +344,7 @@ export default function AdminProductsPage() {
                           )}
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 whitespace-nowrap">
                           <span className={`badge text-xs ${
                             product.stock === 0
                               ? 'bg-red-100 text-red-700'
@@ -317,6 +362,9 @@ export default function AdminProductsPage() {
                           )}
                         </div>
                       )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-stone-600 whitespace-nowrap">{product.inclusions || '—'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
@@ -340,6 +388,7 @@ export default function AdminProductsPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Step 1 — Type Picker Modal */}
