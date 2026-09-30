@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency } from '@/lib/utils';
-import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ITEM_TYPES } from '@/lib/productTypes';
 
 type ProductType = 'ONHAND' | 'PASABUY';
@@ -82,6 +82,8 @@ export default function AdminProductsPage() {
   const [error, setError] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+  const scrollTable = (dir: -1 | 1) => tableScrollRef.current?.scrollBy({ left: dir * 400, behavior: 'smooth' });
 
   useEffect(() => {
     fetch('/api/admin/categories')
@@ -213,10 +215,28 @@ export default function AdminProductsPage() {
       </div>
 
       {/* Products Table — wide, with every inventory detail field as its own
-          column. Scroll horizontally to see them all. */}
+          column. Scroll horizontally (or use the arrows) to see them all. */}
       <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 overflow-hidden">
-        <p className="sm:hidden text-xs text-stone-400 px-4 pt-3">Scroll sideways to see all columns →</p>
-        <div className="overflow-x-auto">
+        <div className="flex items-center justify-between px-4 pt-3">
+          <p className="text-xs text-stone-400">Scroll sideways to see all product details</p>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => scrollTable(-1)}
+              aria-label="Scroll table left"
+              className="w-7 h-7 rounded-full border border-stone-200 flex items-center justify-center text-stone-500 hover:border-primary-300 hover:text-primary-700 transition-colors"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => scrollTable(1)}
+              aria-label="Scroll table right"
+              className="w-7 h-7 rounded-full border border-stone-200 flex items-center justify-center text-stone-500 hover:border-primary-300 hover:text-primary-700 transition-colors"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+        <div ref={tableScrollRef} className="overflow-x-auto">
         <table className="w-full min-w-[2100px]">
           <thead className="bg-stone-50 border-b border-stone-200">
             <tr>
