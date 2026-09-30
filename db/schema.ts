@@ -25,7 +25,7 @@ export const products = pgTable('products', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   name: text('name').notNull(),
   description: text('description'),
-  price: doublePrecision('price').notNull(),
+  price: doublePrecision('price').notNull(), // SRP
   stock: integer('stock').notNull().default(0),
   reserved: integer('reserved').notNull().default(0),
   category: text('category'), // brand, e.g. 'Chanel'
@@ -34,6 +34,17 @@ export const products = pgTable('products', {
   type: text('type').notNull().default('ONHAND'), // 'ONHAND' | 'PASABUY'
   etaStart: timestamp('eta_start'),
   etaEnd: timestamp('eta_end'),
+  // Inventory detail fields, sourced from the store's master inventory sheet.
+  model: text('model'),
+  subcategory: text('subcategory'), // e.g. 'Flap Bag', 'Tote Bag'
+  color: text('color'),
+  dimension: text('dimension'),
+  size: text('size'),
+  hardware: text('hardware'), // leather / hardware description
+  stamp: text('stamp'), // serial / date code
+  authenticated: boolean('authenticated').notNull().default(false), // Entrupy or equivalent
+  costPrice: doublePrecision('cost_price'), // internal only — never expose via public API
+  inclusions: text('inclusions'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

@@ -9,7 +9,7 @@ import { useCartStore } from '@/lib/cartStore';
 import { useWishlistStore } from '@/lib/wishlistStore';
 import { useSession } from 'next-auth/react';
 import { formatCurrency } from '@/lib/utils';
-import { MessageCircle, ArrowLeft, Package, Tag, CheckCircle, Truck, Calendar, Heart } from 'lucide-react';
+import { MessageCircle, ArrowLeft, Package, Tag, CheckCircle, Truck, Calendar, Heart, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/lib/toast';
 import AddToCartModal from '@/components/AddToCartModal';
@@ -26,6 +26,15 @@ interface Product {
   type: string | null;
   etaStart: string | null;
   etaEnd: string | null;
+  model: string | null;
+  subcategory: string | null;
+  color: string | null;
+  dimension: string | null;
+  size: string | null;
+  hardware: string | null;
+  stamp: string | null;
+  authenticated: boolean;
+  inclusions: string | null;
 }
 
 export default function ProductDetailPage() {
@@ -195,12 +204,20 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {product.category && (
-                <div className="flex items-center gap-1 text-primary-700 text-sm mb-3">
-                  <Tag className="h-3 w-3" />
-                  <span>{product.category}</span>
-                </div>
-              )}
+              <div className="flex items-center flex-wrap gap-3 mb-3">
+                {product.category && (
+                  <div className="flex items-center gap-1 text-primary-700 text-sm">
+                    <Tag className="h-3 w-3" />
+                    <span>{product.category}</span>
+                  </div>
+                )}
+                {product.authenticated && (
+                  <div className="flex items-center gap-1 text-emerald-700 text-xs font-medium bg-emerald-50 px-2 py-0.5 rounded-full">
+                    <ShieldCheck className="h-3 w-3" />
+                    <span>Authenticated</span>
+                  </div>
+                )}
+              </div>
 
               <h1 className="text-2xl font-display font-black text-espresso mb-4">{product.name}</h1>
 
@@ -280,6 +297,51 @@ export default function ProductDetailPage() {
                   After placing your order, stock will be reserved for 24 hours. You&apos;ll need to submit proof of deposit to confirm your order.
                 </p>
               </div>
+
+              {/* Product details — only shown for fields that have a value */}
+              {(product.subcategory || product.color || product.size || product.dimension || product.hardware || product.inclusions) && (
+                <div className="mt-6 pt-6 border-t border-stone-200">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-3">Product Details</h3>
+                  <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                    {product.subcategory && (
+                      <div>
+                        <dt className="text-espresso/40 text-xs mb-0.5">Type</dt>
+                        <dd className="text-espresso">{product.subcategory}</dd>
+                      </div>
+                    )}
+                    {product.color && (
+                      <div>
+                        <dt className="text-espresso/40 text-xs mb-0.5">Color</dt>
+                        <dd className="text-espresso">{product.color}</dd>
+                      </div>
+                    )}
+                    {product.size && (
+                      <div>
+                        <dt className="text-espresso/40 text-xs mb-0.5">Size</dt>
+                        <dd className="text-espresso">{product.size}</dd>
+                      </div>
+                    )}
+                    {product.dimension && (
+                      <div className="col-span-2">
+                        <dt className="text-espresso/40 text-xs mb-0.5">Dimensions</dt>
+                        <dd className="text-espresso">{product.dimension}</dd>
+                      </div>
+                    )}
+                    {product.hardware && (
+                      <div className="col-span-2">
+                        <dt className="text-espresso/40 text-xs mb-0.5">Leather / Hardware</dt>
+                        <dd className="text-espresso">{product.hardware}</dd>
+                      </div>
+                    )}
+                    {product.inclusions && (
+                      <div className="col-span-2">
+                        <dt className="text-espresso/40 text-xs mb-0.5">Inclusions</dt>
+                        <dd className="text-espresso">{product.inclusions}</dd>
+                      </div>
+                    )}
+                  </dl>
+                </div>
+              )}
             </div>
           </div>
         </div>

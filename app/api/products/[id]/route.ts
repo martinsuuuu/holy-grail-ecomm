@@ -16,6 +16,14 @@ export async function GET(
     return NextResponse.json({ error: 'Product not found' }, { status: 404 });
   }
 
+  // costPrice is internal margin data — only ever returned to an admin session.
+  const session = await getServerSession(authOptions);
+  const isAdmin = session?.user.role === 'ADMIN';
+  if (!isAdmin) {
+    const { costPrice, ...rest } = product;
+    return NextResponse.json(rest);
+  }
+
   return NextResponse.json(product);
 }
 
@@ -30,7 +38,10 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { name, description, price, stock, category, itemType, imageUrl, type, etaStart, etaEnd } = body;
+  const {
+    name, description, price, stock, category, itemType, imageUrl, type, etaStart, etaEnd,
+    model, subcategory, color, dimension, size, hardware, stamp, authenticated, costPrice, inclusions,
+  } = body;
 
   const updatedArr = await db.update(products).set({
     name,
@@ -43,6 +54,16 @@ export async function PUT(
     type: type === 'PASABUY' ? 'PASABUY' : 'ONHAND',
     etaStart: etaStart ? new Date(etaStart) : null,
     etaEnd: etaEnd ? new Date(etaEnd) : null,
+    model: model || null,
+    subcategory: subcategory || null,
+    color: color || null,
+    dimension: dimension || null,
+    size: size || null,
+    hardware: hardware || null,
+    stamp: stamp || null,
+    authenticated: Boolean(authenticated),
+    costPrice: costPrice !== undefined && costPrice !== '' ? parseFloat(costPrice) : null,
+    inclusions: inclusions || null,
   }).where(eq(products.id, params.id)).returning();
   const product = updatedArr[0];
 

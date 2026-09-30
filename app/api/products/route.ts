@@ -46,7 +46,12 @@ export async function GET(request: NextRequest) {
 
   const result = await query.orderBy(orderBy);
 
-  return NextResponse.json(result);
+  // costPrice is internal margin data — only ever returned to an admin session.
+  const session = await getServerSession(authOptions);
+  const isAdmin = session?.user.role === 'ADMIN';
+  const shaped = isAdmin ? result : result.map(({ costPrice, ...rest }) => rest);
+
+  return NextResponse.json(shaped);
 }
 
 export async function POST(request: NextRequest) {
@@ -57,7 +62,10 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name, description, price, stock, category, itemType, imageUrl, type, etaStart, etaEnd } = body;
+  const {
+    name, description, price, stock, category, itemType, imageUrl, type, etaStart, etaEnd,
+    model, subcategory, color, dimension, size, hardware, stamp, authenticated, costPrice, inclusions,
+  } = body;
 
   if (!name || price === undefined) {
     return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
@@ -74,6 +82,16 @@ export async function POST(request: NextRequest) {
     type: type === 'PASABUY' ? 'PASABUY' : 'ONHAND',
     etaStart: etaStart ? new Date(etaStart) : null,
     etaEnd: etaEnd ? new Date(etaEnd) : null,
+    model: model || null,
+    subcategory: subcategory || null,
+    color: color || null,
+    dimension: dimension || null,
+    size: size || null,
+    hardware: hardware || null,
+    stamp: stamp || null,
+    authenticated: Boolean(authenticated),
+    costPrice: costPrice !== undefined && costPrice !== '' ? parseFloat(costPrice) : null,
+    inclusions: inclusions || null,
   }).returning();
   const product = newProductArr[0];
 

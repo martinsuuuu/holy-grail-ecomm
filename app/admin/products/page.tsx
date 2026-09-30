@@ -21,6 +21,16 @@ interface Product {
   etaStart: string | null;
   etaEnd: string | null;
   createdAt: string;
+  model: string | null;
+  subcategory: string | null;
+  color: string | null;
+  dimension: string | null;
+  size: string | null;
+  hardware: string | null;
+  stamp: string | null;
+  authenticated: boolean;
+  costPrice: number | null;
+  inclusions: string | null;
 }
 
 const TYPE_META: Record<ProductType, { label: string; color: string; bg: string; dot: string }> = {
@@ -57,6 +67,16 @@ export default function AdminProductsPage() {
     imageUrl: '',
     etaStart: '',
     etaEnd: '',
+    model: '',
+    subcategory: '',
+    color: '',
+    dimension: '',
+    size: '',
+    hardware: '',
+    stamp: '',
+    authenticated: false,
+    costPrice: '',
+    inclusions: '',
   });
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
@@ -97,7 +117,10 @@ export default function AdminProductsPage() {
   const openCreateModal = () => {
     setEditingProduct(null);
     setSelectedType('ONHAND');
-    setFormData({ name: '', description: '', price: '', stock: '', category: '', itemType: '', imageUrl: '', etaStart: '', etaEnd: '' });
+    setFormData({
+      name: '', description: '', price: '', stock: '', category: '', itemType: '', imageUrl: '', etaStart: '', etaEnd: '',
+      model: '', subcategory: '', color: '', dimension: '', size: '', hardware: '', stamp: '', authenticated: false, costPrice: '', inclusions: '',
+    });
     setError('');
     setModalStep('type');
   };
@@ -115,6 +138,16 @@ export default function AdminProductsPage() {
       imageUrl: product.imageUrl || '',
       etaStart: toDateInput(product.etaStart),
       etaEnd: toDateInput(product.etaEnd),
+      model: product.model || '',
+      subcategory: product.subcategory || '',
+      color: product.color || '',
+      dimension: product.dimension || '',
+      size: product.size || '',
+      hardware: product.hardware || '',
+      stamp: product.stamp || '',
+      authenticated: Boolean(product.authenticated),
+      costPrice: product.costPrice != null ? product.costPrice.toString() : '',
+      inclusions: product.inclusions || '',
     });
     setError('');
     setModalStep('form');
@@ -432,7 +465,7 @@ export default function AdminProductsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="label">Price *</label>
+                  <label className="label">SRP (Selling Price) *</label>
                   <input
                     type="number"
                     required
@@ -481,6 +514,121 @@ export default function AdminProductsPage() {
                     ))}
                   </select>
                 </div>
+              </div>
+
+              {/* Inventory details — from the master inventory sheet */}
+              <div className="pt-3 border-t border-stone-100 space-y-4">
+                <p className="text-xs font-semibold uppercase tracking-widest text-stone-400">Inventory Details</p>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Model</label>
+                    <input
+                      type="text"
+                      value={formData.model}
+                      onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Subcategory</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Flap Bag, Tote Bag"
+                      value={formData.subcategory}
+                      onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Color</label>
+                    <input
+                      type="text"
+                      value={formData.color}
+                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Size</label>
+                    <input
+                      type="text"
+                      value={formData.size}
+                      onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="label">Dimension</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. L - 12cm, H - 13cm, W - 8cm"
+                    value={formData.dimension}
+                    onChange={(e) => setFormData({ ...formData, dimension: e.target.value })}
+                    className="input-field"
+                  />
+                </div>
+
+                <div>
+                  <label className="label">Leather / Hardware</label>
+                  <input
+                    type="text"
+                    value={formData.hardware}
+                    onChange={(e) => setFormData({ ...formData, hardware: e.target.value })}
+                    className="input-field"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Stamp</label>
+                    <input
+                      type="text"
+                      placeholder="serial / date code"
+                      value={formData.stamp}
+                      onChange={(e) => setFormData({ ...formData, stamp: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Cost Price</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="internal only"
+                      value={formData.costPrice}
+                      onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="label">Inclusions</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Box & Dust Bag, Authenticity Card"
+                    value={formData.inclusions}
+                    onChange={(e) => setFormData({ ...formData, inclusions: e.target.value })}
+                    className="input-field"
+                  />
+                </div>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.authenticated}
+                    onChange={(e) => setFormData({ ...formData, authenticated: e.target.checked })}
+                    className="rounded border-stone-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span className="text-sm text-espresso/70">Entrupy / authentication verified</span>
+                </label>
               </div>
 
               {/* ETA — Pasabuy only */}

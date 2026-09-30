@@ -28,6 +28,16 @@ export async function GET() {
     `CREATE TABLE IF NOT EXISTS categories (id text PRIMARY KEY, name text NOT NULL UNIQUE, description text, created_at timestamp NOT NULL DEFAULT now())`,
     `CREATE TABLE IF NOT EXISTS expenses (id text PRIMARY KEY, title text NOT NULL, category text NOT NULL, amount double precision NOT NULL, date timestamp NOT NULL, notes text, created_at timestamp NOT NULL DEFAULT now())`,
     `CREATE TABLE IF NOT EXISTS store_settings (key text PRIMARY KEY, value text NOT NULL, updated_at timestamp NOT NULL DEFAULT now())`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS model text`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS subcategory text`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS color text`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS dimension text`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS size text`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS hardware text`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS stamp text`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS authenticated boolean NOT NULL DEFAULT false`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS cost_price double precision`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS inclusions text`,
     // unique constraint on customer_id (skip if already exists)
     `DO $$ BEGIN ALTER TABLE users ADD CONSTRAINT users_customer_id_unique UNIQUE (customer_id); EXCEPTION WHEN duplicate_table THEN null; WHEN others THEN null; END $$`,
   ];
