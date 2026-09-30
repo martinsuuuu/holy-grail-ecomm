@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import HeroCarousel, { Slide } from '@/components/HeroCarousel';
 import VideoCarousel from '@/components/VideoCarousel';
-import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle, Check, ArrowUpRight, Star } from 'lucide-react';
+import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle, Check, ArrowUpRight, Star, ChevronDown, X } from 'lucide-react';
 import { DEFAULT_SITE_CONFIG, SiteConfig, THEME_TEXTURE_URL } from '@/lib/siteConfig';
 import { ITEM_TYPES } from '@/lib/productTypes';
 
@@ -47,6 +47,18 @@ function ShopPageInner() {
   const [showInStockOnly, setShowInStockOnly] = useState(true);
   const [sort, setSort] = useState<SortOption>('');
   const [showAllCollection, setShowAllCollection] = useState(false);
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const filterPanelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (filterPanelRef.current && !filterPanelRef.current.contains(e.target as Node)) {
+        setFilterPanelOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
 
   // Keep the filters in sync when the ?category=/?itemType= URL params change
@@ -142,6 +154,8 @@ function ShopPageInner() {
   const pasabuyProducts = products.filter(p => p.type === 'PASABUY');
   const regularProducts = products.filter(p => p.type !== 'PASABUY');
   const isSearching = search.trim().length > 0;
+  const activeFilterCount =
+    (selectedCategory !== 'all' ? 1 : 0) + (selectedItemType !== 'all' ? 1 : 0) + (sort ? 1 : 0);
 
   // Custom slides from the site editor take priority; otherwise fall back to
   // one auto-sampled product photo per brand/category.
@@ -273,88 +287,130 @@ function ShopPageInner() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <div className="flex items-center gap-2 text-sm text-espresso/60">
-            <SlidersHorizontal className="h-4 w-4" />
-            <span className="font-medium">Filters:</span>
-          </div>
-
-          {/* Category filters */}
-          <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+          <div className="relative" ref={filterPanelRef}>
             <button
-              onClick={() => setSelectedCategory('all')}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === 'all'
-                  ? 'bg-espresso text-cream'
-                  : 'bg-white text-espresso/70 border border-stone-200 hover:border-primary-300 hover:text-primary-700'
-              }`}
-            >
-              All Products
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.name)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                  selectedCategory === cat.name
-                    ? 'bg-espresso text-cream'
-                    : 'bg-white text-espresso/70 border border-stone-200 hover:border-primary-300 hover:text-primary-700'
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-
-          {/* Item type filters */}
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelectedItemType('all')}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                selectedItemType === 'all'
-                  ? 'bg-primary-700 text-white border-primary-700'
+              onClick={() => setFilterPanelOpen((v) => !v)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                filterPanelOpen
+                  ? 'bg-espresso text-cream border-espresso'
                   : 'bg-white text-espresso/70 border-stone-200 hover:border-primary-300 hover:text-primary-700'
               }`}
             >
-              All Types
+              <SlidersHorizontal className="h-4 w-4" />
+              Filters
+              {activeFilterCount > 0 && (
+                <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary-600 text-white text-[11px] font-semibold">
+                  {activeFilterCount}
+                </span>
+              )}
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${filterPanelOpen ? 'rotate-180' : ''}`} />
             </button>
-            {ITEM_TYPES.map((t) => (
-              <button
-                key={t}
-                onClick={() => setSelectedItemType(t)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                  selectedItemType === t
-                    ? 'bg-primary-700 text-white border-primary-700'
-                    : 'bg-white text-espresso/70 border-stone-200 hover:border-primary-300 hover:text-primary-700'
-                }`}
-              >
-                {t}
-              </button>
-            ))}
+
+            {filterPanelOpen && (
+              <div className="absolute left-0 mt-2 w-[300px] bg-white rounded-2xl shadow-warm border border-stone-200/70 p-5 z-30 space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-widest text-espresso/50 mb-1.5">Brand</label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full text-sm border border-stone-200 rounded-xl px-3 py-2 text-espresso bg-white focus:outline-none focus:ring-2 focus:ring-primary-300"
+                  >
+                    <option value="all">All Brands</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.name}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-widest text-espresso/50 mb-1.5">Category</label>
+                  <select
+                    value={selectedItemType}
+                    onChange={(e) => setSelectedItemType(e.target.value)}
+                    className="w-full text-sm border border-stone-200 rounded-xl px-3 py-2 text-espresso bg-white focus:outline-none focus:ring-2 focus:ring-primary-300"
+                  >
+                    <option value="all">All Categories</option>
+                    {ITEM_TYPES.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-widest text-espresso/50 mb-1.5">Sort By</label>
+                  <select
+                    value={sort}
+                    onChange={(e) => setSort(e.target.value as SortOption)}
+                    className="w-full text-sm border border-stone-200 rounded-xl px-3 py-2 text-espresso bg-white focus:outline-none focus:ring-2 focus:ring-primary-300"
+                  >
+                    <option value="">Default</option>
+                    <option value="price_desc">Price: High to Low</option>
+                    <option value="price_asc">Price: Low to High</option>
+                  </select>
+                </div>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showInStockOnly}
+                    onChange={(e) => setShowInStockOnly(e.target.checked)}
+                    className="rounded border-stone-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span className="text-sm text-espresso/70">In stock only</span>
+                </label>
+
+                <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
+                  <button
+                    onClick={() => {
+                      setSelectedCategory('all');
+                      setSelectedItemType('all');
+                      setSort('');
+                      setShowInStockOnly(true);
+                    }}
+                    className="flex-1 px-3 py-2 rounded-full border border-stone-200 text-sm font-medium text-espresso/70 hover:border-primary-300 hover:text-primary-700 transition-colors"
+                  >
+                    Clear All
+                  </button>
+                  <button
+                    onClick={() => setFilterPanelOpen(false)}
+                    className="flex-1 px-3 py-2 rounded-full bg-espresso text-cream text-sm font-medium hover:bg-primary-800 transition-colors"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Sort + In-stock controls */}
-          <div className="flex items-center gap-3 ml-auto">
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as SortOption)}
-              className="text-sm border border-stone-200 rounded-full px-3 py-1.5 text-espresso/70 bg-white focus:outline-none focus:ring-2 focus:ring-primary-300"
+          {/* Active filter chips — only the ones actually selected, not the whole list */}
+          {selectedCategory !== 'all' && (
+            <button
+              onClick={() => setSelectedCategory('all')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 text-primary-800 text-sm font-medium hover:bg-primary-100 transition-colors"
             >
-              <option value="">Sort: Default</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="price_asc">Price: Low to High</option>
-            </select>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showInStockOnly}
-                onChange={(e) => setShowInStockOnly(e.target.checked)}
-                className="rounded border-stone-300 text-primary-600 focus:ring-primary-500"
-              />
-              <span className="text-sm text-espresso/70">In stock only</span>
-            </label>
-          </div>
+              {selectedCategory}
+              <X className="h-3 w-3" />
+            </button>
+          )}
+          {selectedItemType !== 'all' && (
+            <button
+              onClick={() => setSelectedItemType('all')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 text-primary-800 text-sm font-medium hover:bg-primary-100 transition-colors"
+            >
+              {selectedItemType}
+              <X className="h-3 w-3" />
+            </button>
+          )}
+          {sort && (
+            <button
+              onClick={() => setSort('')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 text-primary-800 text-sm font-medium hover:bg-primary-100 transition-colors"
+            >
+              {sort === 'price_desc' ? 'Price: High to Low' : 'Price: Low to High'}
+              <X className="h-3 w-3" />
+            </button>
+          )}
         </div>
 
         {isLoading ? (
