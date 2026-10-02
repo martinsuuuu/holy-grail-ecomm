@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { products, notifications } from '@/db/schema';
+import { products, notifications, productImages } from '@/db/schema';
 import { eq, gt, or, ilike, desc, asc } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
   const {
     name, description, price, stock, category, itemType, imageUrl, type, etaStart, etaEnd,
     model, subcategory, color, dimension, size, hardware, stamp, authenticated, costPrice, inclusions,
+    images,
   } = body;
 
   if (!name || price === undefined) {
@@ -94,6 +95,12 @@ export async function POST(request: NextRequest) {
     inclusions: inclusions || null,
   }).returning();
   const product = newProductArr[0];
+
+  if (Array.isArray(images) && images.length > 0) {
+    await db.insert(productImages).values(
+      images.map((url: string, i: number) => ({ productId: product.id, url, sortOrder: i }))
+    );
+  }
 
   // Check if low stock
   if (product.stock < 5) {

@@ -42,6 +42,7 @@ export async function GET() {
     // Seed with only the item types that actually have products — admins
     // add more via Admin > Item Types as needed, instead of a long fixed list.
     `INSERT INTO item_types (id, name) SELECT DISTINCT ON (item_type) 'it_' || md5(item_type), item_type FROM products WHERE item_type IS NOT NULL AND item_type != '' ON CONFLICT (name) DO NOTHING`,
+    `CREATE TABLE IF NOT EXISTS product_images (id text PRIMARY KEY, product_id text NOT NULL REFERENCES products(id), url text NOT NULL, sort_order integer NOT NULL DEFAULT 0, created_at timestamp NOT NULL DEFAULT now())`,
     // unique constraint on customer_id (skip if already exists)
     `DO $$ BEGIN ALTER TABLE users ADD CONSTRAINT users_customer_id_unique UNIQUE (customer_id); EXCEPTION WHEN duplicate_table THEN null; WHEN others THEN null; END $$`,
   ];

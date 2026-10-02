@@ -51,6 +51,24 @@ export const products = pgTable('products', {
 export const productsRelations = relations(products, ({ many }) => ({
   orderItems: many(orderItems),
   purchaseOrderItems: many(purchaseOrderItems),
+  images: many(productImages),
+}));
+
+// Additional gallery photos for a product, beyond the single main
+// `imageUrl`. Kept in their own table (rather than inline on `products`,
+// like most other fields here) so the product list endpoint — fetched on
+// every /shop page load — never has to carry this extra payload; only the
+// single-product detail endpoint selects it.
+export const productImages = pgTable('product_images', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  productId: text('product_id').notNull().references(() => products.id),
+  url: text('url').notNull(),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const productImagesRelations = relations(productImages, ({ one }) => ({
+  product: one(products, { fields: [productImages.productId], references: [products.id] }),
 }));
 
 export const orders = pgTable('orders', {

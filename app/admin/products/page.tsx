@@ -30,6 +30,9 @@ interface Product {
   authenticated: boolean;
   costPrice: number | null;
   inclusions: string | null;
+  /** Only populated when fetched via the single-product endpoint (i.e.
+   *  when opening the edit modal) — the list endpoint omits it. */
+  images?: { id: string; url: string }[];
 }
 
 const TYPE_META: Record<ProductType, { label: string; color: string; bg: string; dot: string }> = {
@@ -76,6 +79,7 @@ export default function AdminProductsPage() {
     authenticated: false,
     costPrice: '',
     inclusions: '',
+    images: [] as string[],
   });
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
@@ -86,6 +90,7 @@ export default function AdminProductsPage() {
   const [categories, setCategories] = useState<string[]>([]);
   const [itemTypes, setItemTypes] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const tableScrollRef = useRef<HTMLDivElement>(null);
   const scrollTable = (dir: -1 | 1) => tableScrollRef.current?.scrollBy({ left: dir * 400, behavior: 'smooth' });
 
@@ -118,6 +123,20 @@ export default function AdminProductsPage() {
     reader.readAsDataURL(file);
   };
 
+  const handleGalleryImageUpload = (file: File) => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const url = e.target?.result as string;
+      setFormData(prev => ({ ...prev, images: [...prev.images, url] }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
+  };
+
   const toDateInput = (iso: string | null) => {
     if (!iso) return '';
     return iso.slice(0, 10); // 'YYYY-MM-DD'
@@ -129,6 +148,7 @@ export default function AdminProductsPage() {
     setFormData({
       name: '', description: '', price: '', stock: '', category: '', itemType: '', imageUrl: '', etaStart: '', etaEnd: '',
       model: '', subcategory: '', color: '', dimension: '', size: '', hardware: '', stamp: '', authenticated: false, costPrice: '', inclusions: '',
+      images: [],
     });
     setError('');
     setShowAddItemType(false);
@@ -160,12 +180,22 @@ export default function AdminProductsPage() {
       authenticated: Boolean(product.authenticated),
       costPrice: product.costPrice != null ? product.costPrice.toString() : '',
       inclusions: product.inclusions || '',
+      images: [],
     });
     setError('');
     setShowAddItemType(false);
     setNewItemType('');
     setItemTypeError('');
     setModalStep('form');
+
+    // The list endpoint doesn't carry gallery images (kept light for the
+    // /shop page), so fetch the full product once the modal is open.
+    fetch(`/api/products/${product.id}`)
+      .then(r => r.json())
+      .then((full: Product) => {
+        setFormData(prev => ({ ...prev, images: (full.images || []).map(img => img.url) }));
+      })
+      .catch(() => {});
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -852,6 +882,49 @@ export default function AdminProductsPage() {
                     <p className="text-xs text-stone-300 mt-1">PNG, JPG, WEBP</p>
                   </div>
                 )}
+              </div>
+
+              <div>
+                <label className="label">Gallery Images</label>
+                <p className="text-xs text-stone-400 mb-2">
+                  Shown as a thumbnail gallery on the product page when a customer views this item. The shop listing
+                  always shows only the main image above.
+                </p>
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={e => {
+                    const files = Array.from(e.target.files || []);
+                    files.forEach(handleGalleryImageUpload);
+                    e.target.value = '';
+                  }}
+                />
+                {formData.images.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2 mb-2">
+                    {formData.images.map((url, i) => (
+                      <div key={i} className="relative aspect-square">
+                        <img src={url} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover rounded-lg border border-stone-200" />
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryImage(i)}
+                          className="absolute top-1 right-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-dashed border-stone-200 text-sm text-espresso/70 hover:border-primary-300 hover:text-primary-700 transition-colors"
+                >
+                  <Upload className="h-3.5 w-3.5" /> Add Gallery Images
+                </button>
               </div>
               </div>
               <div className="flex gap-3 p-6 pt-4 border-t border-stone-100 flex-shrink-0">

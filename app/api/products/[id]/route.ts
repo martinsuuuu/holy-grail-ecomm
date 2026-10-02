@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { products, notifications } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { products, notifications, productImages } from '@/db/schema';
+import { eq, asc } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
@@ -16,15 +16,24 @@ export async function GET(
     return NextResponse.json({ error: 'Product not found' }, { status: 404 });
   }
 
+  // Gallery images are only fetched here (the single-product endpoint), not
+  // on the product list, so the list payload loaded on every /shop visit
+  // stays light.
+  const images = await db
+    .select({ id: productImages.id, url: productImages.url, sortOrder: productImages.sortOrder })
+    .from(productImages)
+    .where(eq(productImages.productId, params.id))
+    .orderBy(asc(productImages.sortOrder));
+
   // costPrice is internal margin data — only ever returned to an admin session.
   const session = await getServerSession(authOptions);
   const isAdmin = session?.user.role === 'ADMIN';
   if (!isAdmin) {
     const { costPrice, ...rest } = product;
-    return NextResponse.json(rest);
+    return NextResponse.json({ ...rest, images });
   }
 
-  return NextResponse.json(product);
+  return NextResponse.json({ ...product, images });
 }
 
 export async function PUT(
@@ -41,6 +50,7 @@ export async function PUT(
   const {
     name, description, price, stock, category, itemType, imageUrl, type, etaStart, etaEnd,
     model, subcategory, color, dimension, size, hardware, stamp, authenticated, costPrice, inclusions,
+    images,
   } = body;
 
   const updatedArr = await db.update(products).set({
@@ -67,6 +77,17 @@ export async function PUT(
   }).where(eq(products.id, params.id)).returning();
   const product = updatedArr[0];
 
+  // Gallery images: replace the full set with whatever the admin form sent,
+  // in order.
+  if (Array.isArray(images)) {
+    await db.delete(productImages).where(eq(productImages.productId, params.id));
+    if (images.length > 0) {
+      await db.insert(productImages).values(
+        images.map((url: string, i: number) => ({ productId: params.id, url, sortOrder: i }))
+      );
+    }
+  }
+
   // Check if low stock
   if (product.stock < 5) {
     await db.insert(notifications).values({
@@ -89,6 +110,7 @@ export async function DELETE(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  await db.delete(productImages).where(eq(productImages.productId, params.id));
   await db.delete(products).where(eq(products.id, params.id));
 
   return NextResponse.json({ success: true });

@@ -9,7 +9,7 @@ import { useCartStore } from '@/lib/cartStore';
 import { useWishlistStore } from '@/lib/wishlistStore';
 import { useSession } from 'next-auth/react';
 import { formatCurrency } from '@/lib/utils';
-import { MessageCircle, ArrowLeft, Package, Tag, CheckCircle, Truck, Calendar, Heart, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Package, Tag, CheckCircle, Truck, Calendar, Heart, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/lib/toast';
 import AddToCartModal from '@/components/AddToCartModal';
@@ -35,6 +35,7 @@ interface Product {
   stamp: string | null;
   authenticated: boolean;
   inclusions: string | null;
+  images?: { id: string; url: string }[];
 }
 
 export default function ProductDetailPage() {
@@ -47,8 +48,15 @@ export default function ProductDetailPage() {
   const [showModal, setShowModal] = useState(false);
   const [added, setAdded] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const isWishlisted = useWishlistStore((state) => state.has(product?.id ?? ''));
   const toggleWishlist = useWishlistStore((state) => state.toggle);
+
+  // Main photo first, then any gallery photos — browsable together as one
+  // thumbnail strip. Listing/grid views elsewhere only ever show imageUrl.
+  const galleryImages = product
+    ? [product.imageUrl, ...(product.images || []).map((img) => img.url)].filter(Boolean) as string[]
+    : [];
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -59,6 +67,7 @@ export default function ProductDetailPage() {
       }
       const data = await res.json();
       setProduct(data);
+      setActiveImageIndex(0);
       setIsLoading(false);
     };
     fetchProduct();
@@ -107,7 +116,7 @@ export default function ProductDetailPage() {
       stock: isPasabuy ? 999 : availableStock,
     });
     setAdded(true);
-    toast.success(isPasabuy ? `${product.name} order placed!` : `Request sent — our team will reach out to confirm ${product.name}.`);
+    toast.success(isPasabuy ? `${product.name} order placed!` : `${product.name} added to cart — proceed to checkout to complete your purchase.`);
     setShowModal(false);
     setTimeout(() => setAdded(false), 2000);
   };
@@ -162,17 +171,36 @@ export default function ProductDetailPage() {
 
         <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-            {/* Image */}
-            <div className="relative h-80 md:h-auto bg-stone-100">
-              {product.imageUrl ? (
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Package className="h-20 w-20 text-stone-300" />
+            {/* Image gallery */}
+            <div className="flex flex-col">
+              <div className="relative h-80 md:h-auto md:aspect-square bg-stone-100">
+                {galleryImages.length > 0 ? (
+                  <img
+                    src={galleryImages[activeImageIndex] || galleryImages[0]}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Package className="h-20 w-20 text-stone-300" />
+                  </div>
+                )}
+              </div>
+              {galleryImages.length > 1 && (
+                <div className="flex gap-2 p-3 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {galleryImages.map((img, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setActiveImageIndex(i)}
+                      aria-label={`View photo ${i + 1}`}
+                      className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
+                        i === activeImageIndex ? 'border-primary-600' : 'border-transparent hover:border-stone-300'
+                      }`}
+                    >
+                      <img src={img} alt={`${product.name} thumbnail ${i + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
@@ -269,12 +297,12 @@ export default function ProductDetailPage() {
                   {added ? (
                     <>
                       <CheckCircle className="h-5 w-5" />
-                      {isPasabuy ? 'Order Placed!' : 'Request Sent!'}
+                      {isPasabuy ? 'Order Placed!' : 'Added to Cart!'}
                     </>
                   ) : (
                     <>
-                      {isPasabuy ? <Truck className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
-                      {isPasabuy ? 'Order Now' : availableStock <= 0 ? 'Out of Stock' : 'Contact Sales Associate'}
+                      {isPasabuy ? <Truck className="h-5 w-5" /> : <ShoppingCart className="h-5 w-5" />}
+                      {isPasabuy ? 'Order Now' : availableStock <= 0 ? 'Out of Stock' : 'Add to Cart'}
                     </>
                   )}
                 </button>
