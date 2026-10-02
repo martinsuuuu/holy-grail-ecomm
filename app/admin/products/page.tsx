@@ -274,6 +274,7 @@ export default function AdminProductsPage() {
         <table className="w-full min-w-[2100px]">
           <thead className="bg-stone-50 border-b border-stone-200">
             <tr>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Actions</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Product</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Type</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Brand</th>
@@ -290,7 +291,6 @@ export default function AdminProductsPage() {
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Cost</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Stock / ETA</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Inclusions</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-100">
@@ -316,6 +316,22 @@ export default function AdminProductsPage() {
                 const typeMeta = TYPE_META[product.type ?? 'ONHAND'];
                 return (
                   <tr key={product.id} className="hover:bg-stone-50/60 group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => openEditModal(product)}
+                          className="p-1.5 text-stone-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-colors"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(product.id, product.name)}
+                          className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-stone-100 rounded-xl overflow-hidden flex-shrink-0">
@@ -419,22 +435,6 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-stone-600 whitespace-nowrap">{product.inclusions || '—'}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => openEditModal(product)}
-                          className="p-1.5 text-stone-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-colors"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product.id, product.name)}
-                          className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
                     </td>
                   </tr>
                 );
