@@ -158,6 +158,15 @@ export interface VideoItem {
   caption: string;
 }
 
+export interface CareerOpening {
+  id: string;
+  title: string;
+  location: string;
+  /** Plain description of the role — no application flow, this is
+   *  informational only. Applicants are directed to email in. */
+  description: string;
+}
+
 export interface SiteConfig {
   themePresetId: string;
   headingFontId: string;
@@ -214,6 +223,15 @@ export interface SiteConfig {
   ctaEyebrow: string;
   ctaHeadline: string;
   ctaText: string;
+
+  // Careers panel, shown near the bottom of the site, just above the footer.
+  // Informational only — no application flow, just open-role descriptions
+  // and an email address to apply to.
+  careersEyebrow: string;
+  careersHeading: string;
+  careersIntro: string;
+  careersEmail: string;
+  careers: CareerOpening[];
 
   footerTagline: string;
 
@@ -328,6 +346,25 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   ctaHeadline: 'The Holy Grail Experience',
   ctaText: 'Every order is backed by the same standard of care, from first inquiry to final delivery.',
 
+  careersEyebrow: 'Join Our Team',
+  careersHeading: 'Careers at Holy Grail',
+  careersIntro: "We're always glad to hear from people who share our appreciation for rare and exceptional luxury pieces. Have a look at our current openings below.",
+  careersEmail: '',
+  careers: [
+    {
+      id: 'career-1',
+      title: 'Personal Shopping Associate',
+      location: 'Mandaluyong City, Philippines',
+      description: 'Work directly with clients to source specific pieces on request, from first inquiry through delivery. Strong product knowledge across major luxury houses and a client-first attitude required.',
+    },
+    {
+      id: 'career-2',
+      title: 'Authentication & Inventory Specialist',
+      location: 'Mandaluyong City, Philippines',
+      description: 'Inspect, document, and catalog incoming pieces for condition and authenticity. Background in luxury goods, resale, or a related field preferred.',
+    },
+  ],
+
   themeTextureEnabled: true,
 
   footerTagline: 'Sign up to receive exclusive content and updates on new arrivals.',
@@ -347,6 +384,9 @@ export const MAX_TESTIMONIALS = 8;
 
 /** Hard cap on the number of video cards an admin can add. */
 export const MAX_VIDEOS = 8;
+
+/** Hard cap on the number of career openings an admin can list. */
+export const MAX_CAREERS = 8;
 
 /** Textured overlay used behind dark (espresso) sections when
  *  `themeTextureEnabled` is on. */

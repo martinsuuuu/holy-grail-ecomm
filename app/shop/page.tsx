@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import HeroCarousel, { Slide } from '@/components/HeroCarousel';
 import VideoCarousel from '@/components/VideoCarousel';
-import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle, Check, ArrowUpRight, Star, ChevronDown, X } from 'lucide-react';
+import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle, Check, ArrowUpRight, Star, ChevronDown, X, Mail, MapPin } from 'lucide-react';
 import { DEFAULT_SITE_CONFIG, SiteConfig, THEME_TEXTURE_URL } from '@/lib/siteConfig';
 import { ITEM_TYPES } from '@/lib/productTypes';
 
@@ -705,6 +705,51 @@ function ShopPageInner() {
               Browse the Collection
             </button>
             <Link href="/contact" className="btn-outline-light">Contact Us</Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Careers */}
+      <div className="bg-stone-50 border-t border-stone-200/70">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="flex items-center gap-3 mb-1">
+            <span className="w-10 h-px bg-primary-500" />
+            <p className="text-xs uppercase tracking-[0.25em] text-primary-700 font-medium">{siteConfig.careersEyebrow}</p>
+          </div>
+          <h2 className="font-display font-black text-3xl text-espresso mb-3">{siteConfig.careersHeading}</h2>
+          <p className="text-espresso/60 max-w-xl mb-10">{siteConfig.careersIntro}</p>
+
+          {siteConfig.careers.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+              {siteConfig.careers.map((career) => (
+                <div key={career.id} className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6">
+                  <h3 className="font-display font-bold text-lg text-espresso mb-1">{career.title}</h3>
+                  {career.location && (
+                    <div className="flex items-center gap-1.5 text-xs text-espresso/50 mb-3">
+                      <MapPin className="h-3 w-3" />
+                      <span>{career.location}</span>
+                    </div>
+                  )}
+                  <p className="text-sm text-espresso/70 leading-relaxed">{career.description}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-espresso/50 mb-10">No open positions right now — check back soon, or reach out below to introduce yourself.</p>
+          )}
+
+          <div className="flex items-center gap-3 flex-wrap">
+            {siteConfig.careersEmail ? (
+              <a href={`mailto:${siteConfig.careersEmail}`} className="btn-primary inline-flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Email {siteConfig.careersEmail}
+              </a>
+            ) : (
+              <Link href="/contact" className="btn-primary inline-flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Get in Touch
+              </Link>
+            )}
           </div>
         </div>
       </div>

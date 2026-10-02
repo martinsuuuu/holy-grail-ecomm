@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Palette, Type, MessageSquare, Layout, Check, RefreshCw, ExternalLink, AlertCircle, ImageUp,
   Megaphone, GalleryHorizontal, ShieldCheck, Search, Grid3x3, LayoutGrid, Sparkles, PanelBottom, Zap, BarChart3,
-  Plus, Trash2, ChevronUp, ChevronDown, RotateCcw, Sparkle, Quote, Star, Film,
+  Plus, Trash2, ChevronUp, ChevronDown, RotateCcw, Sparkle, Quote, Star, Film, Briefcase, Mail,
 } from 'lucide-react';
 import {
   THEME_PRESETS,
@@ -14,16 +14,18 @@ import {
   MAX_HERO_SLIDES,
   MAX_TESTIMONIALS,
   MAX_VIDEOS,
+  MAX_CAREERS,
   SiteConfig,
   HeroSlide,
   Testimonial,
   VideoItem,
+  CareerOpening,
 } from '@/lib/siteConfig';
 import { ITEM_TYPES } from '@/lib/productTypes';
 
 type Tab = 'theme' | 'content';
 
-type SectionId = 'announcement' | 'hero' | 'quickActions' | 'trust' | 'sourcing' | 'categoryGrid' | 'brandGrid' | 'videos' | 'stats' | 'testimonials' | 'cta' | 'footer';
+type SectionId = 'announcement' | 'hero' | 'quickActions' | 'trust' | 'sourcing' | 'categoryGrid' | 'brandGrid' | 'videos' | 'stats' | 'testimonials' | 'cta' | 'careers' | 'footer';
 
 const CONTENT_SECTIONS: { id: SectionId; label: string; icon: typeof Megaphone }[] = [
   { id: 'announcement', label: 'Announcement Bar', icon: Megaphone },
@@ -37,6 +39,7 @@ const CONTENT_SECTIONS: { id: SectionId; label: string; icon: typeof Megaphone }
   { id: 'stats', label: 'By the Numbers', icon: BarChart3 },
   { id: 'testimonials', label: 'Customer Feedback', icon: Quote },
   { id: 'cta', label: 'Experience CTA', icon: Sparkles },
+  { id: 'careers', label: 'Careers', icon: Briefcase },
   { id: 'footer', label: 'Footer', icon: PanelBottom },
 ];
 
@@ -226,6 +229,24 @@ export default function SiteEditorPage() {
     const next = [...config.videos];
     [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
     update('videos', next);
+  };
+
+  const updateCareer = (id: string, patch: Partial<CareerOpening>) => {
+    update('careers', config.careers.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+  };
+  const addCareer = () => {
+    if (config.careers.length >= MAX_CAREERS) return;
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `career-${Date.now()}-${Math.random()}`;
+    update('careers', [...config.careers, { id, title: '', location: '', description: '' }]);
+  };
+  const removeCareer = (id: string) => update('careers', config.careers.filter((c) => c.id !== id));
+  const moveCareer = (id: string, dir: -1 | 1) => {
+    const idx = config.careers.findIndex((c) => c.id === id);
+    const swapIdx = idx + dir;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= config.careers.length) return;
+    const next = [...config.careers];
+    [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
+    update('careers', next);
   };
 
   const handleSave = async () => {
@@ -1029,6 +1050,100 @@ export default function SiteEditorPage() {
                   <textarea value={config.ctaText} onChange={(e) => update('ctaText', e.target.value)} rows={3} className="input-field text-sm" />
                 </div>
               </div>
+            </div>
+          )}
+
+          {tab === 'content' && section === 'careers' && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400">Careers</h3>
+                <span className="text-[11px] text-stone-400">{config.careers.length}/{MAX_CAREERS}</span>
+              </div>
+              <p className="text-xs text-stone-400 mb-3">Shown near the bottom of the site, just above the footer. Informational only — there's no application form, just role descriptions and an email address to apply to.</p>
+
+              <div className="space-y-3 mb-3">
+                <div>
+                  <label className="label text-xs">Eyebrow text</label>
+                  <input type="text" value={config.careersEyebrow} onChange={(e) => update('careersEyebrow', e.target.value)} className="input-field text-sm" />
+                </div>
+                <div>
+                  <label className="label text-xs">Headline</label>
+                  <input type="text" value={config.careersHeading} onChange={(e) => update('careersHeading', e.target.value)} className="input-field text-sm" />
+                </div>
+                <div>
+                  <label className="label text-xs">Intro text</label>
+                  <textarea value={config.careersIntro} onChange={(e) => update('careersIntro', e.target.value)} rows={2} className="input-field text-sm" />
+                </div>
+                <div>
+                  <label className="label text-xs flex items-center gap-1.5"><Mail className="h-3 w-3" /> Application email</label>
+                  <input
+                    type="email"
+                    value={config.careersEmail}
+                    onChange={(e) => update('careersEmail', e.target.value)}
+                    placeholder="careers@yourcompany.com"
+                    className="input-field text-sm"
+                  />
+                  <p className="text-[11px] text-stone-400 mt-1">
+                    {config.careersEmail
+                      ? 'Shown as a mailto button on the site.'
+                      : 'Leave blank and the button links to the Contact page instead.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {config.careers.map((c, i) => (
+                  <div key={c.id} className="border border-stone-200 rounded-2xl p-3 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-espresso">Opening {i + 1}</span>
+                      <div className="flex items-center gap-1">
+                        <button type="button" onClick={() => moveCareer(c.id, -1)} disabled={i === 0} className="p-1 rounded text-stone-400 hover:text-espresso disabled:opacity-30 disabled:cursor-not-allowed">
+                          <ChevronUp className="h-3.5 w-3.5" />
+                        </button>
+                        <button type="button" onClick={() => moveCareer(c.id, 1)} disabled={i === config.careers.length - 1} className="p-1 rounded text-stone-400 hover:text-espresso disabled:opacity-30 disabled:cursor-not-allowed">
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        </button>
+                        <button type="button" onClick={() => removeCareer(c.id)} className="p-1 rounded text-red-500 hover:text-red-700">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      value={c.title}
+                      onChange={(e) => updateCareer(c.id, { title: e.target.value })}
+                      placeholder="Role title (e.g. Personal Shopping Associate)"
+                      className="input-field text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={c.location}
+                      onChange={(e) => updateCareer(c.id, { location: e.target.value })}
+                      placeholder="Location (e.g. Mandaluyong City, Philippines)"
+                      className="input-field text-xs"
+                    />
+                    <textarea
+                      value={c.description}
+                      onChange={(e) => updateCareer(c.id, { description: e.target.value })}
+                      placeholder="Role description"
+                      rows={3}
+                      className="input-field text-xs"
+                    />
+                  </div>
+                ))}
+                {config.careers.length === 0 && (
+                  <p className="text-xs text-stone-400 italic py-2">No openings listed — the site will show a "check back soon" message instead.</p>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={addCareer}
+                disabled={config.careers.length >= MAX_CAREERS}
+                className="w-full flex items-center justify-center gap-1.5 mt-3 py-2.5 rounded-xl border-2 border-dashed border-stone-200 text-sm text-espresso/70 hover:border-primary-300 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <Plus className="h-4 w-4" /> Add Opening
+              </button>
             </div>
           )}
 
