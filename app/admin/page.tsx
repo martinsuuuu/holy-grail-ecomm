@@ -15,6 +15,7 @@ import {
   Clock,
   ChevronRight,
 } from 'lucide-react';
+import LowStockCard from '@/components/admin/LowStockCard';
 
 export default async function AdminDashboard() {
   const session = await getServerSession(authOptions);
@@ -228,34 +229,7 @@ export default async function AdminDashboard() {
           )}
 
           {/* Low Stock */}
-          <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70">
-            <div className="flex items-center justify-between p-4 border-b border-stone-100">
-              <h2 className="font-display font-semibold text-espresso flex items-center gap-2">
-                <Package className="h-4 w-4 text-red-500" />
-                Low Stock
-              </h2>
-              <Link href="/admin/products" className="text-xs text-primary-600 hover:text-primary-800">
-                Manage
-              </Link>
-            </div>
-            {lowStockProducts.length === 0 ? (
-              <div className="p-4 text-sm text-stone-500 text-center">All products well stocked!</div>
-            ) : (
-              <div className="divide-y divide-stone-50">
-                {lowStockProducts.map((product) => (
-                  <div key={product.id} className="flex items-center justify-between p-3">
-                    <div>
-                      <p className="text-sm font-medium text-espresso truncate max-w-32">{product.name}</p>
-                      <p className="text-xs text-stone-400">{product.category}</p>
-                    </div>
-                    <span className={`badge text-xs ${product.stock === 0 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
-                      {product.stock} left
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <LowStockCard products={lowStockProducts} />
         </div>
       </div>
     </div>
