@@ -10,9 +10,14 @@ export default function Footer() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [config, setConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
+  const [itemTypes, setItemTypes] = useState<string[]>([]);
 
   useEffect(() => {
     fetch('/api/site-config').then((r) => r.json()).then(setConfig).catch(() => {});
+    fetch('/api/item-types')
+      .then((r) => r.json())
+      .then((data: { name: string }[]) => setItemTypes(data.map((t) => t.name)))
+      .catch(() => {});
   }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
@@ -89,10 +94,11 @@ export default function Footer() {
           <h4 className="font-display font-bold text-sm uppercase tracking-widest mb-4">Shop</h4>
           <ul className="space-y-2 text-sm text-cream/60">
             <li><Link href="/shop" className="hover:text-cream transition-colors">All Products</Link></li>
-            <li><Link href="/shop?itemType=Bags" className="hover:text-cream transition-colors">Bags</Link></li>
-            <li><Link href="/shop?itemType=Watches" className="hover:text-cream transition-colors">Watches</Link></li>
-            <li><Link href="/shop?itemType=Jewelries" className="hover:text-cream transition-colors">Jewelries</Link></li>
-            <li><Link href="/shop?itemType=Apparels" className="hover:text-cream transition-colors">Apparels</Link></li>
+            {itemTypes.map((t) => (
+              <li key={t}>
+                <Link href={`/shop?itemType=${encodeURIComponent(t)}`} className="hover:text-cream transition-colors">{t}</Link>
+              </li>
+            ))}
           </ul>
         </div>
 

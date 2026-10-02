@@ -150,6 +150,15 @@ export const categories = pgTable('categories', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
+// Product item types (Bags, Watches, Eyewear, ...) — admin-managed, same
+// pattern as `categories` (brands). Kept to only the types actually in use
+// rather than a long fixed preset list.
+export const itemTypes = pgTable('item_types', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  name: text('name').notNull().unique(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
 export const notifications = pgTable('notifications', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   userId: text('user_id').references(() => users.id),

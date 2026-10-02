@@ -38,6 +38,10 @@ export async function GET() {
     `ALTER TABLE products ADD COLUMN IF NOT EXISTS authenticated boolean NOT NULL DEFAULT false`,
     `ALTER TABLE products ADD COLUMN IF NOT EXISTS cost_price double precision`,
     `ALTER TABLE products ADD COLUMN IF NOT EXISTS inclusions text`,
+    `CREATE TABLE IF NOT EXISTS item_types (id text PRIMARY KEY, name text NOT NULL UNIQUE, created_at timestamp NOT NULL DEFAULT now())`,
+    // Seed with only the item types that actually have products — admins
+    // add more via Admin > Item Types as needed, instead of a long fixed list.
+    `INSERT INTO item_types (id, name) SELECT DISTINCT ON (item_type) 'it_' || md5(item_type), item_type FROM products WHERE item_type IS NOT NULL AND item_type != '' ON CONFLICT (name) DO NOTHING`,
     // unique constraint on customer_id (skip if already exists)
     `DO $$ BEGIN ALTER TABLE users ADD CONSTRAINT users_customer_id_unique UNIQUE (customer_id); EXCEPTION WHEN duplicate_table THEN null; WHEN others THEN null; END $$`,
   ];

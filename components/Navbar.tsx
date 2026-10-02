@@ -10,7 +10,6 @@ import AnnouncementBar from './AnnouncementBar';
 import { SOCIAL_LINKS } from './SocialIcons';
 import { useCartStore } from '@/lib/cartStore';
 import { useWishlistStore } from '@/lib/wishlistStore';
-import { ITEM_TYPES } from '@/lib/productTypes';
 
 interface Category {
   id: string;
@@ -274,6 +273,7 @@ export default function Navbar() {
   const [apparelBrands, setApparelBrands] = useState<Category[]>([]);
   const [featuredApparel, setFeaturedApparel] = useState<FeaturedByCategory[]>([]);
   const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
+  const [itemTypes, setItemTypes] = useState<string[]>([]);
   const cartItemCount = useCartStore((state) => state.getTotalItems());
   const wishlistCount = useWishlistStore((state) => state.items.length);
   const fetchWishlist = useWishlistStore((state) => state.fetchWishlist);
@@ -282,6 +282,10 @@ export default function Navbar() {
     fetch('/api/categories')
       .then((r) => r.json())
       .then(setCategories)
+      .catch(() => {});
+    fetch('/api/item-types')
+      .then((r) => r.json())
+      .then((data: { name: string }[]) => setItemTypes(data.map((t) => t.name)))
       .catch(() => {});
   }, []);
 
@@ -337,7 +341,7 @@ export default function Navbar() {
 
   const categoryHref = (name: string) => `/shop?category=${encodeURIComponent(name)}`;
   const itemTypeHref = (name: string) => `/shop?itemType=${encodeURIComponent(name)}`;
-  const itemTypeOptions: Category[] = ITEM_TYPES.map((t) => ({ id: t, name: t }));
+  const itemTypeOptions: Category[] = itemTypes.map((t) => ({ id: t, name: t }));
   const apparelBrandHref = (name: string) => `/shop?category=${encodeURIComponent(name)}&itemType=Apparels`;
   const featuredByTypeWithOverrides: FeaturedByCategory[] = itemTypeOptions.map((t) => {
     const auto = featuredByType.find((f) => f.category === t.name);

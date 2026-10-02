@@ -21,6 +21,7 @@ import {
   Tag,
   Percent,
   Palette,
+  LayoutGrid,
 } from 'lucide-react';
 import HGMonogram from './HGMonogram';
 import { DEFAULT_SITE_CONFIG, SiteConfig, THEME_TEXTURE_URL } from '@/lib/siteConfig';
@@ -30,6 +31,7 @@ const navItems = [
   { href: '/admin/site-editor', label: 'Site Editor', icon: Palette },
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/categories', label: 'Categories', icon: Tag },
+  { href: '/admin/item-types', label: 'Item Types', icon: LayoutGrid },
   { href: '/admin/customers', label: 'Customers', icon: Users },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/admin/purchase-orders', label: 'Purchase Orders', icon: Truck },

@@ -10,7 +10,6 @@ import HeroCarousel, { Slide } from '@/components/HeroCarousel';
 import VideoCarousel from '@/components/VideoCarousel';
 import { Search, SlidersHorizontal, Package, Truck, ShieldCheck, Lock, MessageCircle, Check, ArrowUpRight, Star, ChevronDown, X, Mail, MapPin } from 'lucide-react';
 import { DEFAULT_SITE_CONFIG, SiteConfig, THEME_TEXTURE_URL } from '@/lib/siteConfig';
-import { ITEM_TYPES } from '@/lib/productTypes';
 
 interface Product {
   id: string;
@@ -72,11 +71,16 @@ function ShopPageInner() {
   const [brandFeatured, setBrandFeatured] = useState<{ category: string; name: string; imageUrl: string }[]>([]);
   const [brandCounts, setBrandCounts] = useState<Record<string, number>>({});
   const [showAllBrands, setShowAllBrands] = useState(false);
+  const [itemTypes, setItemTypes] = useState<string[]>([]);
 
   useEffect(() => {
     fetch('/api/categories')
       .then((r) => r.json())
       .then(setCategories)
+      .catch(() => {});
+    fetch('/api/item-types')
+      .then((r) => r.json())
+      .then((data: { name: string }[]) => setItemTypes(data.map((t) => t.name)))
       .catch(() => {});
   }, []);
 
@@ -331,7 +335,7 @@ function ShopPageInner() {
                     className="w-full text-sm border border-stone-200 rounded-xl px-3 py-2 text-espresso bg-white focus:outline-none focus:ring-2 focus:ring-primary-300"
                   >
                     <option value="all">All Categories</option>
-                    {ITEM_TYPES.map((t) => (
+                    {itemTypes.map((t) => (
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>

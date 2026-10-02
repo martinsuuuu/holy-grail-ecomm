@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency } from '@/lib/utils';
 import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
-import { ITEM_TYPES } from '@/lib/productTypes';
 
 type ProductType = 'ONHAND' | 'PASABUY';
 
@@ -80,7 +79,12 @@ export default function AdminProductsPage() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  const [showAddItemType, setShowAddItemType] = useState(false);
+  const [newItemType, setNewItemType] = useState('');
+  const [itemTypeError, setItemTypeError] = useState('');
+  const [isAddingItemType, setIsAddingItemType] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
+  const [itemTypes, setItemTypes] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const tableScrollRef = useRef<HTMLDivElement>(null);
   const scrollTable = (dir: -1 | 1) => tableScrollRef.current?.scrollBy({ left: dir * 400, behavior: 'smooth' });
@@ -89,6 +93,9 @@ export default function AdminProductsPage() {
     fetch('/api/admin/categories')
       .then(r => r.json())
       .then(data => setCategories(data.map((c: { name: string }) => c.name)));
+    fetch('/api/admin/item-types')
+      .then(r => r.json())
+      .then(data => setItemTypes(data.map((t: { name: string }) => t.name)));
   }, []);
 
   const fetchProducts = async () => {
@@ -124,6 +131,9 @@ export default function AdminProductsPage() {
       model: '', subcategory: '', color: '', dimension: '', size: '', hardware: '', stamp: '', authenticated: false, costPrice: '', inclusions: '',
     });
     setError('');
+    setShowAddItemType(false);
+    setNewItemType('');
+    setItemTypeError('');
     setModalStep('type');
   };
 
@@ -152,6 +162,9 @@ export default function AdminProductsPage() {
       inclusions: product.inclusions || '',
     });
     setError('');
+    setShowAddItemType(false);
+    setNewItemType('');
+    setItemTypeError('');
     setModalStep('form');
   };
 
@@ -186,6 +199,27 @@ export default function AdminProductsPage() {
     if (res.ok) {
       setProducts(prev => prev.filter(p => p.id !== id));
     }
+  };
+
+  const handleAddItemType = async () => {
+    setItemTypeError('');
+    if (!newItemType.trim()) return;
+    setIsAddingItemType(true);
+    const res = await fetch('/api/admin/item-types', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newItemType.trim() }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setItemTypeError(data.error || 'Failed to add item type');
+    } else {
+      setItemTypes(prev => [...prev, data.name].sort((a, b) => a.localeCompare(b)));
+      setFormData(prev => ({ ...prev, itemType: data.name }));
+      setNewItemType('');
+      setShowAddItemType(false);
+    }
+    setIsAddingItemType(false);
   };
 
   return (
@@ -571,17 +605,51 @@ export default function AdminProductsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="label">Item Type</label>
-                  <select
-                    value={formData.itemType}
-                    onChange={(e) => setFormData({ ...formData, itemType: e.target.value })}
-                    className="input-field"
-                  >
-                    <option value="">Select type</option>
-                    {ITEM_TYPES.map(t => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
+                  <div className="flex items-center justify-between">
+                    <label className="label">Item Type</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddItemType((v) => !v)}
+                      className="text-xs text-primary-600 hover:text-primary-800 font-medium"
+                    >
+                      {showAddItemType ? 'Cancel' : '+ Add new'}
+                    </button>
+                  </div>
+                  {showAddItemType ? (
+                    <div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newItemType}
+                          onChange={(e) => { setNewItemType(e.target.value); setItemTypeError(''); }}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddItemType(); } }}
+                          placeholder="e.g. Jewelries"
+                          className="input-field"
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddItemType}
+                          disabled={isAddingItemType || !newItemType.trim()}
+                          className="flex-shrink-0 px-4 rounded-xl bg-espresso text-cream text-sm font-medium hover:bg-primary-800 disabled:opacity-50 transition-colors"
+                        >
+                          Add
+                        </button>
+                      </div>
+                      {itemTypeError && <p className="text-red-500 text-xs mt-1">{itemTypeError}</p>}
+                    </div>
+                  ) : (
+                    <select
+                      value={formData.itemType}
+                      onChange={(e) => setFormData({ ...formData, itemType: e.target.value })}
+                      className="input-field"
+                    >
+                      <option value="">Select type</option>
+                      {itemTypes.map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               </div>
 

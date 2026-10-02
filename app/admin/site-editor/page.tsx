@@ -21,7 +21,6 @@ import {
   VideoItem,
   CareerOpening,
 } from '@/lib/siteConfig';
-import { ITEM_TYPES } from '@/lib/productTypes';
 
 type Tab = 'theme' | 'content';
 
@@ -78,7 +77,15 @@ export default function SiteEditorPage() {
   const [previewKey, setPreviewKey] = useState(0);
   const [autoSlides, setAutoSlides] = useState<{ category: string; name: string; imageUrl: string }[]>([]);
   const [autoCategoryImages, setAutoCategoryImages] = useState<Record<string, string>>({});
+  const [itemTypes, setItemTypes] = useState<string[]>([]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    fetch('/api/item-types')
+      .then((r) => r.json())
+      .then((data: { name: string }[]) => setItemTypes(data.map((t) => t.name)))
+      .catch(() => {});
+  }, []);
 
   // What the live carousel currently auto-generates when no custom slides
   // are set, and one auto-sampled photo per item type for the "Shop by
@@ -724,7 +731,7 @@ export default function SiteEditorPage() {
                 The image shown for each type in the header's hover panel. Leave a type without an upload and it falls back to a photo sampled from that type's products.
               </p>
               <div className="grid grid-cols-2 gap-3">
-                {ITEM_TYPES.map((type) => {
+                {itemTypes.map((type) => {
                   const custom = config.categoryImages[type];
                   const preview = custom || autoCategoryImages[type];
                   return (
