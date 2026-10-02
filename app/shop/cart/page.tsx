@@ -23,6 +23,7 @@ export default function CartPage() {
   const { items, clearCart, getTotalPrice } = useCartStore();
   const [deliveryMethod, setDeliveryMethod] = useState<'LALAMOVE' | 'SHOPEE' | 'JNT'>('LALAMOVE');
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [paymentMethodsLoaded, setPaymentMethodsLoaded] = useState(false);
   const [selectedPaymentId, setSelectedPaymentId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -41,7 +42,9 @@ export default function CartPage() {
       .then((data: PaymentMethod[]) => {
         setPaymentMethods(data);
         if (data.length > 0) setSelectedPaymentId(data[0].id);
-      });
+      })
+      .catch(() => {})
+      .finally(() => setPaymentMethodsLoaded(true));
     fetch('/api/settings')
       .then((r) => r.json())
       .then((data) => setShopeeLink(data.shopee_checkout_link || ''));
@@ -299,7 +302,12 @@ export default function CartPage() {
                   Payment Method
                 </h2>
 
-                {paymentMethods.length === 0 ? (
+                {!paymentMethodsLoaded ? (
+                  <div className="space-y-2 animate-pulse">
+                    <div className="h-12 bg-stone-100 rounded-xl" />
+                    <div className="h-12 bg-stone-100 rounded-xl" />
+                  </div>
+                ) : paymentMethods.length === 0 ? (
                   <p className="text-sm text-stone-400">No payment methods available. Please contact the store.</p>
                 ) : (
                   <div className="space-y-4">
