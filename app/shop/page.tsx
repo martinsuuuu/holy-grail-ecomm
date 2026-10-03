@@ -714,7 +714,7 @@ function ShopPageInner() {
       </div>
 
       {/* Careers */}
-      <div className="bg-stone-50 border-t border-stone-200/70">
+      <div id="careers" className="bg-stone-50 border-t border-stone-200/70">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="flex items-center gap-3 mb-1">
             <span className="w-10 h-px bg-primary-500" />
