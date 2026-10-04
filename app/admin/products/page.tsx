@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency } from '@/lib/utils';
 import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
+import ProductQRCode from '@/components/admin/ProductQRCode';
 
 type ProductType = 'ONHAND' | 'PASABUY';
 
@@ -301,11 +302,12 @@ export default function AdminProductsPage() {
           </div>
         </div>
         <div ref={tableScrollRef} className="overflow-x-auto">
-        <table className="w-full min-w-[2100px]">
+        <table className="w-full min-w-[2250px]">
           <thead className="bg-stone-50 border-b border-stone-200">
             <tr>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Actions</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Product</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">QR Code</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Type</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Brand</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Item Type</th>
@@ -327,7 +329,7 @@ export default function AdminProductsPage() {
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i}>
-                  {Array.from({ length: 17 }).map((_, j) => (
+                  {Array.from({ length: 18 }).map((_, j) => (
                     <td key={j} className="px-6 py-4">
                       <div className="h-4 bg-stone-200 rounded animate-pulse" />
                     </td>
@@ -336,7 +338,7 @@ export default function AdminProductsPage() {
               ))
             ) : products.length === 0 ? (
               <tr>
-                <td colSpan={17} className="px-6 py-12 text-center text-stone-500">
+                <td colSpan={18} className="px-6 py-12 text-center text-stone-500">
                   <Package className="h-8 w-8 mx-auto mb-2 text-stone-300" />
                   <p>No products found</p>
                 </td>
@@ -380,6 +382,9 @@ export default function AdminProductsPage() {
                           )}
                         </div>
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <ProductQRCode productId={product.id} productName={product.name} />
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${typeMeta.bg} ${typeMeta.color}`}>
