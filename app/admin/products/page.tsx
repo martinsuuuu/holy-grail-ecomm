@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency } from '@/lib/utils';
-import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import ProductBarcode from '@/components/admin/ProductBarcode';
+import { compressImageToDataUrl } from '@/lib/image';
 
 type ProductType = 'ONHAND' | 'PASABUY';
 
@@ -85,6 +86,8 @@ export default function AdminProductsPage() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  const [isCompressingImage, setIsCompressingImage] = useState(false);
+  const [compressingGalleryCount, setCompressingGalleryCount] = useState(0);
   const [showAddItemType, setShowAddItemType] = useState(false);
   const [newItemType, setNewItemType] = useState('');
   const [itemTypeError, setItemTypeError] = useState('');
@@ -118,21 +121,26 @@ export default function AdminProductsPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const handleImageUpload = (file: File) => {
+  const handleImageUpload = async (file: File) => {
     if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = e => setFormData(prev => ({ ...prev, imageUrl: e.target?.result as string }));
-    reader.readAsDataURL(file);
+    setIsCompressingImage(true);
+    try {
+      const url = await compressImageToDataUrl(file);
+      setFormData(prev => ({ ...prev, imageUrl: url }));
+    } finally {
+      setIsCompressingImage(false);
+    }
   };
 
-  const handleGalleryImageUpload = (file: File) => {
+  const handleGalleryImageUpload = async (file: File) => {
     if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      const url = e.target?.result as string;
+    setCompressingGalleryCount(n => n + 1);
+    try {
+      const url = await compressImageToDataUrl(file);
       setFormData(prev => ({ ...prev, images: [...prev.images, url] }));
-    };
-    reader.readAsDataURL(file);
+    } finally {
+      setCompressingGalleryCount(n => n - 1);
+    }
   };
 
   const removeGalleryImage = (index: number) => {
@@ -864,7 +872,12 @@ export default function AdminProductsPage() {
                   className="hidden"
                   onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); e.target.value = ''; }}
                 />
-                {formData.imageUrl ? (
+                {isCompressingImage ? (
+                  <div className="flex flex-col items-center justify-center h-36 border-2 border-dashed border-stone-200 rounded-xl">
+                    <Loader2 className="h-5 w-5 text-primary-500 mb-2 animate-spin" />
+                    <p className="text-sm text-stone-400">Optimizing image…</p>
+                  </div>
+                ) : formData.imageUrl ? (
                   <div className="relative inline-block w-full">
                     <img
                       src={formData.imageUrl}
@@ -918,7 +931,7 @@ export default function AdminProductsPage() {
                     e.target.value = '';
                   }}
                 />
-                {formData.images.length > 0 && (
+                {(formData.images.length > 0 || compressingGalleryCount > 0) && (
                   <div className="grid grid-cols-4 gap-2 mb-2">
                     {formData.images.map((url, i) => (
                       <div key={i} className="relative aspect-square">
@@ -930,6 +943,11 @@ export default function AdminProductsPage() {
                         >
                           <X className="h-3 w-3" />
                         </button>
+                      </div>
+                    ))}
+                    {Array.from({ length: compressingGalleryCount }).map((_, i) => (
+                      <div key={`compressing-${i}`} className="aspect-square rounded-lg border border-stone-200 bg-stone-50 flex items-center justify-center">
+                        <Loader2 className="h-4 w-4 text-primary-500 animate-spin" />
                       </div>
                     ))}
                   </div>
@@ -944,8 +962,8 @@ export default function AdminProductsPage() {
               </div>
               </div>
               <div className="flex gap-3 p-6 pt-4 border-t border-stone-100 flex-shrink-0">
-                <button type="submit" disabled={isSaving} className="btn-primary flex-1">
-                  {isSaving ? 'Saving...' : editingProduct ? 'Save Changes' : 'Create Product'}
+                <button type="submit" disabled={isSaving || isCompressingImage || compressingGalleryCount > 0} className="btn-primary flex-1">
+                  {isSaving ? 'Saving...' : isCompressingImage || compressingGalleryCount > 0 ? 'Optimizing image…' : editingProduct ? 'Save Changes' : 'Create Product'}
                 </button>
                 <button
                   type="button"
