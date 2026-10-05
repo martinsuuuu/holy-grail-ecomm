@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
   // Welcome notification
   await db.insert(notifications).values({
     userId: user.id,
-    title: 'Welcome to RetailHub!',
+    title: 'Welcome to Holy Grail!',
     message: 'Your account has been created. Start shopping today!',
     type: 'INFO',
   });

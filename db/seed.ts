@@ -258,7 +258,7 @@ async function main() {
   // Create a welcome notification for admin
   await db.insert(notifications).values({
     userId: admin.id,
-    title: 'Welcome to RetailHub',
+    title: 'Welcome to Holy Grail',
     message: 'Your admin account is ready. Start managing your store!',
     type: 'INFO',
   });
