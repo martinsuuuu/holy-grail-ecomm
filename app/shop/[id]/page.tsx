@@ -13,6 +13,7 @@ import { ShoppingCart, ArrowLeft, Package, Tag, CheckCircle, Truck, Calendar, He
 import Link from 'next/link';
 import AddToCartModal from '@/components/AddToCartModal';
 import AddedToCartPopup, { AddedToCartItem } from '@/components/AddedToCartPopup';
+import ImageMagnifier from '@/components/ImageMagnifier';
 
 interface Product {
   id: string;
@@ -197,7 +198,7 @@ export default function ProductDetailPage() {
               )}
               <div className="relative flex-1 h-80 md:h-auto md:aspect-square rounded-xl overflow-hidden bg-stone-100">
                 {galleryImages.length > 0 ? (
-                  <img
+                  <ImageMagnifier
                     src={galleryImages[activeImageIndex] || galleryImages[0]}
                     alt={product.name}
                     className="w-full h-full object-cover"
