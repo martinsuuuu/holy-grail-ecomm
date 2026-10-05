@@ -93,6 +93,28 @@ export const orders = pgTable('orders', {
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   user: one(users, { fields: [orders.userId], references: [users.id] }),
   items: many(orderItems),
+  statusHistory: many(orderStatusHistory),
+}));
+
+// Audit trail of who was responsible for each step of an order's lifecycle
+// (deposit confirmation, arrival confirmation, shipping, delivery, cancellation,
+// manual creation). actorName/actorRole are snapshotted at the time of the
+// event so the trail stays readable even if the account is later edited or
+// removed — the admin orders panel reads straight off these columns rather
+// than joining back to `users`.
+export const orderStatusHistory = pgTable('order_status_history', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  orderId: text('order_id').notNull().references(() => orders.id),
+  status: text('status').notNull(),
+  note: text('note'),
+  actorId: text('actor_id').references(() => users.id),
+  actorName: text('actor_name').notNull(),
+  actorRole: text('actor_role').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const orderStatusHistoryRelations = relations(orderStatusHistory, ({ one }) => ({
+  order: one(orders, { fields: [orderStatusHistory.orderId], references: [orders.id] }),
 }));
 
 export const orderItems = pgTable('order_items', {

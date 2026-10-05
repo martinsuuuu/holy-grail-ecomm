@@ -3,7 +3,24 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { formatCurrency, formatDateTime, getOrderStatusColor, getOrderStatusLabel } from '@/lib/utils';
-import { ShoppingBag, CheckCircle, Search, Filter, Package, Eye, Truck, ZoomIn, X, Calendar } from 'lucide-react';
+import { ShoppingBag, CheckCircle, Search, Filter, Package, Eye, Truck, ZoomIn, X, Calendar, Plus, UserCog } from 'lucide-react';
+import ManualOrderModal from '@/components/admin/ManualOrderModal';
+
+const DELIVERY_LABEL: Record<string, string> = {
+  LALAMOVE: 'Lalamove',
+  SHOPEE: 'Shopee',
+  JNT: 'J&T Express',
+  WALK_IN: 'Walk-in / In-Store',
+};
+
+interface StatusHistoryEntry {
+  id: string;
+  status: string;
+  note: string | null;
+  actorName: string;
+  actorRole: string;
+  createdAt: string;
+}
 
 interface Order {
   id: string;
@@ -32,7 +49,14 @@ interface Order {
       type: string;
     };
   }>;
+  statusHistory?: StatusHistoryEntry[];
 }
+
+const ROLE_LABEL: Record<string, string> = {
+  ADMIN: 'Admin',
+  SHIPPER: 'Shipper',
+  CUSTOMER: 'Customer',
+};
 
 function orderType(order: Order): 'PASABUY' | 'ONHAND' {
   return order.items.some(i => i.product.type === 'PASABUY') ? 'PASABUY' : 'ONHAND';
@@ -63,6 +87,7 @@ function OrdersContent() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [showManualOrderModal, setShowManualOrderModal] = useState(false);
 
   useEffect(() => {
     fetch('/api/orders?all=true')
@@ -140,6 +165,10 @@ function OrdersContent() {
           <h1 className="text-2xl font-display font-bold text-espresso">Orders</h1>
           <p className="text-stone-500 text-sm mt-1">{orders.length} total orders</p>
         </div>
+        <button onClick={() => setShowManualOrderModal(true)} className="btn-primary flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Create Order
+        </button>
       </div>
 
       {/* Filters */}
@@ -296,7 +325,7 @@ function OrdersContent() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-500">Delivery</span>
-                  <span className="font-medium">{selectedOrder.deliveryMethod}</span>
+                  <span className="font-medium">{DELIVERY_LABEL[selectedOrder.deliveryMethod] ?? selectedOrder.deliveryMethod}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-500">Order Type</span>
@@ -331,6 +360,33 @@ function OrdersContent() {
                   </div>
                 ))}
               </div>
+
+              {/* Who's responsible for each step */}
+              {selectedOrder.statusHistory && selectedOrder.statusHistory.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="text-xs font-semibold text-stone-500 uppercase mb-2 flex items-center gap-1.5">
+                    <UserCog className="h-3.5 w-3.5" />
+                    Handled By
+                  </h4>
+                  <div className="space-y-2.5">
+                    {selectedOrder.statusHistory.map((h, i) => (
+                      <div key={h.id} className="relative pl-5">
+                        {i !== selectedOrder.statusHistory!.length - 1 && (
+                          <span className="absolute left-[3px] top-3 bottom-[-10px] w-px bg-stone-200" />
+                        )}
+                        <span className="absolute left-0 top-1 h-1.5 w-1.5 rounded-full bg-primary-500" />
+                        <p className="text-xs font-medium text-espresso">
+                          {getOrderStatusLabel(h.status)}
+                          {h.note && <span className="text-stone-400 font-normal"> — {h.note}</span>}
+                        </p>
+                        <p className="text-[11px] text-stone-500 mt-0.5">
+                          {h.actorName} <span className="text-stone-400">({ROLE_LABEL[h.actorRole] ?? h.actorRole})</span> · {formatDateTime(h.createdAt)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Deposit proof */}
               {selectedOrder.depositProof && (() => {
@@ -446,6 +502,18 @@ function OrdersContent() {
           onClick={e => e.stopPropagation()}
         />
       </div>
+    )}
+
+    {/* Manual (walk-in) order creation */}
+    {showManualOrderModal && (
+      <ManualOrderModal
+        onClose={() => setShowManualOrderModal(false)}
+        onCreated={(order) => {
+          setOrders(prev => [order, ...prev]);
+          setSelectedOrder(order);
+          setShowManualOrderModal(false);
+        }}
+      />
     )}
     </>
   );

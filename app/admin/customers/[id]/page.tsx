@@ -44,6 +44,7 @@ const DELIVERY_LABEL: Record<string, string> = {
   LALAMOVE: 'Lalamove',
   SHOPEE: 'Shopee',
   JNT: 'J&T Express',
+  WALK_IN: 'Walk-in / In-Store',
 };
 
 export default function CustomerDetailPage({ params }: { params: { id: string } }) {

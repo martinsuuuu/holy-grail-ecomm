@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { orders, products, notifications, paymentMethods } from '@/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { orders, products, notifications, paymentMethods, orderStatusHistory } from '@/db/schema';
+import { eq, sql, asc } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
@@ -18,8 +18,9 @@ export async function GET(
   const order = await db.query.orders.findFirst({
     where: eq(orders.id, params.id),
     with: {
-      user: { columns: { id: true, name: true, email: true } },
+      user: { columns: { id: true, customerId: true, name: true, email: true } },
       items: { with: { product: true } },
+      statusHistory: { orderBy: asc(orderStatusHistory.createdAt) },
     },
   });
 
@@ -70,6 +71,7 @@ export async function PATCH(
 
   // Admin can update order status and confirm deposit
   let pendingNotification: { userId: string; title: string; message: string; type: string } | null = null;
+  let historyNote: string | null = null;
   let deductStock = false;
   // On-hand items reserve stock at order creation (see POST /api/orders) and
   // release it either on confirm (deductStock, below) or here on cancel —
@@ -88,10 +90,21 @@ export async function PATCH(
           message: `Great news! Your personal shopping items for order #${order.id.slice(-8).toUpperCase()} have arrived and your order is now confirmed.`,
           type: 'ORDER',
         };
+        historyNote = 'Personal shopping items arrived — order confirmed';
       }
 
       if (status === 'CANCELLED' && (order.status === 'PENDING_DEPOSIT' || order.status === 'DEPOSIT_SUBMITTED')) {
         releaseReserved = true;
+        historyNote = 'Order cancelled';
+      }
+
+      if (status === 'DELIVERED') {
+        historyNote = 'Marked as delivered';
+      }
+
+      if (status === 'SHIPPED') {
+        updateData.shippedAt = new Date();
+        historyNote = 'Order shipped';
       }
     }
 
@@ -107,6 +120,7 @@ export async function PATCH(
             message: `Your deposit for order #${order.id.slice(-8).toUpperCase()} has been confirmed. Your personal shopping items are being sourced — we'll notify you when they arrive!`,
             type: 'ORDER',
           };
+          historyNote = 'Deposit confirmed — sourcing personal shopping item(s)';
         } else {
           // Regular on-hand order — confirm immediately and deduct stock
           updateData.status = 'CONFIRMED';
@@ -117,6 +131,7 @@ export async function PATCH(
             message: `Your deposit for order #${order.id.slice(-8).toUpperCase()} has been confirmed. Your order is being processed.`,
             type: 'ORDER',
           };
+          historyNote = 'Deposit confirmed';
         }
       }
     }
@@ -133,6 +148,7 @@ export async function PATCH(
         message: `Your order #${order.id.slice(-8).toUpperCase()} has been shipped!`,
         type: 'ORDER',
       };
+      historyNote = 'Order shipped';
     }
   }
 
@@ -172,11 +188,28 @@ export async function PATCH(
     }
   }
 
+  // Record who was responsible for this step, non-blocking like the notification above
+  if (updateData.status) {
+    try {
+      await db.insert(orderStatusHistory).values({
+        orderId: params.id,
+        status: updateData.status,
+        note: historyNote,
+        actorId: session.user.id,
+        actorName: session.user.name ?? session.user.email ?? session.user.role,
+        actorRole: session.user.role,
+      });
+    } catch {
+      // History logging failure should not affect the order status update
+    }
+  }
+
   const updatedOrder = await db.query.orders.findFirst({
     where: eq(orders.id, params.id),
     with: {
-      user: { columns: { id: true, name: true, email: true } },
+      user: { columns: { id: true, customerId: true, name: true, email: true } },
       items: { with: { product: true } },
+      statusHistory: { orderBy: asc(orderStatusHistory.createdAt) },
     },
   });
 

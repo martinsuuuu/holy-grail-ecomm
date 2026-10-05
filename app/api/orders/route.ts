@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { orders, orderItems, products, notifications, paymentMethods, promoCodes } from '@/db/schema';
-import { eq, and, inArray, desc, sql } from 'drizzle-orm';
+import { orders, orderItems, products, notifications, paymentMethods, promoCodes, orderStatusHistory } from '@/db/schema';
+import { eq, and, inArray, desc, asc, sql } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -20,8 +20,9 @@ export async function GET(request: NextRequest) {
     const ordersData = await db.query.orders.findMany({
       where: eq(orders.userId, session.user.id),
       with: {
-        user: { columns: { id: true, name: true, email: true } },
+        user: { columns: { id: true, customerId: true, name: true, email: true } },
         items: { with: { product: true } },
+        statusHistory: { orderBy: asc(orderStatusHistory.createdAt) },
       },
       orderBy: desc(orders.createdAt),
     });
@@ -32,8 +33,9 @@ export async function GET(request: NextRequest) {
     const ordersData = await db.query.orders.findMany({
       where: inArray(orders.status, ['CONFIRMED', 'SHIPPED']),
       with: {
-        user: { columns: { id: true, name: true, email: true } },
+        user: { columns: { id: true, customerId: true, name: true, email: true } },
         items: { with: { product: true } },
+        statusHistory: { orderBy: asc(orderStatusHistory.createdAt) },
       },
       orderBy: desc(orders.createdAt),
     });
@@ -43,8 +45,9 @@ export async function GET(request: NextRequest) {
   // ADMIN - all orders
   const ordersData = await db.query.orders.findMany({
     with: {
-      user: { columns: { id: true, name: true, email: true } },
+      user: { columns: { id: true, customerId: true, name: true, email: true } },
       items: { with: { product: true } },
+      statusHistory: { orderBy: asc(orderStatusHistory.createdAt) },
     },
     orderBy: desc(orders.createdAt),
   });
@@ -189,11 +192,21 @@ export async function POST(request: NextRequest) {
     type: 'ORDER',
   });
 
+  await db.insert(orderStatusHistory).values({
+    orderId: order.id,
+    status: order.status,
+    note: 'Order placed by customer',
+    actorId: session.user.id,
+    actorName: session.user.name ?? session.user.email ?? 'Customer',
+    actorRole: session.user.role,
+  });
+
   // Return order with items and products
   const fullOrder = await db.query.orders.findFirst({
     where: eq(orders.id, order.id),
     with: {
       items: { with: { product: true } },
+      statusHistory: { orderBy: asc(orderStatusHistory.createdAt) },
     },
   });
 

@@ -51,6 +51,9 @@ export async function GET() {
     `DO $$ BEGIN ALTER TABLE products ADD CONSTRAINT products_sku_unique UNIQUE (sku); EXCEPTION WHEN duplicate_table THEN null; WHEN others THEN null; END $$`,
     // unique constraint on customer_id (skip if already exists)
     `DO $$ BEGIN ALTER TABLE users ADD CONSTRAINT users_customer_id_unique UNIQUE (customer_id); EXCEPTION WHEN duplicate_table THEN null; WHEN others THEN null; END $$`,
+    // Per-step accountability trail for orders (who confirmed, shipped, etc.)
+    `CREATE TABLE IF NOT EXISTS order_status_history (id text PRIMARY KEY, order_id text NOT NULL REFERENCES orders(id), status text NOT NULL, note text, actor_id text REFERENCES users(id), actor_name text NOT NULL, actor_role text NOT NULL, created_at timestamp NOT NULL DEFAULT now())`,
+    `CREATE INDEX IF NOT EXISTS order_status_history_order_id_idx ON order_status_history(order_id)`,
   ];
 
   for (const migration of migrations) {
