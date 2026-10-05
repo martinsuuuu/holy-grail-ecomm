@@ -43,6 +43,12 @@ export async function GET() {
     // add more via Admin > Item Types as needed, instead of a long fixed list.
     `INSERT INTO item_types (id, name) SELECT DISTINCT ON (item_type) 'it_' || md5(item_type), item_type FROM products WHERE item_type IS NOT NULL AND item_type != '' ON CONFLICT (name) DO NOTHING`,
     `CREATE TABLE IF NOT EXISTS product_images (id text PRIMARY KEY, product_id text NOT NULL REFERENCES products(id), url text NOT NULL, sort_order integer NOT NULL DEFAULT 0, created_at timestamp NOT NULL DEFAULT now())`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS sku text`,
+    `CREATE SEQUENCE IF NOT EXISTS product_sku_seq`,
+    // Backfill existing rows that don't have one yet, oldest first, so SKUs
+    // stay stable for anything already assigned.
+    `UPDATE products SET sku = 'HG-' || lpad(nextval('product_sku_seq')::text, 6, '0') WHERE sku IS NULL`,
+    `DO $$ BEGIN ALTER TABLE products ADD CONSTRAINT products_sku_unique UNIQUE (sku); EXCEPTION WHEN duplicate_table THEN null; WHEN others THEN null; END $$`,
     // unique constraint on customer_id (skip if already exists)
     `DO $$ BEGIN ALTER TABLE users ADD CONSTRAINT users_customer_id_unique UNIQUE (customer_id); EXCEPTION WHEN duplicate_table THEN null; WHEN others THEN null; END $$`,
   ];

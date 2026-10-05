@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { products, notifications, productImages } from '@/db/schema';
-import { eq, gt, or, ilike, desc, asc } from 'drizzle-orm';
+import { eq, gt, or, ilike, desc, asc, sql } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -72,8 +72,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
   }
 
+  const skuResult = await db.execute<{ sku: string }>(sql`SELECT 'HG-' || lpad(nextval('product_sku_seq')::text, 6, '0') AS sku`);
+  const sku = skuResult[0]?.sku;
+
   const newProductArr = await db.insert(products).values({
     name,
+    sku,
     description,
     price: parseFloat(price),
     stock: parseInt(stock) || 0,

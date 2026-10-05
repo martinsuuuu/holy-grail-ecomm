@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency } from '@/lib/utils';
 import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
-import ProductQRCode from '@/components/admin/ProductQRCode';
+import ProductBarcode from '@/components/admin/ProductBarcode';
 
 type ProductType = 'ONHAND' | 'PASABUY';
 
@@ -31,6 +31,7 @@ interface Product {
   authenticated: boolean;
   costPrice: number | null;
   inclusions: string | null;
+  sku: string | null;
   /** Only populated when fetched via the single-product endpoint (i.e.
    *  when opening the edit modal) — the list endpoint omits it. */
   images?: { id: string; url: string }[];
@@ -307,7 +308,7 @@ export default function AdminProductsPage() {
             <tr>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Actions</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Product</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">QR Code</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">SKU / Barcode</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Type</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Brand</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase whitespace-nowrap">Item Type</th>
@@ -384,7 +385,7 @@ export default function AdminProductsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <ProductQRCode productId={product.id} productName={product.name} />
+                      <ProductBarcode sku={product.sku} />
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${typeMeta.bg} ${typeMeta.color}`}>
@@ -579,6 +580,16 @@ export default function AdminProductsPage() {
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {editingProduct?.sku && (
+                <div className="flex items-center justify-between p-3 bg-stone-50 rounded-xl border border-stone-200">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-widest text-stone-400">SKU</p>
+                    <p className="text-sm font-mono font-semibold text-espresso">{editingProduct.sku}</p>
+                  </div>
+                  <ProductBarcode sku={editingProduct.sku} />
                 </div>
               )}
 

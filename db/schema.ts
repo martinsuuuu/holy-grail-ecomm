@@ -45,6 +45,7 @@ export const products = pgTable('products', {
   authenticated: boolean('authenticated').notNull().default(false), // Entrupy or equivalent
   costPrice: doublePrecision('cost_price'), // internal only — never expose via public API
   inclusions: text('inclusions'),
+  sku: text('sku').unique(), // stable barcode identifier, e.g. 'HG-000123'
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
