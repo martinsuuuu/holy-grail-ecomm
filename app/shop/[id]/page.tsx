@@ -171,23 +171,10 @@ export default function ProductDetailPage() {
 
         <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-            {/* Image gallery */}
-            <div className="flex flex-col">
-              <div className="relative h-80 md:h-auto md:aspect-square bg-stone-100">
-                {galleryImages.length > 0 ? (
-                  <img
-                    src={galleryImages[activeImageIndex] || galleryImages[0]}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package className="h-20 w-20 text-stone-300" />
-                  </div>
-                )}
-              </div>
+            {/* Image gallery — vertical thumbnail rail on the left, main photo on the right */}
+            <div className="flex gap-3 p-3">
               {galleryImages.length > 1 && (
-                <div className="flex gap-2 p-3 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex flex-col gap-2 overflow-y-auto max-h-80 md:max-h-[520px] flex-shrink-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {galleryImages.map((img, i) => (
                     <button
                       key={i}
@@ -203,6 +190,19 @@ export default function ProductDetailPage() {
                   ))}
                 </div>
               )}
+              <div className="relative flex-1 h-80 md:h-auto md:aspect-square rounded-xl overflow-hidden bg-stone-100">
+                {galleryImages.length > 0 ? (
+                  <img
+                    src={galleryImages[activeImageIndex] || galleryImages[0]}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Package className="h-20 w-20 text-stone-300" />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Details */}
