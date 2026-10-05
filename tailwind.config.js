@@ -48,9 +48,14 @@ module.exports = {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' },
         },
+        'slide-in-right': {
+          '0%': { transform: 'translateX(100%)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
       },
       animation: {
         marquee: 'marquee 22s linear infinite',
+        'slide-in-right': 'slide-in-right 0.3s ease-out',
       },
     },
   },

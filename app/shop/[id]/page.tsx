@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -11,8 +11,8 @@ import { useSession } from 'next-auth/react';
 import { formatCurrency } from '@/lib/utils';
 import { ShoppingCart, ArrowLeft, Package, Tag, CheckCircle, Truck, Calendar, Heart, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import { toast } from '@/lib/toast';
 import AddToCartModal from '@/components/AddToCartModal';
+import AddedToCartPopup, { AddedToCartItem } from '@/components/AddedToCartPopup';
 
 interface Product {
   id: string;
@@ -47,6 +47,8 @@ export default function ProductDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [added, setAdded] = useState(false);
+  const [cartPopupItem, setCartPopupItem] = useState<AddedToCartItem | null>(null);
+  const closeCartPopup = useCallback(() => setCartPopupItem(null), []);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const isWishlisted = useWishlistStore((state) => state.has(product?.id ?? ''));
@@ -116,7 +118,7 @@ export default function ProductDetailPage() {
       stock: isPasabuy ? 999 : availableStock,
     });
     setAdded(true);
-    toast.success(isPasabuy ? `${product.name} order placed!` : `${product.name} added to cart — proceed to checkout to complete your purchase.`);
+    setCartPopupItem({ name: product.name, price: product.price, quantity, imageUrl: product.imageUrl });
     setShowModal(false);
     setTimeout(() => setAdded(false), 2000);
   };
@@ -150,6 +152,9 @@ export default function ProductDetailPage() {
           onConfirm={handleConfirm}
           onClose={() => setShowModal(false)}
         />
+      )}
+      {cartPopupItem && (
+        <AddedToCartPopup item={cartPopupItem} onClose={closeCartPopup} />
       )}
       <Navbar />
 

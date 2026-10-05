@@ -296,7 +296,7 @@ export default function CartPage() {
               </div>
 
               {/* Payment method */}
-              <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6 mt-4">
+              <div id="payment" className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6 mt-4 scroll-mt-24">
                 <h2 className="font-display font-semibold text-espresso mb-4 flex items-center gap-2">
                   <CreditCard className="h-5 w-5 text-primary-700" />
                   Payment Method
