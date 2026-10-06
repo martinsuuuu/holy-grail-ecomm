@@ -18,7 +18,7 @@ export async function GET(
   const order = await db.query.orders.findFirst({
     where: eq(orders.id, params.id),
     with: {
-      user: { columns: { id: true, customerId: true, name: true, email: true } },
+      user: { columns: { id: true, customerId: true, name: true, email: true, phone: true } },
       items: { with: { product: true } },
       statusHistory: { orderBy: asc(orderStatusHistory.createdAt) },
     },
@@ -207,7 +207,7 @@ export async function PATCH(
   const updatedOrder = await db.query.orders.findFirst({
     where: eq(orders.id, params.id),
     with: {
-      user: { columns: { id: true, customerId: true, name: true, email: true } },
+      user: { columns: { id: true, customerId: true, name: true, email: true, phone: true } },
       items: { with: { product: true } },
       statusHistory: { orderBy: asc(orderStatusHistory.createdAt) },
     },

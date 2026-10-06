@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { formatCurrency, formatDateTime, getOrderStatusColor, getOrderStatusLabel } from '@/lib/utils';
-import { ShoppingBag, CheckCircle, Search, Filter, Package, Eye, Truck, ZoomIn, X, Calendar, Plus, UserCog } from 'lucide-react';
+import { ShoppingBag, CheckCircle, Search, Filter, Package, Eye, Truck, ZoomIn, X, Calendar, Plus, UserCog, Phone } from 'lucide-react';
 import ManualOrderModal from '@/components/admin/ManualOrderModal';
 
 const DELIVERY_LABEL: Record<string, string> = {
@@ -38,6 +38,7 @@ interface Order {
     customerId: string | null;
     name: string;
     email: string;
+    phone: string | null;
   };
   items: Array<{
     id: string;
@@ -345,6 +346,11 @@ function OrdersContent() {
                   <span className="text-stone-500">Customer</span>
                   <div className="text-right">
                     <p className="font-medium">{selectedOrder.user.name}</p>
+                    {selectedOrder.user.phone && (
+                      <p className="text-xs text-stone-500 flex items-center justify-end gap-1">
+                        <Phone className="h-3 w-3" /> {selectedOrder.user.phone}
+                      </p>
+                    )}
                     {selectedOrder.user.customerId && (
                       <p className="font-mono text-xs text-primary-600">CID: {selectedOrder.user.customerId}</p>
                     )}

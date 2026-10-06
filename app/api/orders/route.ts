@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const ordersData = await db.query.orders.findMany({
       where: eq(orders.userId, session.user.id),
       with: {
-        user: { columns: { id: true, customerId: true, name: true, email: true } },
+        user: { columns: { id: true, customerId: true, name: true, email: true, phone: true } },
         items: { with: { product: true } },
         statusHistory: { orderBy: asc(orderStatusHistory.createdAt) },
       },
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const ordersData = await db.query.orders.findMany({
       where: inArray(orders.status, ['CONFIRMED', 'SHIPPED']),
       with: {
-        user: { columns: { id: true, customerId: true, name: true, email: true } },
+        user: { columns: { id: true, customerId: true, name: true, email: true, phone: true } },
         items: { with: { product: true } },
         statusHistory: { orderBy: asc(orderStatusHistory.createdAt) },
       },
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
   // ADMIN - all orders
   const ordersData = await db.query.orders.findMany({
     with: {
-      user: { columns: { id: true, customerId: true, name: true, email: true } },
+      user: { columns: { id: true, customerId: true, name: true, email: true, phone: true } },
       items: { with: { product: true } },
       statusHistory: { orderBy: asc(orderStatusHistory.createdAt) },
     },
