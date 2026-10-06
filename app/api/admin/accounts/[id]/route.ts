@@ -6,7 +6,8 @@ import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
-const VALID_ROLES = ['ADMIN', 'SHIPPER', 'CUSTOMER'];
+// Staff/warehouse accounts only — see app/api/admin/accounts/route.ts.
+const VALID_ROLES = ['ADMIN', 'SHIPPER'];
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);

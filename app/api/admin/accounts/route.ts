@@ -3,11 +3,13 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { users } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, inArray } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
-import { generateCustomerId } from '@/lib/utils';
 
-const VALID_ROLES = ['ADMIN', 'SHIPPER', 'CUSTOMER'];
+// Staff/warehouse accounts only — customers have their own dedicated tab
+// (Admin > Customers) with its own management flow, kept separate so the
+// two account types don't get mixed together in one list.
+const VALID_ROLES = ['ADMIN', 'SHIPPER'];
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -17,6 +19,7 @@ export async function GET(request: NextRequest) {
   }
 
   const accounts = await db.query.users.findMany({
+    where: inArray(users.role, VALID_ROLES),
     columns: {
       id: true,
       customerId: true,
@@ -47,7 +50,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Name, email, and password are required' }, { status: 400 });
   }
 
-  const resolvedRole = role && VALID_ROLES.includes(role) ? role : 'CUSTOMER';
+  if (!role || !VALID_ROLES.includes(role)) {
+    return NextResponse.json({ error: 'Role must be Staff or Shipper — customer accounts are created from the Customers tab' }, { status: 400 });
+  }
 
   const existingUserArr = await db.select().from(users).where(eq(users.email, email.trim().toLowerCase())).limit(1);
   if (existingUserArr[0]) {
@@ -61,8 +66,7 @@ export async function POST(request: NextRequest) {
     email: email.trim().toLowerCase(),
     password: hashedPassword,
     phone: phone?.trim() || null,
-    role: resolvedRole,
-    customerId: resolvedRole === 'CUSTOMER' ? generateCustomerId() : null,
+    role,
   }).returning();
   const user = newUserArr[0];
 

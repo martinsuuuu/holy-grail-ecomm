@@ -3,32 +3,30 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { formatDate } from '@/lib/utils';
-import { UserCog, Ban, CheckCircle, Search, Plus, Edit, X, Eye, EyeOff, ShieldCheck, Truck, User as UserIcon } from 'lucide-react';
+import { UserCog, Ban, CheckCircle, Search, Plus, Edit, X, Eye, EyeOff, ShieldCheck, Truck } from 'lucide-react';
 
 interface Account {
   id: string;
-  customerId: string | null;
   name: string;
   email: string;
   phone: string | null;
-  role: 'ADMIN' | 'SHIPPER' | 'CUSTOMER';
+  role: 'ADMIN' | 'SHIPPER';
   banned: boolean;
   createdAt: string;
 }
 
 type ModalMode = 'add' | 'edit';
-type RoleFilter = 'all' | 'ADMIN' | 'SHIPPER' | 'CUSTOMER';
+type RoleFilter = 'all' | 'ADMIN' | 'SHIPPER';
 
-const emptyForm = { name: '', email: '', password: '', phone: '', role: 'CUSTOMER' as Account['role'] };
+const emptyForm = { name: '', email: '', password: '', phone: '', role: 'ADMIN' as Account['role'] };
 
 const ROLE_META: Record<Account['role'], { label: string; icon: typeof ShieldCheck; className: string }> = {
   ADMIN: { label: 'Staff', icon: ShieldCheck, className: 'bg-primary-100 text-primary-700' },
   SHIPPER: { label: 'Shipper', icon: Truck, className: 'bg-sky-100 text-sky-700' },
-  CUSTOMER: { label: 'Customer', icon: UserIcon, className: 'bg-stone-100 text-stone-700' },
 };
 
 function RoleBadge({ role }: { role: Account['role'] }) {
-  const meta = ROLE_META[role] ?? ROLE_META.CUSTOMER;
+  const meta = ROLE_META[role] ?? ROLE_META.ADMIN;
   const Icon = meta.icon;
   return (
     <span className={`badge text-xs inline-flex items-center gap-1 ${meta.className}`}>
@@ -132,10 +130,7 @@ export default function AdminAccountsPage() {
 
   const filtered = accounts.filter(a => {
     const q = search.toLowerCase();
-    const matchesSearch =
-      a.name.toLowerCase().includes(q) ||
-      a.email.toLowerCase().includes(q) ||
-      (a.customerId ?? '').toLowerCase().includes(q);
+    const matchesSearch = a.name.toLowerCase().includes(q) || a.email.toLowerCase().includes(q);
     const matchesRole = roleFilter === 'all' || a.role === roleFilter;
     return matchesSearch && matchesRole;
   });
@@ -144,7 +139,6 @@ export default function AdminAccountsPage() {
     { value: 'all', label: `All (${accounts.length})` },
     { value: 'ADMIN', label: `Staff (${accounts.filter(a => a.role === 'ADMIN').length})` },
     { value: 'SHIPPER', label: `Shippers (${accounts.filter(a => a.role === 'SHIPPER').length})` },
-    { value: 'CUSTOMER', label: `Customers (${accounts.filter(a => a.role === 'CUSTOMER').length})` },
   ];
 
   return (
@@ -152,7 +146,7 @@ export default function AdminAccountsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-display font-bold text-espresso">Accounts</h1>
-          <p className="text-stone-500 text-sm mt-1">Every account on the site — staff, shippers, and customers — in one place</p>
+          <p className="text-stone-500 text-sm mt-1">Staff and shipper accounts — customer accounts live in the Customers tab</p>
         </div>
         <button onClick={openAdd} className="btn-primary flex items-center gap-2">
           <Plus className="h-4 w-4" />
@@ -165,7 +159,7 @@ export default function AdminAccountsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
           <input
             type="text"
-            placeholder="Search by name, email, or customer ID..."
+            placeholder="Search by name or email..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-10 input-field"
@@ -232,9 +226,6 @@ export default function AdminAccountsPage() {
                             {isSelf && <span className="text-xs text-stone-400 font-normal ml-1.5">(you)</span>}
                           </p>
                           <p className="text-xs text-stone-500">{account.email}</p>
-                          {account.customerId && (
-                            <span className="font-mono text-[11px] text-primary-600">{account.customerId}</span>
-                          )}
                         </div>
                       </div>
                     </td>
@@ -301,8 +292,8 @@ export default function AdminAccountsPage() {
 
               <div>
                 <label className="label">Role</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['ADMIN', 'SHIPPER', 'CUSTOMER'] as const).map(r => {
+                <div className="grid grid-cols-2 gap-2">
+                  {(['ADMIN', 'SHIPPER'] as const).map(r => {
                     const meta = ROLE_META[r];
                     const Icon = meta.icon;
                     const disabled = modal.mode === 'edit' && modal.account?.id === session?.user?.id;
