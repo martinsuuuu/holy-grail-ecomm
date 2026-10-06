@@ -4,7 +4,12 @@ import { useState, useEffect, useRef } from 'react';
 import { formatCurrency } from '@/lib/utils';
 import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import ProductBarcode from '@/components/admin/ProductBarcode';
-import { compressImageToDataUrl } from '@/lib/image';
+import { compressImageToDataUrl, dataUrlBytes } from '@/lib/image';
+
+// Vercel's serverless functions cap the request body around 4.5MB; base64
+// inflates raw bytes by ~4/3, so keep the combined images comfortably under
+// that once encoded, with headroom for the rest of the form fields.
+const MAX_TOTAL_IMAGE_BYTES = 3.2 * 1024 * 1024;
 
 type ProductType = 'ONHAND' | 'PASABUY';
 
@@ -210,8 +215,16 @@ export default function AdminProductsPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
     setError('');
+
+    const totalImageBytes = (formData.imageUrl ? dataUrlBytes(formData.imageUrl) : 0)
+      + formData.images.reduce((sum, img) => sum + dataUrlBytes(img), 0);
+    if (totalImageBytes > MAX_TOTAL_IMAGE_BYTES) {
+      setError(`These images are too large to save together (${(totalImageBytes / 1024 / 1024).toFixed(1)}MB). Remove a photo or two and try again.`);
+      return;
+    }
+
+    setIsSaving(true);
 
     const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
     const method = editingProduct ? 'PUT' : 'POST';
