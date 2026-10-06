@@ -22,7 +22,7 @@ type RoleFilter = 'all' | 'ADMIN' | 'SHIPPER' | 'CUSTOMER';
 const emptyForm = { name: '', email: '', password: '', phone: '', role: 'CUSTOMER' as Account['role'] };
 
 const ROLE_META: Record<Account['role'], { label: string; icon: typeof ShieldCheck; className: string }> = {
-  ADMIN: { label: 'Admin', icon: ShieldCheck, className: 'bg-primary-100 text-primary-700' },
+  ADMIN: { label: 'Staff', icon: ShieldCheck, className: 'bg-primary-100 text-primary-700' },
   SHIPPER: { label: 'Shipper', icon: Truck, className: 'bg-sky-100 text-sky-700' },
   CUSTOMER: { label: 'Customer', icon: UserIcon, className: 'bg-stone-100 text-stone-700' },
 };
@@ -142,7 +142,7 @@ export default function AdminAccountsPage() {
 
   const roleTabs: { value: RoleFilter; label: string }[] = [
     { value: 'all', label: `All (${accounts.length})` },
-    { value: 'ADMIN', label: `Admins (${accounts.filter(a => a.role === 'ADMIN').length})` },
+    { value: 'ADMIN', label: `Staff (${accounts.filter(a => a.role === 'ADMIN').length})` },
     { value: 'SHIPPER', label: `Shippers (${accounts.filter(a => a.role === 'SHIPPER').length})` },
     { value: 'CUSTOMER', label: `Customers (${accounts.filter(a => a.role === 'CUSTOMER').length})` },
   ];
@@ -152,7 +152,7 @@ export default function AdminAccountsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-display font-bold text-espresso">Accounts</h1>
-          <p className="text-stone-500 text-sm mt-1">Every account on the site — admins, shippers, and customers — in one place</p>
+          <p className="text-stone-500 text-sm mt-1">Every account on the site — staff, shippers, and customers — in one place</p>
         </div>
         <button onClick={openAdd} className="btn-primary flex items-center gap-2">
           <Plus className="h-4 w-4" />

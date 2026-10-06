@@ -53,7 +53,7 @@ interface Order {
 }
 
 const ROLE_LABEL: Record<string, string> = {
-  ADMIN: 'Admin',
+  ADMIN: 'Staff',
   SHIPPER: 'Shipper',
   CUSTOMER: 'Customer',
 };
@@ -361,32 +361,38 @@ function OrdersContent() {
                 ))}
               </div>
 
-              {/* Who's responsible for each step */}
-              {selectedOrder.statusHistory && selectedOrder.statusHistory.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="text-xs font-semibold text-stone-500 uppercase mb-2 flex items-center gap-1.5">
-                    <UserCog className="h-3.5 w-3.5" />
-                    Handled By
-                  </h4>
-                  <div className="space-y-2.5">
-                    {selectedOrder.statusHistory.map((h, i) => (
-                      <div key={h.id} className="relative pl-5">
-                        {i !== selectedOrder.statusHistory!.length - 1 && (
-                          <span className="absolute left-[3px] top-3 bottom-[-10px] w-px bg-stone-200" />
-                        )}
-                        <span className="absolute left-0 top-1 h-1.5 w-1.5 rounded-full bg-primary-500" />
-                        <p className="text-xs font-medium text-espresso">
-                          {getOrderStatusLabel(h.status)}
-                          {h.note && <span className="text-stone-400 font-normal"> — {h.note}</span>}
-                        </p>
-                        <p className="text-[11px] text-stone-500 mt-0.5">
-                          {h.actorName} <span className="text-stone-400">({ROLE_LABEL[h.actorRole] ?? h.actorRole})</span> · {formatDateTime(h.createdAt)}
-                        </p>
-                      </div>
-                    ))}
+              {/* Staff accountability — who confirmed/shipped/handled each step.
+                  The customer's own order-placement isn't "handling", so it's
+                  excluded here; it's already shown in the Customer field above. */}
+              {(() => {
+                const staffHistory = (selectedOrder.statusHistory ?? []).filter(h => h.actorRole !== 'CUSTOMER');
+                if (staffHistory.length === 0) return null;
+                return (
+                  <div className="mb-4">
+                    <h4 className="text-xs font-semibold text-stone-500 uppercase mb-2 flex items-center gap-1.5">
+                      <UserCog className="h-3.5 w-3.5" />
+                      Handled By
+                    </h4>
+                    <div className="space-y-2.5">
+                      {staffHistory.map((h, i) => (
+                        <div key={h.id} className="relative pl-5">
+                          {i !== staffHistory.length - 1 && (
+                            <span className="absolute left-[3px] top-3 bottom-[-10px] w-px bg-stone-200" />
+                          )}
+                          <span className="absolute left-0 top-1 h-1.5 w-1.5 rounded-full bg-primary-500" />
+                          <p className="text-xs font-medium text-espresso">
+                            {getOrderStatusLabel(h.status)}
+                            {h.note && <span className="text-stone-400 font-normal"> — {h.note}</span>}
+                          </p>
+                          <p className="text-[11px] text-stone-500 mt-0.5">
+                            {h.actorName} <span className="text-stone-400">({ROLE_LABEL[h.actorRole] ?? h.actorRole})</span> · {formatDateTime(h.createdAt)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Deposit proof */}
               {selectedOrder.depositProof && (() => {
