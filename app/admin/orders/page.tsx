@@ -62,6 +62,29 @@ function orderType(order: Order): 'PASABUY' | 'ONHAND' {
   return order.items.some(i => i.product.type === 'PASABUY') ? 'PASABUY' : 'ONHAND';
 }
 
+// The most recent staff (non-customer) account to act on this order — who
+// confirmed it, shipped it, etc. There can be several staff/warehouse
+// accounts now, so the list needs to name the specific one, not just "Staff".
+function latestHandler(order: Order): { name: string; role: string } | null {
+  const staffEntries = (order.statusHistory ?? []).filter(h => h.actorRole !== 'CUSTOMER');
+  if (staffEntries.length === 0) return null;
+  const last = staffEntries[staffEntries.length - 1];
+  return { name: last.actorName, role: last.actorRole };
+}
+
+function HandledByCell({ order }: { order: Order }) {
+  const handler = latestHandler(order);
+  if (!handler) {
+    return <span className="text-xs text-stone-300 italic">Not yet handled</span>;
+  }
+  return (
+    <div>
+      <p className="text-sm text-espresso truncate max-w-[160px]">{handler.name}</p>
+      <p className="text-xs text-stone-400">{ROLE_LABEL[handler.role] ?? handler.role}</p>
+    </div>
+  );
+}
+
 function OrderTypeBadge({ type }: { type: 'PASABUY' | 'ONHAND' }) {
   return type === 'PASABUY'
     ? <span className="badge text-xs bg-plum-100 text-plum-700">Personal Shopping</span>
@@ -233,14 +256,15 @@ function OrdersContent() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Orders list */}
-        <div className="lg:col-span-2 bg-white rounded-2xl shadow-soft border border-stone-200/70 overflow-hidden">
-          <table className="w-full">
+        <div className="lg:col-span-2 bg-white rounded-2xl shadow-soft border border-stone-200/70 overflow-x-auto">
+          <table className="w-full min-w-[720px]">
             <thead className="bg-stone-50 border-b border-stone-200">
               <tr>
                 <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Order</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Customer</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Type</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Status</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Handled By</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Total</th>
               </tr>
             </thead>
@@ -248,7 +272,7 @@ function OrdersContent() {
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
-                    {Array.from({ length: 5 }).map((_, j) => (
+                    {Array.from({ length: 6 }).map((_, j) => (
                       <td key={j} className="px-6 py-4">
                         <div className="h-4 bg-stone-200 rounded animate-pulse" />
                       </td>
@@ -257,7 +281,7 @@ function OrdersContent() {
                 ))
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-stone-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-stone-500">
                     <ShoppingBag className="h-8 w-8 mx-auto mb-2 text-stone-300" />
                     <p>No orders found</p>
                   </td>
@@ -287,6 +311,9 @@ function OrdersContent() {
                       <span className={`badge text-xs ${getOrderStatusColor(order.status)}`}>
                         {getOrderStatusLabel(order.status)}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <HandledByCell order={order} />
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-semibold text-espresso">{formatCurrency(order.totalAmount)}</span>
