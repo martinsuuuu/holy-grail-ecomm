@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { appointments } from '@/db/schema';
+import { appointments, users } from '@/db/schema';
 import { eq, and, ne } from 'drizzle-orm';
 import { APPOINTMENT_OPEN_HOUR, APPOINTMENT_CLOSE_HOUR } from '@/lib/appointments';
 
@@ -51,8 +51,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'That time slot was just booked — please choose another.' }, { status: 409 });
   }
 
+  // Not every booking happens while logged in — a customer might book as a
+  // guest with the same email their account uses. Link it to that account
+  // by email so it still shows up under "My Appointments" once they're
+  // signed in, rather than only linking when a session happens to be active
+  // at the exact moment of booking.
+  let linkedUserId: string | null = session?.user?.role === 'CUSTOMER' ? session.user.id : null;
+  if (!linkedUserId) {
+    const matchingCustomer = await db.query.users.findFirst({
+      where: and(eq(users.email, email.trim().toLowerCase()), eq(users.role, 'CUSTOMER')),
+      columns: { id: true },
+    });
+    linkedUserId = matchingCustomer?.id ?? null;
+  }
+
   const [appointment] = await db.insert(appointments).values({
-    userId: session?.user?.role === 'CUSTOMER' ? session.user.id : null,
+    userId: linkedUserId,
     name: name.trim(),
     email: email.trim().toLowerCase(),
     phone: phone?.trim() || null,
