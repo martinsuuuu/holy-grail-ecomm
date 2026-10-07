@@ -75,6 +75,7 @@ export default function NotificationBell() {
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
       ORDER: 'bg-sky-100 text-sky-700',
+      APPOINTMENT: 'bg-plum-100 text-plum-700',
       WARNING: 'bg-amber-100 text-amber-700',
       INFO: 'bg-emerald-100 text-emerald-700',
       ERROR: 'bg-red-100 text-red-700',

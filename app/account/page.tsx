@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { formatCurrency, formatDateTime, getOrderStatusColor, getOrderStatusLabel } from '@/lib/utils';
-import { ShoppingBag, Clock, ChevronRight, Package, User, Phone, MapPin, Lock, Save, Pencil, X } from 'lucide-react';
+import { formatHourRange, APPOINTMENT_STATUS_LABEL, APPOINTMENT_STATUS_COLOR } from '@/lib/appointments';
+import { ShoppingBag, Clock, ChevronRight, Package, User, Phone, MapPin, Lock, Save, Pencil, X, CalendarCheck } from 'lucide-react';
 import AddressForm from '@/components/AddressForm';
 import { AddressData, EMPTY_ADDRESS, displayAddress, parseAddress } from '@/lib/address';
 
@@ -31,6 +32,15 @@ interface Order {
   }>;
 }
 
+interface Appointment {
+  id: string;
+  date: string;
+  hour: number;
+  notes: string | null;
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  createdAt: string;
+}
+
 interface Profile {
   id: string;
   customerId: string | null;
@@ -44,6 +54,7 @@ export default function AccountPage() {
   const { data: session, status, update: updateSession } = useSession();
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -68,9 +79,11 @@ export default function AccountPage() {
       Promise.all([
         fetch('/api/orders').then(r => r.ok ? r.json() : []),
         fetch('/api/profile').then(r => r.ok ? r.json() : null),
-      ]).then(([ordersData, profileData]) => {
+        fetch('/api/appointments/mine').then(r => r.ok ? r.json() : []),
+      ]).then(([ordersData, profileData, appointmentsData]) => {
         setOrders(Array.isArray(ordersData) ? ordersData : []);
         setProfile(profileData);
+        setAppointments(Array.isArray(appointmentsData) ? appointmentsData : []);
         setIsLoading(false);
       }).catch(() => setIsLoading(false));
     }
@@ -346,6 +359,50 @@ export default function AccountPage() {
             </div>
           )}
         </div>
+
+        {/* Appointments */}
+        {appointments.length > 0 && (
+          <div className="mt-10">
+            <div className="flex items-center gap-2 mb-4">
+              <CalendarCheck className="h-5 w-5 text-primary-700" />
+              <h2 className="text-lg font-display font-semibold text-espresso">My Appointments</h2>
+              <span className="bg-stone-100 text-stone-600 text-xs font-medium px-2 py-0.5 rounded-full">
+                {appointments.length}
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {appointments.map((a) => (
+                <div
+                  key={a.id}
+                  className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-5"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <CalendarCheck className="h-5 w-5 text-primary-700" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-espresso text-sm">
+                          {new Date(a.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                        </p>
+                        <p className="text-xs text-espresso/50 mt-0.5 flex items-center gap-1">
+                          <Clock className="h-3 w-3" /> {formatHourRange(a.hour)}
+                        </p>
+                        {a.notes && (
+                          <p className="text-xs text-espresso/50 mt-1 max-w-xs truncate">{a.notes}</p>
+                        )}
+                      </div>
+                    </div>
+                    <span className={`badge text-xs ${APPOINTMENT_STATUS_COLOR[a.status]}`}>
+                      {APPOINTMENT_STATUS_LABEL[a.status]}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
