@@ -260,6 +260,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     { label: 'Browse the Collection', desc: 'Explore every piece currently on hand and ready to ship.', href: '/shop#collection' },
     { label: 'Request Personal Shopping', desc: "Send us the piece you want — we'll source it on your behalf.", href: '/contact' },
     { label: 'Talk to a Concierge', desc: 'Get a personal recommendation from our sales team.', href: '/contact' },
+    { label: 'Book an Appointment', desc: 'Reserve an hourly slot for a private showroom viewing.', href: '/appointments' },
   ],
 
   trustItems: [

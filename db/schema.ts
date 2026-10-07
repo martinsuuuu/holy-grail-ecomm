@@ -235,3 +235,23 @@ export const promoCodes = pgTable('promo_codes', {
   expiresAt: timestamp('expires_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
+
+// Private showroom viewing appointments — booked on an hourly basis. Guests
+// don't need an account to book (userId is optional, like the Contact
+// page), so name/email/phone are snapshotted directly on the row.
+export const appointments = pgTable('appointments', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  userId: text('user_id').references(() => users.id),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone'),
+  date: text('date').notNull(), // 'YYYY-MM-DD'
+  hour: integer('hour').notNull(), // 24h start hour of the 1-hour slot, e.g. 14 = 2–3pm
+  notes: text('notes'),
+  status: text('status').notNull().default('PENDING'), // 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const appointmentsRelations = relations(appointments, ({ one }) => ({
+  user: one(users, { fields: [appointments.userId], references: [users.id] }),
+}));

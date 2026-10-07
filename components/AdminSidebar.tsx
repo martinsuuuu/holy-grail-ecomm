@@ -23,6 +23,7 @@ import {
   Palette,
   LayoutGrid,
   UserCog,
+  CalendarCheck,
 } from 'lucide-react';
 import HGMonogram from './HGMonogram';
 import { DEFAULT_SITE_CONFIG, SiteConfig, THEME_TEXTURE_URL } from '@/lib/siteConfig';
@@ -36,6 +37,7 @@ const navItems = [
   { href: '/admin/customers', label: 'Customers', icon: Users },
   { href: '/admin/accounts', label: 'Accounts', icon: UserCog },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
+  { href: '/admin/appointments', label: 'Appointments', icon: CalendarCheck },
   { href: '/admin/purchase-orders', label: 'Purchase Orders', icon: Truck },
   { href: '/admin/expenses', label: 'Expenses', icon: DollarSign },
   { href: '/admin/sales', label: 'Sales Summary', icon: BarChart3 },

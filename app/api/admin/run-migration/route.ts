@@ -54,6 +54,9 @@ export async function GET() {
     // Per-step accountability trail for orders (who confirmed, shipped, etc.)
     `CREATE TABLE IF NOT EXISTS order_status_history (id text PRIMARY KEY, order_id text NOT NULL REFERENCES orders(id), status text NOT NULL, note text, actor_id text REFERENCES users(id), actor_name text NOT NULL, actor_role text NOT NULL, created_at timestamp NOT NULL DEFAULT now())`,
     `CREATE INDEX IF NOT EXISTS order_status_history_order_id_idx ON order_status_history(order_id)`,
+    // Showroom viewing appointments, booked by the hour
+    `CREATE TABLE IF NOT EXISTS appointments (id text PRIMARY KEY, user_id text REFERENCES users(id), name text NOT NULL, email text NOT NULL, phone text, date text NOT NULL, hour integer NOT NULL, notes text, status text NOT NULL DEFAULT 'PENDING', created_at timestamp NOT NULL DEFAULT now())`,
+    `CREATE INDEX IF NOT EXISTS appointments_date_idx ON appointments(date)`,
   ];
 
   for (const migration of migrations) {

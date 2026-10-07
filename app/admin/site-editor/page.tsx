@@ -609,7 +609,7 @@ export default function SiteEditorPage() {
           {tab === 'content' && section === 'quickActions' && (
             <div>
               <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-1">Quick Actions</h3>
-              <p className="text-xs text-stone-400 mb-3">Three clickable cards directly under the hero banner.</p>
+              <p className="text-xs text-stone-400 mb-3">Clickable cards directly under the hero banner.</p>
               <div className="space-y-3">
                 {config.quickActions.map((action, i) => (
                   <div key={i} className="border border-stone-200 rounded-2xl p-3 space-y-2">
