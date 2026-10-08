@@ -57,6 +57,7 @@ export async function GET() {
     // Showroom viewing appointments, booked by the hour
     `CREATE TABLE IF NOT EXISTS appointments (id text PRIMARY KEY, user_id text REFERENCES users(id), name text NOT NULL, email text NOT NULL, phone text, date text NOT NULL, hour integer NOT NULL, notes text, status text NOT NULL DEFAULT 'PENDING', created_at timestamp NOT NULL DEFAULT now())`,
     `CREATE INDEX IF NOT EXISTS appointments_date_idx ON appointments(date)`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS birth_date text`,
   ];
 
   for (const migration of migrations) {

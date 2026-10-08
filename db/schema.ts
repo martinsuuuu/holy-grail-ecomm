@@ -12,6 +12,7 @@ export const users = pgTable('users', {
   banned: boolean('banned').notNull().default(false),
   phone: text('phone'),
   address: text('address'),
+  birthDate: text('birth_date'), // 'YYYY-MM-DD'
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

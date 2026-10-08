@@ -6,14 +6,18 @@ import { eq } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { name, email, password } = body;
+  const { name, email, password, phone, birthDate } = body;
 
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !phone || !birthDate) {
     return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
   }
 
   if (password.length < 6) {
     return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || new Date(birthDate) > new Date()) {
+    return NextResponse.json({ error: 'Please provide a valid birthdate' }, { status: 400 });
   }
 
   const existingUserArr = await db.select().from(users).where(eq(users.email, email)).limit(1);
@@ -27,6 +31,8 @@ export async function POST(request: NextRequest) {
     name,
     email,
     password: hashedPassword,
+    phone: phone.trim(),
+    birthDate,
     role: 'CUSTOMER',
   }).returning();
   const user = newUserArr[0];

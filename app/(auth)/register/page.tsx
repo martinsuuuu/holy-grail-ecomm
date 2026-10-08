@@ -11,6 +11,8 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
+    birthDate: '',
     password: '',
     confirmPassword: '',
   });
@@ -41,6 +43,8 @@ export default function RegisterPage() {
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
+          phone: formData.phone,
+          birthDate: formData.birthDate,
           password: formData.password,
         }),
       });
@@ -103,6 +107,30 @@ export default function RegisterPage() {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
                 placeholder="you@example.com"
+                className="input-field"
+              />
+            </div>
+
+            <div>
+              <label className="label">Phone number</label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                required
+                placeholder="09xxxxxxxxx"
+                className="input-field"
+              />
+            </div>
+
+            <div>
+              <label className="label">Birthdate</label>
+              <input
+                type="date"
+                value={formData.birthDate}
+                onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                required
+                max={new Date().toISOString().slice(0, 10)}
                 className="input-field"
               />
             </div>
