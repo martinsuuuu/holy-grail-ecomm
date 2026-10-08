@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { formatCurrency, formatDateTime, getOrderStatusColor, getOrderStatusLabel } from '@/lib/utils';
 import { formatHourRange, APPOINTMENT_STATUS_LABEL, APPOINTMENT_STATUS_COLOR } from '@/lib/appointments';
-import { ShoppingBag, Clock, ChevronRight, Package, User, Phone, MapPin, Lock, Save, Pencil, X, CalendarCheck } from 'lucide-react';
+import { ShoppingBag, Clock, ChevronRight, Package, User, Phone, MapPin, Lock, Save, Pencil, X, CalendarCheck, Calendar } from 'lucide-react';
 import AddressForm from '@/components/AddressForm';
 import { AddressData, EMPTY_ADDRESS, displayAddress, parseAddress } from '@/lib/address';
 
@@ -48,6 +48,7 @@ interface Profile {
   email: string;
   phone: string | null;
   address: string | null;
+  birthDate: string | null;
 }
 
 export default function AccountPage() {
@@ -61,6 +62,7 @@ export default function AccountPage() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editBirthDate, setEditBirthDate] = useState('');
   const [editAddressData, setEditAddressData] = useState<AddressData>(EMPTY_ADDRESS);
   const [editCurrentPassword, setEditCurrentPassword] = useState('');
   const [editNewPassword, setEditNewPassword] = useState('');
@@ -92,6 +94,7 @@ export default function AccountPage() {
   const startEdit = () => {
     setEditName(profile?.name ?? session?.user.name ?? '');
     setEditPhone(profile?.phone ?? '');
+    setEditBirthDate(profile?.birthDate ?? '');
     setEditAddressData(parseAddress(profile?.address) ?? EMPTY_ADDRESS);
     setEditCurrentPassword('');
     setEditNewPassword('');
@@ -110,6 +113,7 @@ export default function AccountPage() {
     const body: Record<string, string> = {
       name: editName,
       phone: editPhone,
+      birthDate: editBirthDate,
       address: JSON.stringify(editAddressData),
     };
     if (editNewPassword) {
@@ -179,6 +183,12 @@ export default function AccountPage() {
                         {profile.phone}
                       </span>
                     )}
+                    {profile?.birthDate && (
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5 text-stone-400" />
+                        {new Date(profile.birthDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    )}
                     {profile?.address && (
                       <span className="flex items-center gap-1">
                         <MapPin className="h-3.5 w-3.5 text-stone-400" />
@@ -225,6 +235,20 @@ export default function AccountPage() {
                   onChange={e => setEditPhone(e.target.value)}
                   placeholder="Phone number"
                   autoComplete="tel"
+                  className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+                />
+              </div>
+
+              {/* Birthdate */}
+              <div>
+                <label className="block text-xs font-medium text-espresso/50 mb-1 flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5" /> Birthdate
+                </label>
+                <input
+                  type="date"
+                  value={editBirthDate}
+                  onChange={e => setEditBirthDate(e.target.value)}
+                  max={new Date().toISOString().slice(0, 10)}
                   className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                 />
               </div>

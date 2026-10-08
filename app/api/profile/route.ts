@@ -16,6 +16,7 @@ export async function GET() {
     email: users.email,
     phone: users.phone,
     address: users.address,
+    birthDate: users.birthDate,
   }).from(users).where(eq(users.id, session.user.id));
 
   // Fetch customerId separately so it doesn't break if column isn't migrated yet
@@ -33,12 +34,18 @@ export async function PATCH(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { name, phone, address, currentPassword, newPassword } = await request.json();
+  const { name, phone, address, birthDate, currentPassword, newPassword } = await request.json();
 
   const updates: Record<string, unknown> = {};
   if (name?.trim()) updates.name = name.trim();
   if (phone !== undefined) updates.phone = phone?.trim() || null;
   if (address !== undefined) updates.address = address?.trim() || null;
+  if (birthDate !== undefined) {
+    if (birthDate && (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || new Date(birthDate) > new Date())) {
+      return NextResponse.json({ error: 'Please provide a valid birthdate' }, { status: 400 });
+    }
+    updates.birthDate = birthDate || null;
+  }
 
   if (newPassword?.trim()) {
     if (!currentPassword?.trim()) {
