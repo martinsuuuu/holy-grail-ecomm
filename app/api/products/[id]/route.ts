@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { products, notifications, productImages } from '@/db/schema';
+import { products, productImages } from '@/db/schema';
 import { eq, asc } from 'drizzle-orm';
 
 export async function GET(
@@ -86,15 +86,6 @@ export async function PUT(
         images.map((url: string, i: number) => ({ productId: params.id, url, sortOrder: i }))
       );
     }
-  }
-
-  // Check if low stock
-  if (product.stock < 5) {
-    await db.insert(notifications).values({
-      title: 'Low Stock Alert',
-      message: `Product "${product.name}" has low stock (${product.stock} remaining)`,
-      type: 'WARNING',
-    });
   }
 
   return NextResponse.json(product);
