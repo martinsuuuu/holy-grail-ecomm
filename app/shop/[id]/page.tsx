@@ -9,11 +9,11 @@ import { useCartStore } from '@/lib/cartStore';
 import { useWishlistStore } from '@/lib/wishlistStore';
 import { useSession } from 'next-auth/react';
 import { formatCurrency } from '@/lib/utils';
-import { ShoppingCart, ArrowLeft, Package, Tag, CheckCircle, Truck, Calendar, Heart, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Package, Tag, CheckCircle, Truck, Calendar, Heart, ShieldCheck, ZoomIn } from 'lucide-react';
 import Link from 'next/link';
 import AddToCartModal from '@/components/AddToCartModal';
 import AddedToCartPopup, { AddedToCartItem } from '@/components/AddedToCartPopup';
-import ImageMagnifier from '@/components/ImageMagnifier';
+import ProductImageLightbox from '@/components/ProductImageLightbox';
 
 interface Product {
   id: string;
@@ -52,6 +52,7 @@ export default function ProductDetailPage() {
   const closeCartPopup = useCallback(() => setCartPopupItem(null), []);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const isWishlisted = useWishlistStore((state) => state.has(product?.id ?? ''));
   const toggleWishlist = useWishlistStore((state) => state.toggle);
 
@@ -157,6 +158,15 @@ export default function ProductDetailPage() {
       {cartPopupItem && (
         <AddedToCartPopup item={cartPopupItem} onClose={closeCartPopup} />
       )}
+      {lightboxOpen && galleryImages.length > 0 && (
+        <ProductImageLightbox
+          images={galleryImages}
+          index={activeImageIndex}
+          alt={product.name}
+          onClose={() => setLightboxOpen(false)}
+          onNavigate={setActiveImageIndex}
+        />
+      )}
       <Navbar />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -198,11 +208,22 @@ export default function ProductDetailPage() {
               )}
               <div className="relative flex-1 h-80 md:h-auto md:aspect-square rounded-xl overflow-hidden bg-stone-100">
                 {galleryImages.length > 0 ? (
-                  <ImageMagnifier
-                    src={galleryImages[activeImageIndex] || galleryImages[0]}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setLightboxOpen(true)}
+                    className="group relative block w-full h-full cursor-zoom-in"
+                    aria-label="View full-size image"
+                  >
+                    <img
+                      src={galleryImages[activeImageIndex] || galleryImages[0]}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-espresso/60 text-cream text-xs px-2.5 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ZoomIn className="h-3.5 w-3.5" />
+                      View full size
+                    </span>
+                  </button>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Package className="h-20 w-20 text-stone-300" />
