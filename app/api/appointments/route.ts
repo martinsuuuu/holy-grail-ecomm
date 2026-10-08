@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { name, email, phone, date, hour, notes } = body;
 
-  if (!name?.trim() || !email?.trim()) {
-    return NextResponse.json({ error: 'Name and email are required' }, { status: 400 });
+  if (!name?.trim() || !email?.trim() || !phone?.trim()) {
+    return NextResponse.json({ error: 'Name, email, and phone are required' }, { status: 400 });
   }
 
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {

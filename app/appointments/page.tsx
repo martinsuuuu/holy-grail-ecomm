@@ -182,9 +182,10 @@ export default function AppointmentsPage() {
                   />
                 </div>
                 <div>
-                  <label className="label">Phone (optional)</label>
+                  <label className="label">Phone <span className="text-red-500">*</span></label>
                   <input
                     type="tel"
+                    required
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
                     placeholder="09xxxxxxxxx"
