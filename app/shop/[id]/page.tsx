@@ -217,7 +217,7 @@ export default function ProductDetailPage() {
                     <img
                       src={galleryImages[activeImageIndex] || galleryImages[0]}
                       alt={product.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                     <span className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-espresso/60 text-cream text-xs px-2.5 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                       <ZoomIn className="h-3.5 w-3.5" />
