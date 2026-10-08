@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { promoCodes } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { normalizeAllowedEmails } from '@/lib/promoCodes';
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
@@ -12,13 +13,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 
   const body = await request.json();
-  const { isActive, value, type, expiresAt } = body;
+  const { isActive, value, type, expiresAt, allowedEmails } = body;
 
   const updates: Record<string, unknown> = {};
   if (isActive !== undefined) updates.isActive = isActive;
   if (value !== undefined) updates.value = value;
   if (type !== undefined) updates.type = type;
   if (expiresAt !== undefined) updates.expiresAt = expiresAt ? new Date(expiresAt) : null;
+  if (allowedEmails !== undefined) updates.allowedEmails = normalizeAllowedEmails(allowedEmails);
 
   const [updated] = await db.update(promoCodes)
     .set(updates)

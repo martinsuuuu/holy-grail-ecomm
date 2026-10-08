@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { promoCodes } from '@/db/schema';
 import { desc } from 'drizzle-orm';
+import { normalizeAllowedEmails } from '@/lib/promoCodes';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { code, type, value, expiresAt } = await request.json();
+  const { code, type, value, expiresAt, allowedEmails } = await request.json();
 
   if (!code?.trim()) {
     return NextResponse.json({ error: 'Code is required' }, { status: 400 });
@@ -39,6 +40,7 @@ export async function POST(request: NextRequest) {
       type,
       value,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
+      allowedEmails: normalizeAllowedEmails(allowedEmails),
       isActive: true,
     }).returning();
 

@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { promoCodes } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { isEmailAllowedForPromo } from '@/lib/promoCodes';
 
 export async function POST(request: NextRequest) {
   const { code, subtotal } = await request.json();
@@ -21,6 +24,11 @@ export async function POST(request: NextRequest) {
   }
   if (promo.expiresAt && new Date(promo.expiresAt) < new Date()) {
     return NextResponse.json({ valid: false, error: 'This promo code has expired' }, { status: 400 });
+  }
+
+  const session = await getServerSession(authOptions);
+  if (!isEmailAllowedForPromo(promo.allowedEmails, session?.user?.email)) {
+    return NextResponse.json({ valid: false, error: 'This promo code is reserved for a specific customer' }, { status: 400 });
   }
 
   const rawDiscount = promo.type === 'PERCENT' ? (subtotal * promo.value) / 100 : promo.value;

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { orders, orderItems, products, notifications, paymentMethods, promoCodes, orderStatusHistory } from '@/db/schema';
 import { eq, and, inArray, desc, asc, sql } from 'drizzle-orm';
+import { isEmailAllowedForPromo } from '@/lib/promoCodes';
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -129,7 +130,8 @@ export async function POST(request: NextRequest) {
   if (promoCode?.trim()) {
     const promoArr = await db.select().from(promoCodes).where(eq(promoCodes.code, promoCode.trim().toUpperCase())).limit(1);
     const promo = promoArr[0];
-    const isValid = promo && promo.isActive && (!promo.expiresAt || new Date(promo.expiresAt) >= new Date());
+    const isValid = promo && promo.isActive && (!promo.expiresAt || new Date(promo.expiresAt) >= new Date())
+      && isEmailAllowedForPromo(promo.allowedEmails, session.user.email);
 
     // An invalid/expired code at submission time is ignored rather than blocking checkout —
     // this can legitimately happen if an admin deactivates a code between validation and order placement.

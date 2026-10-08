@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Tag, Plus, Trash2, ToggleLeft, ToggleRight, X, Percent, DollarSign } from 'lucide-react';
+import { Tag, Plus, Trash2, ToggleLeft, ToggleRight, X, Percent, DollarSign, Users, Lock } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { parseAllowedEmails } from '@/lib/promoCodes';
 
 interface PromoCode {
   id: string;
@@ -11,6 +12,7 @@ interface PromoCode {
   value: number;
   isActive: boolean;
   expiresAt: string | null;
+  allowedEmails: string | null;
   createdAt: string;
 }
 
@@ -32,6 +34,8 @@ export default function PromoCodesPage() {
   const [newType, setNewType] = useState<'PERCENT' | 'FIXED'>('PERCENT');
   const [newValue, setNewValue] = useState('');
   const [newExpiresAt, setNewExpiresAt] = useState('');
+  const [restrictToCustomers, setRestrictToCustomers] = useState(false);
+  const [newAllowedEmailsText, setNewAllowedEmailsText] = useState('');
   const [addError, setAddError] = useState('');
 
   const fetchCodes = () =>
@@ -50,6 +54,12 @@ export default function PromoCodesPage() {
     if (!newCode.trim()) { setAddError('Code is required'); return; }
     if (!value || value <= 0) { setAddError('Enter a valid value'); return; }
 
+    const emails = newAllowedEmailsText.split(/[\n,]/).map((e) => e.trim()).filter(Boolean);
+    if (restrictToCustomers && emails.length === 0) {
+      setAddError('Enter at least one customer email, or turn off the restriction');
+      return;
+    }
+
     const res = await fetch('/api/admin/promo-codes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -58,6 +68,7 @@ export default function PromoCodesPage() {
         type: newType,
         value,
         expiresAt: newExpiresAt || null,
+        allowedEmails: restrictToCustomers ? emails : undefined,
       }),
     });
 
@@ -71,6 +82,8 @@ export default function PromoCodesPage() {
     setNewCode('');
     setNewValue('');
     setNewExpiresAt('');
+    setRestrictToCustomers(false);
+    setNewAllowedEmailsText('');
     fetchCodes();
   };
 
@@ -100,7 +113,7 @@ export default function PromoCodesPage() {
           <p className="text-sm text-stone-500 mt-1">Create and manage discount codes for checkout</p>
         </div>
         <button
-          onClick={() => { setShowAddModal(true); setAddError(''); setNewCode(''); setNewValue(''); setNewExpiresAt(''); }}
+          onClick={() => { setShowAddModal(true); setAddError(''); setNewCode(''); setNewValue(''); setNewExpiresAt(''); setRestrictToCustomers(false); setNewAllowedEmailsText(''); }}
           className="btn-primary flex items-center gap-2 text-sm py-2"
         >
           <Plus className="h-4 w-4" />
@@ -124,6 +137,7 @@ export default function PromoCodesPage() {
                 <th className="px-4 py-3 font-medium">Code</th>
                 <th className="px-4 py-3 font-medium">Discount</th>
                 <th className="px-4 py-3 font-medium">Expires</th>
+                <th className="px-4 py-3 font-medium">Access</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Created</th>
                 <th className="px-4 py-3 font-medium text-right">Actions</th>
@@ -140,6 +154,25 @@ export default function PromoCodesPage() {
                       {p.type === 'PERCENT' ? `${p.value}%` : formatCurrency(p.value)}
                     </td>
                     <td className="px-4 py-3 text-espresso/60">{p.expiresAt ? formatDate(p.expiresAt) : '—'}</td>
+                    <td className="px-4 py-3">
+                      {(() => {
+                        const emails = parseAllowedEmails(p.allowedEmails);
+                        return emails.length > 0 ? (
+                          <span
+                            title={emails.join(', ')}
+                            className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-plum-100 text-plum-700"
+                          >
+                            <Lock className="h-3 w-3" />
+                            {emails.length} customer{emails.length > 1 ? 's' : ''}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs text-stone-400">
+                            <Users className="h-3 w-3" />
+                            All customers
+                          </span>
+                        );
+                      })()}
+                    </td>
                     <td className="px-4 py-3">
                       <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${status.className}`}>{status.label}</span>
                     </td>
@@ -229,6 +262,30 @@ export default function PromoCodesPage() {
                   onChange={(e) => setNewExpiresAt(e.target.value)}
                   className="w-full border border-stone-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
+              </div>
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-espresso/80 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={restrictToCustomers}
+                    onChange={(e) => setRestrictToCustomers(e.target.checked)}
+                    className="h-4 w-4 rounded border-stone-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <Lock className="h-3.5 w-3.5" />
+                  Restrict to specific customers only
+                </label>
+                {restrictToCustomers && (
+                  <>
+                    <textarea
+                      value={newAllowedEmailsText}
+                      onChange={(e) => setNewAllowedEmailsText(e.target.value)}
+                      placeholder="customer@example.com, another@example.com"
+                      rows={3}
+                      className="w-full mt-2 border border-stone-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                    <p className="text-[11px] text-stone-400 mt-1">One email per line or comma-separated. Only these accounts will be able to apply this code.</p>
+                  </>
+                )}
               </div>
               {addError && <p className="text-red-600 text-xs">{addError}</p>}
             </div>

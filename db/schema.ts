@@ -234,6 +234,9 @@ export const promoCodes = pgTable('promo_codes', {
   value: doublePrecision('value').notNull(),
   isActive: boolean('is_active').notNull().default(true),
   expiresAt: timestamp('expires_at'),
+  // JSON array of lowercased emails, e.g. '["a@x.com","b@x.com"]'. Null/empty
+  // means anyone can use the code; otherwise only these accounts can.
+  allowedEmails: text('allowed_emails'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
