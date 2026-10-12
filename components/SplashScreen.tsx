@@ -40,6 +40,12 @@ export default function SplashScreen() {
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
+    // Belt-and-suspenders: some browsers won't honor the autoPlay attribute
+    // reliably unless muted is also set as a DOM property before play() is
+    // called explicitly.
+    video.muted = true;
+    video.play().catch(() => {});
+
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
@@ -78,7 +84,8 @@ export default function SplashScreen() {
         muted
         playsInline
         onEnded={() => setVisible(false)}
-        className="hidden"
+        aria-hidden="true"
+        className="absolute w-px h-px opacity-0 pointer-events-none"
       >
         <source src="/HG-Logo-Circle.mp4" type="video/mp4" />
       </video>
