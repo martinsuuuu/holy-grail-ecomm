@@ -202,11 +202,11 @@ export default function ProductDetailPage() {
                       type="button"
                       onClick={() => setActiveImageIndex(i)}
                       aria-label={`View photo ${i + 1}`}
-                      className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
+                      className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 bg-stone-100 transition-colors ${
                         i === activeImageIndex ? 'border-primary-600' : 'border-transparent hover:border-stone-300'
                       }`}
                     >
-                      <img src={img} alt={`${product.name} thumbnail ${i + 1}`} className="w-full h-full object-cover" />
+                      <img src={img} alt={`${product.name} thumbnail ${i + 1}`} className="w-full h-full object-contain" />
                     </button>
                   ))}
                 </div>

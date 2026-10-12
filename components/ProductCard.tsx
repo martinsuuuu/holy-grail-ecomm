@@ -51,7 +51,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover grayscale-[0.15] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500"
+            className="w-full h-full object-contain grayscale-[0.15] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
