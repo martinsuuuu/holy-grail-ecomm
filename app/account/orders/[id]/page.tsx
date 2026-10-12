@@ -6,9 +6,10 @@ import { useSession } from 'next-auth/react';
 import Navbar from '@/components/Navbar';
 import OrderCountdown from '@/components/OrderCountdown';
 import { formatCurrency, formatDateTime, getOrderStatusColor, getOrderStatusLabel } from '@/lib/utils';
-import { ArrowLeft, Package, Upload, CheckCircle, Truck, Clock, AlertCircle, ImageIcon, X, MapPin, QrCode, Smartphone, Building2, ZoomIn } from 'lucide-react';
+import { ArrowLeft, Package, Upload, CheckCircle, Truck, Clock, AlertCircle, ImageIcon, X, MapPin, QrCode, Smartphone, Building2, ZoomIn, FileText } from 'lucide-react';
 import { isAddressComplete } from '@/lib/address';
 import Link from 'next/link';
+import InvoicePreviewModal from '@/components/InvoicePreviewModal';
 
 interface PaymentMethod {
   id: string;
@@ -65,6 +66,7 @@ export default function OrderDetailPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [lightboxQr, setLightboxQr] = useState(false);
+  const [showInvoice, setShowInvoice] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login');
@@ -189,7 +191,7 @@ export default function OrderDetailPage() {
             </h1>
             <p className="text-sm text-espresso/50">{formatDateTime(order.createdAt)}</p>
           </div>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-2 flex-wrap justify-end">
             {hasPasabuy
               ? <span className="badge text-xs bg-plum-100 text-plum-700">Personal Shopping</span>
               : <span className="badge text-xs bg-emerald-100 text-emerald-700">On Hand</span>
@@ -197,8 +199,23 @@ export default function OrderDetailPage() {
             <span className={`badge ${getOrderStatusColor(order.status)}`}>
               {getOrderStatusLabel(order.status)}
             </span>
+            <button
+              onClick={() => setShowInvoice(true)}
+              className="flex items-center gap-1.5 text-xs font-medium text-primary-700 hover:text-primary-800 border border-primary-200 hover:bg-primary-50 rounded-full px-3 py-1.5 transition-colors"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Invoice
+            </button>
           </div>
         </div>
+
+        {showInvoice && (
+          <InvoicePreviewModal
+            order={order}
+            orderTypeLabel={hasPasabuy ? 'Personal Shopping' : 'On Hand'}
+            onClose={() => setShowInvoice(false)}
+          />
+        )}
 
         {/* Countdown for pending orders */}
         {order.status === 'PENDING_DEPOSIT' && (
