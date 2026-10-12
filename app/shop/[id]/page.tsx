@@ -178,7 +178,12 @@ export default function ProductDetailPage() {
           {product.category && (
             <>
               <span>/</span>
-              <span>{product.category}</span>
+              <Link
+                href={`/shop?category=${encodeURIComponent(product.category)}`}
+                className="hover:text-primary-700"
+              >
+                {product.category}
+              </Link>
             </>
           )}
           <span>/</span>
