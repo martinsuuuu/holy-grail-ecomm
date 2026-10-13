@@ -6,6 +6,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface Slide {
   image: string;
+  /** Uploaded hero video (≤10s). When set, plays in place of the static
+   *  image while this slide is active; the carousel advances once it ends
+   *  instead of on the usual flat timer. */
+  video?: string;
   eyebrow?: string;
   caption?: string;
   subcaption?: string;
@@ -16,26 +20,47 @@ export interface Slide {
 export default function HeroCarousel({ slides }: { slides: Slide[] }) {
   const router = useRouter();
   const [index, setIndex] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    if (slides.length <= 1) return;
-    timerRef.current = setInterval(() => {
-      setIndex((i) => (i + 1) % slides.length);
-    }, 5000);
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [slides.length]);
-
-  if (slides.length === 0) return null;
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
 
   // `slides` can shrink between renders (e.g. the auto-generated brand
   // carousel swapping for a shorter custom slide list once site config
   // loads) — clamp instead of trusting stale `index` state to stay in range.
-  const safeIndex = index % slides.length;
+  const safeIndex = slides.length ? index % slides.length : 0;
   const goTo = (i: number) => setIndex((i + slides.length) % slides.length);
-  const slide = slides[safeIndex];
+  const activeSlide = slides[safeIndex];
+
+  // Image slides advance on a flat timer; video slides advance when the
+  // video finishes (handled by the onEnded handler below) so every clip
+  // gets to play through instead of being cut off mid-way.
+  useEffect(() => {
+    if (slides.length <= 1 || activeSlide?.video) return;
+    timerRef.current = setTimeout(() => {
+      setIndex((i) => (i + 1) % slides.length);
+    }, 5000);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [safeIndex, slides.length, activeSlide?.video]);
+
+  // Play the active slide's video from the start; pause every other one so
+  // only one clip is ever running (and inactive ones don't fire onEnded).
+  useEffect(() => {
+    slides.forEach((s, i) => {
+      const el = videoRefs.current[i];
+      if (!el) return;
+      if (i === safeIndex && s.video) {
+        el.currentTime = 0;
+        el.play().catch(() => {});
+      } else {
+        el.pause();
+      }
+    });
+  }, [safeIndex, slides]);
+
+  if (slides.length === 0) return null;
+
+  const slide = activeSlide;
   const hasCaption = Boolean(slide.eyebrow || slide.caption || slide.subcaption);
 
   const caption = hasCaption && (
@@ -57,7 +82,7 @@ export default function HeroCarousel({ slides }: { slides: Slide[] }) {
 
   return (
     <>
-      {/* Crossfading slide images */}
+      {/* Crossfading slides — video takes over from the static image when present */}
       {slides.map((s, i) => (
         <div
           key={i}
@@ -65,8 +90,24 @@ export default function HeroCarousel({ slides }: { slides: Slide[] }) {
           className={`absolute inset-0 bg-cover bg-[center_25%] transition-opacity duration-1000 ease-in-out ${
             i === safeIndex ? 'opacity-100' : 'opacity-0'
           }`}
-          style={{ backgroundImage: `url('${s.image}')` }}
-        />
+          style={s.image ? { backgroundImage: `url('${s.image}')` } : undefined}
+        >
+          {s.video && (
+            <video
+              ref={(el) => {
+                videoRefs.current[i] = el;
+              }}
+              src={s.video}
+              muted
+              playsInline
+              loop={slides.length <= 1}
+              onEnded={() => {
+                if (i === safeIndex) goTo(safeIndex + 1);
+              }}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+        </div>
       ))}
 
       {/* Clickable caption for the current slide */}

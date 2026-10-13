@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { upload } from '@vercel/blob/client';
 import {
   Palette, Type, MessageSquare, Layout, Check, RefreshCw, ExternalLink, AlertCircle, ImageUp,
   Megaphone, GalleryHorizontal, ShieldCheck, Search, Grid3x3, LayoutGrid, Sparkles, PanelBottom, Zap, BarChart3,
-  Plus, Trash2, ChevronUp, ChevronDown, RotateCcw, Sparkle, Quote, Star, Film, Briefcase, Mail,
+  Plus, Trash2, ChevronUp, ChevronDown, RotateCcw, Sparkle, Quote, Star, Film, Briefcase, Mail, VideoIcon, Loader2,
 } from 'lucide-react';
 import {
   THEME_PRESETS,
@@ -53,10 +54,31 @@ function readImageFile(file: File, onLoaded: (dataUrl: string) => void, onError:
   reader.readAsDataURL(file);
 }
 
+const MAX_HERO_VIDEO_SECONDS = 10;
+const MAX_HERO_VIDEO_BYTES = 15 * 1024 * 1024;
+
+function getVideoDuration(file: File): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(url);
+      resolve(video.duration);
+    };
+    video.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Could not read that video file.'));
+    };
+    video.src = url;
+  });
+}
+
 function newSlide(): HeroSlide {
   return {
     id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `slide-${Date.now()}-${Math.random()}`,
     image: null,
+    video: null,
     eyebrow: '',
     caption: '',
     subcaption: '',
@@ -72,6 +94,43 @@ export default function SiteEditorPage() {
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [imageError, setImageError] = useState('');
+  const [videoError, setVideoError] = useState('');
+  const [uploadingVideoId, setUploadingVideoId] = useState<string | null>(null);
+
+  const handleHeroVideoUpload = async (slideId: string, file: File) => {
+    setVideoError('');
+    if (!file.type.startsWith('video/')) {
+      setVideoError('Please upload a video file (MP4, WebM, or MOV).');
+      return;
+    }
+    if (file.size > MAX_HERO_VIDEO_BYTES) {
+      setVideoError(`Video is too large (${(file.size / 1_000_000).toFixed(1)} MB). Please use one under ${(MAX_HERO_VIDEO_BYTES / 1_000_000).toFixed(0)} MB.`);
+      return;
+    }
+    try {
+      const duration = await getVideoDuration(file);
+      if (duration > MAX_HERO_VIDEO_SECONDS + 0.5) {
+        setVideoError(`That video is ${duration.toFixed(1)}s long — hero videos can play up to ${MAX_HERO_VIDEO_SECONDS} seconds.`);
+        return;
+      }
+    } catch {
+      setVideoError('Could not read that video file.');
+      return;
+    }
+
+    setUploadingVideoId(slideId);
+    try {
+      const result = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/admin/hero-video/upload',
+      });
+      updateSlide(slideId, { video: result.url });
+    } catch {
+      setVideoError('Upload failed. Please try again.');
+    } finally {
+      setUploadingVideoId(null);
+    }
+  };
   const [tab, setTab] = useState<Tab>('theme');
   const [section, setSection] = useState<SectionId>('announcement');
   const [previewKey, setPreviewKey] = useState(0);
@@ -186,6 +245,7 @@ export default function SiteEditorPage() {
     const seeded: HeroSlide[] = autoSlides.slice(0, MAX_HERO_SLIDES).map((p) => ({
       id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `slide-${Date.now()}-${Math.random()}`,
       image: p.imageUrl,
+      video: null,
       eyebrow: 'Now Featuring',
       caption: p.category,
       subcaption: p.name,
@@ -484,7 +544,7 @@ export default function SiteEditorPage() {
                   <span className="text-[11px] text-stone-400">{config.heroSlides.length}/{MAX_HERO_SLIDES}</span>
                 </div>
                 <p className="text-xs text-stone-400 mb-3">
-                  Leave empty to auto-rotate one photo per brand. Add slides here to take full control — each can have its own image, caption, and link.
+                  Leave empty to auto-rotate one photo per brand. Add slides here to take full control — each can have its own image or video (up to {MAX_HERO_VIDEO_SECONDS}s), caption, and link.
                 </p>
 
                 {config.heroSlides.length === 0 && autoSlides.length > 0 && (
@@ -555,6 +615,44 @@ export default function SiteEditorPage() {
                         </label>
                       )}
 
+                      {slide.video ? (
+                        <div className="relative aspect-[5/2] rounded-xl overflow-hidden border border-stone-200 bg-stone-900">
+                          <video src={slide.video} muted loop autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => updateSlide(slide.id, { video: null })}
+                            className="absolute top-2 right-2 bg-espresso/80 hover:bg-espresso text-cream text-xs px-2.5 py-1 rounded-full"
+                          >
+                            Remove video
+                          </button>
+                        </div>
+                      ) : (
+                        <label className={`flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-stone-200 rounded-xl transition-colors text-center ${
+                          uploadingVideoId === slide.id ? 'opacity-60' : 'cursor-pointer hover:border-primary-300 hover:bg-primary-50/40'
+                        }`}>
+                          {uploadingVideoId === slide.id ? (
+                            <Loader2 className="h-4 w-4 text-stone-400 animate-spin" />
+                          ) : (
+                            <VideoIcon className="h-4 w-4 text-stone-400" />
+                          )}
+                          <span className="text-xs text-stone-500">
+                            {uploadingVideoId === slide.id ? 'Uploading…' : `Upload a video (max ${MAX_HERO_VIDEO_SECONDS}s)`}
+                          </span>
+                          <input
+                            type="file"
+                            accept="video/mp4,video/webm,video/quicktime"
+                            className="hidden"
+                            disabled={uploadingVideoId !== null}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              e.target.value = '';
+                              if (!file) return;
+                              handleHeroVideoUpload(slide.id, file);
+                            }}
+                          />
+                        </label>
+                      )}
+
                       <input
                         type="text"
                         value={slide.eyebrow}
@@ -591,6 +689,12 @@ export default function SiteEditorPage() {
                   <p className="flex items-center gap-1.5 text-xs text-red-700 mt-2">
                     <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
                     {imageError}
+                  </p>
+                )}
+                {videoError && (
+                  <p className="flex items-center gap-1.5 text-xs text-red-700 mt-2">
+                    <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                    {videoError}
                   </p>
                 )}
 

@@ -117,6 +117,9 @@ export const FONT_OPTIONS: FontOption[] = [
 export interface HeroSlide {
   id: string;
   image: string | null;
+  /** Uploaded hero video (Vercel Blob URL), capped at 10 seconds. Takes over
+   *  from `image` when set — `image` still shows while the video loads. */
+  video: string | null;
   eyebrow: string;
   caption: string;
   subcaption: string;

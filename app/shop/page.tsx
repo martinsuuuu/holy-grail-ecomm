@@ -164,9 +164,10 @@ function ShopPageInner() {
   // Custom slides from the site editor take priority; otherwise fall back to
   // one auto-sampled product photo per brand/category.
   const customSlides: Slide[] = siteConfig.heroSlides
-    .filter((s) => s.image)
+    .filter((s) => s.image || s.video)
     .map((s) => ({
-      image: s.image!,
+      image: s.image || '',
+      video: s.video || undefined,
       eyebrow: s.eyebrow || undefined,
       caption: s.caption || undefined,
       subcaption: s.subcaption || undefined,
