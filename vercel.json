@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/cron/expire-orders", "schedule": "0 0 * * *" },
+    { "path": "/api/cron/birthday-reminders", "schedule": "0 1 * * *" }
+  ]
+}

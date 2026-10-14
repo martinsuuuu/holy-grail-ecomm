@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { orders, products, notifications } from '@/db/schema';
 import { eq, and, lt, sql } from 'drizzle-orm';
+import { isUnauthorizedCronRequest } from '@/lib/cronAuth';
 
 export async function GET(request: NextRequest) {
+  if (isUnauthorizedCronRequest(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   // Find all expired PENDING_DEPOSIT orders
   const expiredOrders = await db.query.orders.findMany({
     where: and(

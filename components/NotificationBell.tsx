@@ -77,6 +77,7 @@ export default function NotificationBell() {
       ORDER: 'bg-sky-100 text-sky-700',
       APPOINTMENT: 'bg-plum-100 text-plum-700',
       WARNING: 'bg-amber-100 text-amber-700',
+      BIRTHDAY: 'bg-pink-100 text-pink-700',
       INFO: 'bg-emerald-100 text-emerald-700',
       ERROR: 'bg-red-100 text-red-700',
     };
