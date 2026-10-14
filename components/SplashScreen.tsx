@@ -91,7 +91,7 @@ export default function SplashScreen() {
       </video>
       <canvas
         ref={canvasRef}
-        className="absolute top-36 left-4 sm:top-40 sm:left-6 w-28 h-14 sm:w-40 sm:h-20"
+        className="absolute top-28 left-2 sm:top-32 sm:left-4 w-40 h-20 sm:w-56 sm:h-28"
       />
     </div>
   );
