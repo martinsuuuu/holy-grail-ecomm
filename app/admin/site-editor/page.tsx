@@ -126,6 +126,29 @@ export default function SiteEditorPage() {
       setUploadingVideoId(null);
     }
   };
+
+  // Video Carousel clips aren't capped at a duration (unlike hero slides),
+  // but go through the same admin-only, no-size-limit Blob upload endpoint.
+  const handleVideoCarouselUpload = async (videoId: string, file: File) => {
+    setVideoError('');
+    if (!file.type.startsWith('video/')) {
+      setVideoError('Please upload a video file (MP4, WebM, or MOV).');
+      return;
+    }
+    setUploadingVideoId(videoId);
+    try {
+      const result = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/admin/hero-video/upload',
+      });
+      updateVideo(videoId, { url: result.url });
+    } catch {
+      setVideoError('Upload failed. Please try again.');
+    } finally {
+      setUploadingVideoId(null);
+    }
+  };
+
   const [tab, setTab] = useState<Tab>('theme');
   const [section, setSection] = useState<SectionId>('announcement');
   const [previewKey, setPreviewKey] = useState(0);
@@ -922,7 +945,7 @@ export default function SiteEditorPage() {
                 <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400">Video Carousel</h3>
                 <span className="text-[11px] text-stone-400">{config.videos.length}/{MAX_VIDEOS}</span>
               </div>
-              <p className="text-xs text-stone-400 mb-3">A scrollable row of playable clips, shown between "Shop by Brand" and "By the Numbers". Paste a direct .mp4 URL for each — no upload here since video files are far larger than the image limit.</p>
+              <p className="text-xs text-stone-400 mb-3">A scrollable row of playable clips, shown between "Shop by Brand" and "By the Numbers". Upload a video for each — no size limit.</p>
 
               <div className="space-y-3 mb-3">
                 <div>
@@ -952,16 +975,41 @@ export default function SiteEditorPage() {
                         </button>
                       </div>
                     </div>
-                    {v.url && (
-                      <video src={v.url} className="w-full aspect-[9/16] rounded-xl bg-stone-100 object-cover" preload="metadata" muted />
+                    {v.url ? (
+                      <div className="relative">
+                        <video src={v.url} className="w-full aspect-[9/16] rounded-xl bg-stone-100 object-cover" preload="metadata" muted controls />
+                        <button
+                          type="button"
+                          onClick={() => updateVideo(v.id, { url: '' })}
+                          className="absolute top-2 right-2 bg-espresso/80 hover:bg-espresso text-cream text-xs px-2.5 py-1 rounded-full"
+                        >
+                          Remove video
+                        </button>
+                      </div>
+                    ) : (
+                      <label className={`flex flex-col items-center justify-center gap-1 py-6 border-2 border-dashed border-stone-200 rounded-xl transition-colors text-center ${
+                        uploadingVideoId === v.id ? 'opacity-60' : 'cursor-pointer hover:border-primary-300 hover:bg-primary-50/40'
+                      }`}>
+                        {uploadingVideoId === v.id ? (
+                          <Loader2 className="h-4 w-4 text-stone-400 animate-spin" />
+                        ) : (
+                          <VideoIcon className="h-4 w-4 text-stone-400" />
+                        )}
+                        <span className="text-xs text-stone-500">{uploadingVideoId === v.id ? 'Uploading…' : 'Upload a video'}</span>
+                        <input
+                          type="file"
+                          accept="video/mp4,video/webm,video/quicktime"
+                          className="hidden"
+                          disabled={uploadingVideoId !== null}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            e.target.value = '';
+                            if (!file) return;
+                            handleVideoCarouselUpload(v.id, file);
+                          }}
+                        />
+                      </label>
                     )}
-                    <input
-                      type="text"
-                      value={v.url}
-                      onChange={(e) => updateVideo(v.id, { url: e.target.value })}
-                      placeholder="Direct video URL (.mp4)"
-                      className="input-field text-xs"
-                    />
                     <input
                       type="text"
                       value={v.title}
@@ -979,6 +1027,13 @@ export default function SiteEditorPage() {
                   </div>
                 ))}
               </div>
+
+              {videoError && (
+                <p className="flex items-center gap-1.5 text-xs text-red-700 mt-2">
+                  <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                  {videoError}
+                </p>
+              )}
 
               <button
                 type="button"

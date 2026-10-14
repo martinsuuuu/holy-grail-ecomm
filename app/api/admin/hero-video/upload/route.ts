@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 
+// Shared by both the Hero Carousel and Video Carousel admin editors — nothing
+// here is hero-specific, so both reuse this one route rather than duplicating it.
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as HandleUploadBody;
 
@@ -22,7 +24,7 @@ export async function POST(request: NextRequest) {
       },
       onUploadCompleted: async () => {
         // No server-side bookkeeping needed — the client stores the
-        // returned blob URL directly on the hero slide via the site config.
+        // returned blob URL directly on the slide/video item via the site config.
       },
     });
 
