@@ -4,12 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { formatCurrency } from '@/lib/utils';
 import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import ProductBarcode from '@/components/admin/ProductBarcode';
-import { compressImageToDataUrl, dataUrlBytes } from '@/lib/image';
-
-// Vercel's serverless functions cap the request body around 4.5MB; base64
-// inflates raw bytes by ~4/3, so keep the combined images comfortably under
-// that once encoded, with headroom for the rest of the form fields.
-const MAX_TOTAL_IMAGE_BYTES = 3.2 * 1024 * 1024;
+import { upload } from '@vercel/blob/client';
 
 type ProductType = 'ONHAND' | 'PASABUY';
 
@@ -91,8 +86,8 @@ export default function AdminProductsPage() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
-  const [isCompressingImage, setIsCompressingImage] = useState(false);
-  const [compressingGalleryCount, setCompressingGalleryCount] = useState(0);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadingGalleryCount, setUploadingGalleryCount] = useState(0);
   const [showAddItemType, setShowAddItemType] = useState(false);
   const [newItemType, setNewItemType] = useState('');
   const [itemTypeError, setItemTypeError] = useState('');
@@ -128,23 +123,29 @@ export default function AdminProductsPage() {
 
   const handleImageUpload = async (file: File) => {
     if (!file.type.startsWith('image/')) return;
-    setIsCompressingImage(true);
+    setError('');
+    setIsUploadingImage(true);
     try {
-      const url = await compressImageToDataUrl(file);
-      setFormData(prev => ({ ...prev, imageUrl: url }));
+      const result = await upload(file.name, file, { access: 'public', handleUploadUrl: '/api/admin/image-upload' });
+      setFormData(prev => ({ ...prev, imageUrl: result.url }));
+    } catch {
+      setError('Image upload failed. Please try again.');
     } finally {
-      setIsCompressingImage(false);
+      setIsUploadingImage(false);
     }
   };
 
   const handleGalleryImageUpload = async (file: File) => {
     if (!file.type.startsWith('image/')) return;
-    setCompressingGalleryCount(n => n + 1);
+    setError('');
+    setUploadingGalleryCount(n => n + 1);
     try {
-      const url = await compressImageToDataUrl(file);
-      setFormData(prev => ({ ...prev, images: [...prev.images, url] }));
+      const result = await upload(file.name, file, { access: 'public', handleUploadUrl: '/api/admin/image-upload' });
+      setFormData(prev => ({ ...prev, images: [...prev.images, result.url] }));
+    } catch {
+      setError('Image upload failed. Please try again.');
     } finally {
-      setCompressingGalleryCount(n => n - 1);
+      setUploadingGalleryCount(n => n - 1);
     }
   };
 
@@ -216,14 +217,6 @@ export default function AdminProductsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    const totalImageBytes = (formData.imageUrl ? dataUrlBytes(formData.imageUrl) : 0)
-      + formData.images.reduce((sum, img) => sum + dataUrlBytes(img), 0);
-    if (totalImageBytes > MAX_TOTAL_IMAGE_BYTES) {
-      setError(`These images are too large to save together (${(totalImageBytes / 1024 / 1024).toFixed(1)}MB). Remove a photo or two and try again.`);
-      return;
-    }
-
     setIsSaving(true);
 
     const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
@@ -885,10 +878,10 @@ export default function AdminProductsPage() {
                   className="hidden"
                   onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); e.target.value = ''; }}
                 />
-                {isCompressingImage ? (
+                {isUploadingImage ? (
                   <div className="flex flex-col items-center justify-center h-36 border-2 border-dashed border-stone-200 rounded-xl">
                     <Loader2 className="h-5 w-5 text-primary-500 mb-2 animate-spin" />
-                    <p className="text-sm text-stone-400">Optimizing image…</p>
+                    <p className="text-sm text-stone-400">Uploading image…</p>
                   </div>
                 ) : formData.imageUrl ? (
                   <div className="relative inline-block w-full">
@@ -944,7 +937,7 @@ export default function AdminProductsPage() {
                     e.target.value = '';
                   }}
                 />
-                {(formData.images.length > 0 || compressingGalleryCount > 0) && (
+                {(formData.images.length > 0 || uploadingGalleryCount > 0) && (
                   <div className="grid grid-cols-4 gap-2 mb-2">
                     {formData.images.map((url, i) => (
                       <div key={i} className="relative aspect-square">
@@ -958,8 +951,8 @@ export default function AdminProductsPage() {
                         </button>
                       </div>
                     ))}
-                    {Array.from({ length: compressingGalleryCount }).map((_, i) => (
-                      <div key={`compressing-${i}`} className="aspect-square rounded-lg border border-stone-200 bg-stone-50 flex items-center justify-center">
+                    {Array.from({ length: uploadingGalleryCount }).map((_, i) => (
+                      <div key={`uploading-${i}`} className="aspect-square rounded-lg border border-stone-200 bg-stone-50 flex items-center justify-center">
                         <Loader2 className="h-4 w-4 text-primary-500 animate-spin" />
                       </div>
                     ))}
@@ -975,8 +968,8 @@ export default function AdminProductsPage() {
               </div>
               </div>
               <div className="flex gap-3 p-6 pt-4 border-t border-stone-100 flex-shrink-0">
-                <button type="submit" disabled={isSaving || isCompressingImage || compressingGalleryCount > 0} className="btn-primary flex-1">
-                  {isSaving ? 'Saving...' : isCompressingImage || compressingGalleryCount > 0 ? 'Optimizing image…' : editingProduct ? 'Save Changes' : 'Create Product'}
+                <button type="submit" disabled={isSaving || isUploadingImage || uploadingGalleryCount > 0} className="btn-primary flex-1">
+                  {isSaving ? 'Saving...' : isUploadingImage || uploadingGalleryCount > 0 ? 'Uploading image…' : editingProduct ? 'Save Changes' : 'Create Product'}
                 </button>
                 <button
                   type="button"
