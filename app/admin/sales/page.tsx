@@ -2,225 +2,361 @@
 
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '@/lib/utils';
-import { BarChart3, TrendingUp, DollarSign, ShoppingBag, Package } from 'lucide-react';
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
-interface SalesData {
-  date: string;
-  revenue: number;
-  orders: number;
-  items: number;
+interface Metric {
+  current: number;
+  previous: number;
+  growthPct: number | null;
 }
 
-interface SalesSummary {
-  totalRevenue: number;
-  totalOrders: number;
-  totalExpenses: number;
-  netProfit: number;
+interface GroupRow {
+  unitsSold: number;
+  totalSales: number;
+  grossProfit: number;
+  netSales: number;
 }
 
-// Fixed (not random) so server and client render identical markup — a
-// randomized loading skeleton causes a hydration mismatch since the server
-// and client each compute their own random values independently.
-const SKELETON_BAR_HEIGHTS = [45, 70, 35, 85, 55, 40, 75, 60];
+interface SalesReport {
+  month: string;
+  monthLabel: string;
+  summary: {
+    grossSales: Metric;
+    netSales: Metric;
+    totalOrders: Metric;
+    unitsSold: Metric;
+    avgOrderValue: Metric;
+    grossProfit: Metric;
+    newCustomers: Metric;
+  };
+  dailySales: Array<{
+    date: string;
+    orders: number;
+    unitsSold: number;
+    grossSales: number;
+    discounts: number;
+    refunds: number;
+    netSales: number;
+  }>;
+  salesByBrand: Array<GroupRow & { brand: string }>;
+  salesByCategory: Array<GroupRow & { category: string }>;
+  websiteTraffic: {
+    totalSessions: number | null;
+    productPageViews: number | null;
+    addedToCart: number | null;
+    reachedCheckout: number | null;
+    completedPurchases: number;
+    conversionRate: number | null;
+    cartAbandonmentRate: number | null;
+  };
+  inventoryPerformance: Array<{
+    category: string;
+    availableUnits: number;
+    unitsSold: number;
+    salesRevenue: number;
+    sellThroughRate: number;
+  }>;
+}
+
+function GrowthBadge({ pct }: { pct: number | null }) {
+  if (pct === null) {
+    return <span className="text-xs text-stone-400">New</span>;
+  }
+  const isFlat = Math.abs(pct) < 0.05;
+  const Icon = isFlat ? Minus : pct > 0 ? TrendingUp : TrendingDown;
+  const color = isFlat ? 'text-stone-400' : pct > 0 ? 'text-emerald-600' : 'text-red-600';
+  return (
+    <span className={`inline-flex items-center gap-1 text-xs font-medium ${color}`}>
+      <Icon className="h-3 w-3" />
+      {pct > 0 ? '+' : ''}{pct.toFixed(1)}%
+    </span>
+  );
+}
+
+function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 overflow-hidden mb-6">
+      <div className="px-5 py-3 border-b border-stone-100">
+        <h2 className="font-display font-semibold text-espresso text-sm">{title}</h2>
+      </div>
+      <div className="overflow-x-auto">{children}</div>
+    </div>
+  );
+}
+
+const th = 'text-left px-5 py-2.5 text-[11px] font-semibold text-stone-500 uppercase tracking-wide whitespace-nowrap';
+const thRight = 'text-right px-5 py-2.5 text-[11px] font-semibold text-stone-500 uppercase tracking-wide whitespace-nowrap';
+const td = 'px-5 py-2.5 text-sm text-espresso whitespace-nowrap';
+const tdRight = 'px-5 py-2.5 text-sm text-espresso text-right whitespace-nowrap';
 
 export default function AdminSalesPage() {
-  const [period, setPeriod] = useState('monthly');
-  const [salesData, setSalesData] = useState<SalesData[]>([]);
-  const [summary, setSummary] = useState<SalesSummary | null>(null);
+  const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [report, setReport] = useState<SalesReport | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsLoading(true);
-    fetch(`/api/admin/sales?period=${period}`)
-      .then(res => res.json())
-      .then(data => {
-        setSalesData(data.salesData);
-        setSummary(data.summary);
+    fetch(`/api/admin/sales?month=${month}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setReport(data);
         setIsLoading(false);
       });
-  }, [period]);
+  }, [month]);
 
-  const maxRevenue = salesData.length > 0 ? Math.max(...salesData.map(d => d.revenue)) : 1;
+  const shiftMonth = (delta: number) => {
+    const [y, m] = month.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    setMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  };
+
+  const kpiRows = report
+    ? ([
+        ['Gross Sales', report.summary.grossSales, formatCurrency],
+        ['Net Sales', report.summary.netSales, formatCurrency],
+        ['Total Orders / Transaction Count', report.summary.totalOrders, (n: number) => n.toString()],
+        ['Units Sold', report.summary.unitsSold, (n: number) => n.toString()],
+        ['Average Order Value', report.summary.avgOrderValue, formatCurrency],
+        ['Gross Profit', report.summary.grossProfit, formatCurrency],
+        ['New Customer Sign-ups', report.summary.newCustomers, (n: number) => n.toString()],
+      ] as const)
+    : [];
 
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-display font-bold text-espresso">Sales Summary</h1>
-          <p className="text-stone-500 text-sm mt-1">Revenue and performance overview</p>
+          <p className="text-stone-500 text-sm mt-1">Monthly performance report</p>
         </div>
-        <div className="flex gap-2">
-          {['daily', 'weekly', 'monthly'].map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium capitalize transition-colors ${
-                period === p ? 'bg-primary-600 text-espresso' : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
-              }`}
-            >
-              {p}
-            </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => shiftMonth(-1)} className="p-2 rounded-xl border border-stone-200 hover:bg-stone-50 text-stone-500">
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <span className="text-sm font-semibold text-espresso w-36 text-center">
+            {report?.monthLabel || '—'}
+          </span>
+          <button onClick={() => shiftMonth(1)} className="p-2 rounded-xl border border-stone-200 hover:bg-stone-50 text-stone-500">
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {isLoading || !report ? (
+        <div className="space-y-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-40 bg-stone-100 rounded-2xl animate-pulse" />
           ))}
         </div>
-      </div>
+      ) : (
+        <>
+          {/* 1. Sales Summary */}
+          <SectionCard title="1. Sales Summary">
+            <table className="w-full">
+              <thead className="bg-stone-50">
+                <tr>
+                  <th className={th}>Key Performance Indicator</th>
+                  <th className={thRight}>Current Month</th>
+                  <th className={thRight}>Previous Month</th>
+                  <th className={thRight}>Growth %</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {kpiRows.map(([label, metric, fmt]) => (
+                  <tr key={label} className="hover:bg-stone-50/60">
+                    <td className={td}>{label}</td>
+                    <td className={tdRight + ' font-semibold'}>{fmt(metric.current)}</td>
+                    <td className={tdRight + ' text-espresso/50'}>{fmt(metric.previous)}</td>
+                    <td className="px-5 py-2.5 text-right"><GrowthBadge pct={metric.growthPct} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </SectionCard>
 
-      {/* Summary Stats */}
-      {summary && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[
-            {
-              label: 'Total Revenue',
-              value: formatCurrency(summary.totalRevenue),
-              icon: DollarSign,
-              color: 'text-emerald-600',
-              bg: 'bg-emerald-50',
-            },
-            {
-              label: 'Total Orders',
-              value: summary.totalOrders.toString(),
-              icon: ShoppingBag,
-              color: 'text-sky-600',
-              bg: 'bg-sky-50',
-            },
-            {
-              label: 'Total Expenses',
-              value: formatCurrency(summary.totalExpenses),
-              icon: TrendingUp,
-              color: 'text-red-600',
-              bg: 'bg-red-50',
-            },
-            {
-              label: 'Net Profit',
-              value: formatCurrency(summary.netProfit),
-              icon: BarChart3,
-              color: summary.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600',
-              bg: summary.netProfit >= 0 ? 'bg-emerald-50' : 'bg-red-50',
-            },
-          ].map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div key={stat.label} className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6">
-                <div className={`w-10 h-10 ${stat.bg} rounded-xl flex items-center justify-center mb-3`}>
-                  <Icon className={`h-5 w-5 ${stat.color}`} />
-                </div>
-                <p className="text-2xl font-bold text-espresso">{stat.value}</p>
-                <p className="text-sm text-stone-500 mt-1">{stat.label}</p>
-              </div>
-            );
-          })}
-        </div>
-      )}
+          {/* 2. Daily Sales Monitoring */}
+          <SectionCard title="2. Daily Website Sales Monitoring">
+            <table className="w-full">
+              <thead className="bg-stone-50">
+                <tr>
+                  <th className={th}>Date</th>
+                  <th className={thRight}>Orders</th>
+                  <th className={thRight}>Units Sold</th>
+                  <th className={thRight}>Gross Sales</th>
+                  <th className={thRight}>Discounts</th>
+                  <th className={thRight}>Refunds</th>
+                  <th className={thRight}>Net Sales</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {report.dailySales.map((d) => (
+                  <tr key={d.date} className="hover:bg-stone-50/60">
+                    <td className={td}>{d.date}</td>
+                    <td className={tdRight}>{d.orders}</td>
+                    <td className={tdRight}>{d.unitsSold}</td>
+                    <td className={tdRight}>{formatCurrency(d.grossSales)}</td>
+                    <td className={tdRight}>{formatCurrency(d.discounts)}</td>
+                    <td className={tdRight}>{formatCurrency(d.refunds)}</td>
+                    <td className={tdRight + ' font-semibold'}>{formatCurrency(d.netSales)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-stone-50 border-t border-stone-200">
+                <tr>
+                  <td className={td + ' font-semibold'}>TOTAL</td>
+                  <td className={tdRight + ' font-semibold'}>{report.dailySales.reduce((s, d) => s + d.orders, 0)}</td>
+                  <td className={tdRight + ' font-semibold'}>{report.dailySales.reduce((s, d) => s + d.unitsSold, 0)}</td>
+                  <td className={tdRight + ' font-semibold'}>{formatCurrency(report.dailySales.reduce((s, d) => s + d.grossSales, 0))}</td>
+                  <td className={tdRight + ' font-semibold'}>{formatCurrency(report.dailySales.reduce((s, d) => s + d.discounts, 0))}</td>
+                  <td className={tdRight + ' font-semibold'}>{formatCurrency(report.dailySales.reduce((s, d) => s + d.refunds, 0))}</td>
+                  <td className={tdRight + ' font-bold text-primary-700'}>{formatCurrency(report.dailySales.reduce((s, d) => s + d.netSales, 0))}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </SectionCard>
 
-      {/* Bar Chart */}
-      <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6 mb-6">
-        <h2 className="font-display font-semibold text-espresso mb-6 flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-primary-600" />
-          Revenue Chart ({period.charAt(0).toUpperCase() + period.slice(1)})
-        </h2>
+          {/* 3. Sales by Brand */}
+          <SectionCard title="3. Sales by Luxury Brand">
+            <table className="w-full">
+              <thead className="bg-stone-50">
+                <tr>
+                  <th className={th}>Brand</th>
+                  <th className={thRight}>Units Sold</th>
+                  <th className={thRight}>Total Sales</th>
+                  <th className={thRight}>Gross Profit</th>
+                  <th className={thRight}>Net Sales</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {report.salesByBrand.length === 0 ? (
+                  <tr><td colSpan={5} className="px-5 py-8 text-center text-sm text-stone-400">No sales this month</td></tr>
+                ) : report.salesByBrand.map((b) => (
+                  <tr key={b.brand} className="hover:bg-stone-50/60">
+                    <td className={td}>{b.brand}</td>
+                    <td className={tdRight}>{b.unitsSold}</td>
+                    <td className={tdRight}>{formatCurrency(b.totalSales)}</td>
+                    <td className={tdRight}>{formatCurrency(b.grossProfit)}</td>
+                    <td className={tdRight + ' font-semibold'}>{formatCurrency(b.netSales)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              {report.salesByBrand.length > 0 && (
+                <tfoot className="bg-stone-50 border-t border-stone-200">
+                  <tr>
+                    <td className={td + ' font-semibold'}>Total</td>
+                    <td className={tdRight + ' font-semibold'}>{report.salesByBrand.reduce((s, b) => s + b.unitsSold, 0)}</td>
+                    <td className={tdRight + ' font-semibold'}>{formatCurrency(report.salesByBrand.reduce((s, b) => s + b.totalSales, 0))}</td>
+                    <td className={tdRight + ' font-semibold'}>{formatCurrency(report.salesByBrand.reduce((s, b) => s + b.grossProfit, 0))}</td>
+                    <td className={tdRight + ' font-bold text-primary-700'}>{formatCurrency(report.salesByBrand.reduce((s, b) => s + b.netSales, 0))}</td>
+                  </tr>
+                </tfoot>
+              )}
+            </table>
+          </SectionCard>
 
-        {isLoading ? (
-          <div className="flex items-end gap-2 h-48">
-            {SKELETON_BAR_HEIGHTS.map((h, i) => (
-              <div key={i} className="flex-1 bg-stone-200 rounded-t animate-pulse" style={{ height: `${h}%` }} />
-            ))}
-          </div>
-        ) : salesData.length === 0 ? (
-          <div className="h-48 flex items-center justify-center text-stone-400">
-            <div className="text-center">
-              <BarChart3 className="h-8 w-8 mx-auto mb-2 text-stone-300" />
-              <p className="text-sm">No sales data for this period</p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-end gap-1 h-48 overflow-x-auto">
-            {salesData.map((data, index) => {
-              const height = maxRevenue > 0 ? (data.revenue / maxRevenue) * 100 : 0;
-              return (
-                <div key={index} className="flex flex-col items-center gap-1 flex-1 min-w-12 h-full group relative">
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-espresso text-cream text-xs rounded-xl px-2 py-1.5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                    <p className="font-medium">{data.date}</p>
-                    <p>Revenue: {formatCurrency(data.revenue)}</p>
-                    <p>Orders: {data.orders}</p>
-                  </div>
-                  {/* This inner cell is what gives the bar below a definite
-                      height to compute its percentage against — a flex
-                      column's auto-sized children can't resolve a % height
-                      on their own. */}
-                  <div className="w-full flex-1 flex items-end">
-                    <div
-                      className="w-full bg-primary-500 hover:bg-primary-600 rounded-t transition-all cursor-pointer"
-                      style={{ height: `${Math.max(height, 2)}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-stone-400 w-full text-center truncate">{data.date}</p>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+          {/* 4. Sales by Category */}
+          <SectionCard title="4. Sales by Category">
+            <table className="w-full">
+              <thead className="bg-stone-50">
+                <tr>
+                  <th className={th}>Category</th>
+                  <th className={thRight}>Units Sold</th>
+                  <th className={thRight}>Total Sales</th>
+                  <th className={thRight}>Gross Profit</th>
+                  <th className={thRight}>Net Sales</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {report.salesByCategory.length === 0 ? (
+                  <tr><td colSpan={5} className="px-5 py-8 text-center text-sm text-stone-400">No sales this month</td></tr>
+                ) : report.salesByCategory.map((c) => (
+                  <tr key={c.category} className="hover:bg-stone-50/60">
+                    <td className={td}>{c.category}</td>
+                    <td className={tdRight}>{c.unitsSold}</td>
+                    <td className={tdRight}>{formatCurrency(c.totalSales)}</td>
+                    <td className={tdRight}>{formatCurrency(c.grossProfit)}</td>
+                    <td className={tdRight + ' font-semibold'}>{formatCurrency(c.netSales)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              {report.salesByCategory.length > 0 && (
+                <tfoot className="bg-stone-50 border-t border-stone-200">
+                  <tr>
+                    <td className={td + ' font-semibold'}>Total</td>
+                    <td className={tdRight + ' font-semibold'}>{report.salesByCategory.reduce((s, c) => s + c.unitsSold, 0)}</td>
+                    <td className={tdRight + ' font-semibold'}>{formatCurrency(report.salesByCategory.reduce((s, c) => s + c.totalSales, 0))}</td>
+                    <td className={tdRight + ' font-semibold'}>{formatCurrency(report.salesByCategory.reduce((s, c) => s + c.grossProfit, 0))}</td>
+                    <td className={tdRight + ' font-bold text-primary-700'}>{formatCurrency(report.salesByCategory.reduce((s, c) => s + c.netSales, 0))}</td>
+                  </tr>
+                </tfoot>
+              )}
+            </table>
+          </SectionCard>
 
-      {/* Data Table */}
-      <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 overflow-hidden">
-        <div className="p-4 border-b border-stone-100">
-          <h2 className="font-display font-semibold text-espresso">Sales Breakdown</h2>
-        </div>
-        <table className="w-full">
-          <thead className="bg-stone-50 border-b border-stone-200">
-            <tr>
-              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Period</th>
-              <th className="text-right px-6 py-3 text-xs font-medium text-stone-500 uppercase">Orders</th>
-              <th className="text-right px-6 py-3 text-xs font-medium text-stone-500 uppercase">Items Sold</th>
-              <th className="text-right px-6 py-3 text-xs font-medium text-stone-500 uppercase">Revenue</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-stone-100">
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i}>
-                  {Array.from({ length: 4 }).map((_, j) => (
-                    <td key={j} className="px-6 py-4">
-                      <div className="h-4 bg-stone-200 rounded animate-pulse" />
+          {/* 5. Website Traffic & Conversion */}
+          <SectionCard title="5. Website Traffic & Conversion">
+            <table className="w-full">
+              <thead className="bg-stone-50">
+                <tr>
+                  <th className={th}>Metric</th>
+                  <th className={thRight}>Result</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {[
+                  ['Total Website Sessions', report.websiteTraffic.totalSessions],
+                  ['Product Page Views', report.websiteTraffic.productPageViews],
+                  ['Added to Cart', report.websiteTraffic.addedToCart],
+                  ['Reached Checkout', report.websiteTraffic.reachedCheckout],
+                  ['Completed Purchases', report.websiteTraffic.completedPurchases],
+                  ['Website Conversion Rate', report.websiteTraffic.conversionRate],
+                  ['Cart Abandonment Rate', report.websiteTraffic.cartAbandonmentRate],
+                ].map(([label, value]) => (
+                  <tr key={label as string} className="hover:bg-stone-50/60">
+                    <td className={td}>{label}</td>
+                    <td className={tdRight}>
+                      {value === null ? (
+                        <span className="text-stone-400 italic text-xs">Not tracked yet</span>
+                      ) : (
+                        value
+                      )}
                     </td>
-                  ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="px-5 py-3 text-xs text-stone-400 border-t border-stone-100">
+              Session/pageview/cart analytics aren&apos;t instrumented on the storefront yet — only completed purchases are real data here.
+            </p>
+          </SectionCard>
+
+          {/* 6. Inventory & Product Performance */}
+          <SectionCard title="6. Inventory & Product Performance">
+            <table className="w-full">
+              <thead className="bg-stone-50">
+                <tr>
+                  <th className={th}>Category</th>
+                  <th className={thRight}>Available Units</th>
+                  <th className={thRight}>Units Sold</th>
+                  <th className={thRight}>Sales Revenue</th>
+                  <th className={thRight}>Sell-through Rate</th>
                 </tr>
-              ))
-            ) : salesData.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-6 py-12 text-center text-stone-500 text-sm">
-                  No sales data for this period
-                </td>
-              </tr>
-            ) : (
-              [...salesData].reverse().map((data, index) => (
-                <tr key={index} className="hover:bg-stone-50/60">
-                  <td className="px-6 py-4 font-medium text-sm text-espresso">{data.date}</td>
-                  <td className="px-6 py-4 text-right text-sm text-stone-600">{data.orders}</td>
-                  <td className="px-6 py-4 text-right text-sm text-stone-600">{data.items}</td>
-                  <td className="px-6 py-4 text-right font-bold text-sm text-primary-700">
-                    {formatCurrency(data.revenue)}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-          {!isLoading && salesData.length > 0 && summary && (
-            <tfoot className="bg-stone-50 border-t border-stone-200">
-              <tr>
-                <td className="px-6 py-3 font-semibold text-sm text-stone-700">Total</td>
-                <td className="px-6 py-3 text-right font-semibold text-sm text-stone-700">{summary.totalOrders}</td>
-                <td className="px-6 py-3 text-right font-semibold text-sm text-stone-700">
-                  {salesData.reduce((sum, d) => sum + d.items, 0)}
-                </td>
-                <td className="px-6 py-3 text-right font-bold text-sm text-primary-700">
-                  {formatCurrency(summary.totalRevenue)}
-                </td>
-              </tr>
-            </tfoot>
-          )}
-        </table>
-      </div>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {report.inventoryPerformance.map((row) => (
+                  <tr key={row.category} className="hover:bg-stone-50/60">
+                    <td className={td}>{row.category}</td>
+                    <td className={tdRight}>{row.availableUnits}</td>
+                    <td className={tdRight}>{row.unitsSold}</td>
+                    <td className={tdRight}>{formatCurrency(row.salesRevenue)}</td>
+                    <td className={tdRight}>{row.sellThroughRate.toFixed(1)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </SectionCard>
+        </>
+      )}
     </div>
   );
 }
