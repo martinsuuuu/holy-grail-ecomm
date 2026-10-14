@@ -374,11 +374,6 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   footerTagline: 'Sign up to receive exclusive content and updates on new arrivals.',
 };
 
-/** Max accepted upload size per image, in bytes. Kept small since images are
- *  stored inline as base64 data URLs in site_config, which is fetched on
- *  every page (footer/announcement bar included). */
-export const MAX_IMAGE_BYTES = 900_000;
-
 /** Hard cap on the number of custom hero slides an admin can add, so the
  *  site_config payload (fetched on every page load) can't grow unbounded. */
 export const MAX_HERO_SLIDES = 6;

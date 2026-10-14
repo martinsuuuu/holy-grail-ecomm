@@ -11,7 +11,6 @@ import {
   THEME_PRESETS,
   FONT_OPTIONS,
   DEFAULT_SITE_CONFIG,
-  MAX_IMAGE_BYTES,
   MAX_HERO_SLIDES,
   MAX_TESTIMONIALS,
   MAX_VIDEOS,
@@ -43,15 +42,23 @@ const CONTENT_SECTIONS: { id: SectionId; label: string; icon: typeof Megaphone }
   { id: 'footer', label: 'Footer', icon: PanelBottom },
 ];
 
-function readImageFile(file: File, onLoaded: (dataUrl: string) => void, onError: (msg: string) => void) {
-  if (file.size > MAX_IMAGE_BYTES) {
-    onError(`Image is too large (${(file.size / 1_000_000).toFixed(1)} MB). Please use one under ${(MAX_IMAGE_BYTES / 1_000_000).toFixed(1)} MB.`);
+async function uploadImageFile(file: File, onLoaded: (url: string) => void, onError: (msg: string) => void, setUploading: (v: boolean) => void) {
+  if (!file.type.startsWith('image/')) {
+    onError('Please upload an image file (JPG, PNG, WebP, GIF, or SVG).');
     return;
   }
-  const reader = new FileReader();
-  reader.onload = () => onLoaded(reader.result as string);
-  reader.onerror = () => onError('Could not read that file — please try a different image.');
-  reader.readAsDataURL(file);
+  setUploading(true);
+  try {
+    const result = await upload(file.name, file, {
+      access: 'public',
+      handleUploadUrl: '/api/admin/image-upload',
+    });
+    onLoaded(result.url);
+  } catch {
+    onError('Upload failed. Please try again.');
+  } finally {
+    setUploading(false);
+  }
 }
 
 const MAX_HERO_VIDEO_SECONDS = 10;
@@ -95,6 +102,7 @@ export default function SiteEditorPage() {
   const [imageError, setImageError] = useState('');
   const [videoError, setVideoError] = useState('');
   const [uploadingVideoId, setUploadingVideoId] = useState<string | null>(null);
+  const [uploadingImageKey, setUploadingImageKey] = useState<string | null>(null);
 
   const handleHeroVideoUpload = async (slideId: string, file: File) => {
     setVideoError('');
@@ -615,19 +623,27 @@ export default function SiteEditorPage() {
                           </button>
                         </div>
                       ) : (
-                        <label className="flex flex-col items-center justify-center gap-1 aspect-[5/2] border-2 border-dashed border-stone-200 rounded-xl cursor-pointer hover:border-primary-300 hover:bg-primary-50/40 transition-colors text-center">
-                          <ImageUp className="h-4 w-4 text-stone-400" />
-                          <span className="text-xs text-stone-500">Upload an image</span>
+                        <label className={`flex flex-col items-center justify-center gap-1 aspect-[5/2] border-2 border-dashed border-stone-200 rounded-xl transition-colors text-center ${
+                          uploadingImageKey === `slide-${slide.id}` ? 'opacity-60' : 'cursor-pointer hover:border-primary-300 hover:bg-primary-50/40'
+                        }`}>
+                          {uploadingImageKey === `slide-${slide.id}` ? (
+                            <Loader2 className="h-4 w-4 text-stone-400 animate-spin" />
+                          ) : (
+                            <ImageUp className="h-4 w-4 text-stone-400" />
+                          )}
+                          <span className="text-xs text-stone-500">{uploadingImageKey === `slide-${slide.id}` ? 'Uploading…' : 'Upload an image'}</span>
                           <input
                             type="file"
                             accept="image/*"
                             className="hidden"
+                            disabled={uploadingImageKey !== null}
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               e.target.value = '';
                               if (!file) return;
                               setImageError('');
-                              readImageFile(file, (url) => updateSlide(slide.id, { image: url }), setImageError);
+                              const key = `slide-${slide.id}`;
+                              uploadImageFile(file, (url) => updateSlide(slide.id, { image: url }), setImageError, (v) => setUploadingImageKey(v ? key : null));
                             }}
                           />
                         </label>
@@ -811,19 +827,26 @@ export default function SiteEditorPage() {
                     <img src={config.sourcingImage} alt="Sourcing preview" className="w-full h-32 object-cover" />
                   </div>
                   <div className="flex gap-2">
-                    <label className="flex-1 flex items-center justify-center gap-1.5 border-2 border-dashed border-stone-200 rounded-xl py-2.5 cursor-pointer hover:border-primary-300 hover:bg-primary-50/40 transition-colors text-center">
-                      <ImageUp className="h-4 w-4 text-stone-400" />
-                      <span className="text-xs text-stone-500">Change image</span>
+                    <label className={`flex-1 flex items-center justify-center gap-1.5 border-2 border-dashed border-stone-200 rounded-xl py-2.5 transition-colors text-center ${
+                      uploadingImageKey === 'sourcing' ? 'opacity-60' : 'cursor-pointer hover:border-primary-300 hover:bg-primary-50/40'
+                    }`}>
+                      {uploadingImageKey === 'sourcing' ? (
+                        <Loader2 className="h-4 w-4 text-stone-400 animate-spin" />
+                      ) : (
+                        <ImageUp className="h-4 w-4 text-stone-400" />
+                      )}
+                      <span className="text-xs text-stone-500">{uploadingImageKey === 'sourcing' ? 'Uploading…' : 'Change image'}</span>
                       <input
                         type="file"
                         accept="image/*"
                         className="hidden"
+                        disabled={uploadingImageKey !== null}
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           e.target.value = '';
                           if (!file) return;
                           setImageError('');
-                          readImageFile(file, (url) => update('sourcingImage', url), setImageError);
+                          uploadImageFile(file, (url) => update('sourcingImage', url), setImageError, (v) => setUploadingImageKey(v ? 'sourcing' : null));
                         }}
                       />
                     </label>
@@ -872,18 +895,27 @@ export default function SiteEditorPage() {
                         </div>
                       )}
                       <div className="flex gap-1.5">
-                        <label className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg border border-stone-200 cursor-pointer hover:border-primary-300 hover:bg-primary-50/40 transition-colors text-[11px] text-espresso/70">
-                          <ImageUp className="h-3 w-3" /> {custom ? 'Replace' : 'Upload'}
+                        <label className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg border border-stone-200 transition-colors text-[11px] text-espresso/70 ${
+                          uploadingImageKey === `category-${type}` ? 'opacity-60' : 'cursor-pointer hover:border-primary-300 hover:bg-primary-50/40'
+                        }`}>
+                          {uploadingImageKey === `category-${type}` ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <ImageUp className="h-3 w-3" />
+                          )}
+                          {uploadingImageKey === `category-${type}` ? 'Uploading…' : custom ? 'Replace' : 'Upload'}
                           <input
                             type="file"
                             accept="image/*"
                             className="hidden"
+                            disabled={uploadingImageKey !== null}
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               e.target.value = '';
                               if (!file) return;
                               setImageError('');
-                              readImageFile(file, (url) => setCategoryImage(type, url), setImageError);
+                              const key = `category-${type}`;
+                              uploadImageFile(file, (url) => setCategoryImage(type, url), setImageError, (v) => setUploadingImageKey(v ? key : null));
                             }}
                           />
                         </label>
@@ -1125,19 +1157,27 @@ export default function SiteEditorPage() {
                         </button>
                       </div>
                     ) : (
-                      <label className="flex flex-col items-center justify-center gap-1 aspect-[4/3] border-2 border-dashed border-stone-200 rounded-xl cursor-pointer hover:border-primary-300 hover:bg-primary-50/40 transition-colors text-center">
-                        <ImageUp className="h-4 w-4 text-stone-400" />
-                        <span className="text-xs text-stone-500">Upload product photo</span>
+                      <label className={`flex flex-col items-center justify-center gap-1 aspect-[4/3] border-2 border-dashed border-stone-200 rounded-xl transition-colors text-center ${
+                        uploadingImageKey === `testimonial-${t.id}` ? 'opacity-60' : 'cursor-pointer hover:border-primary-300 hover:bg-primary-50/40'
+                      }`}>
+                        {uploadingImageKey === `testimonial-${t.id}` ? (
+                          <Loader2 className="h-4 w-4 text-stone-400 animate-spin" />
+                        ) : (
+                          <ImageUp className="h-4 w-4 text-stone-400" />
+                        )}
+                        <span className="text-xs text-stone-500">{uploadingImageKey === `testimonial-${t.id}` ? 'Uploading…' : 'Upload product photo'}</span>
                         <input
                           type="file"
                           accept="image/*"
                           className="hidden"
+                          disabled={uploadingImageKey !== null}
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             e.target.value = '';
                             if (!file) return;
                             setImageError('');
-                            readImageFile(file, (url) => updateTestimonial(t.id, { image: url }), setImageError);
+                            const key = `testimonial-${t.id}`;
+                            uploadImageFile(file, (url) => updateTestimonial(t.id, { image: url }), setImageError, (v) => setUploadingImageKey(v ? key : null));
                           }}
                         />
                       </label>
