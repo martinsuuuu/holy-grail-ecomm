@@ -55,7 +55,6 @@ function readImageFile(file: File, onLoaded: (dataUrl: string) => void, onError:
 }
 
 const MAX_HERO_VIDEO_SECONDS = 10;
-const MAX_HERO_VIDEO_BYTES = 15 * 1024 * 1024;
 
 function getVideoDuration(file: File): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -101,10 +100,6 @@ export default function SiteEditorPage() {
     setVideoError('');
     if (!file.type.startsWith('video/')) {
       setVideoError('Please upload a video file (MP4, WebM, or MOV).');
-      return;
-    }
-    if (file.size > MAX_HERO_VIDEO_BYTES) {
-      setVideoError(`Video is too large (${(file.size / 1_000_000).toFixed(1)} MB). Please use one under ${(MAX_HERO_VIDEO_BYTES / 1_000_000).toFixed(0)} MB.`);
       return;
     }
     try {
