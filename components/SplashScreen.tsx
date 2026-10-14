@@ -74,7 +74,7 @@ export default function SplashScreen() {
       onTransitionEnd={() => {
         if (!visible) setMounted(false);
       }}
-      className={`fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-500 ${
+      className={`fixed inset-0 z-[100] transition-opacity duration-500 ${
         visible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
     >
@@ -89,7 +89,10 @@ export default function SplashScreen() {
       >
         <source src="/HG-Logo-Circle.mp4" type="video/mp4" />
       </video>
-      <canvas ref={canvasRef} className="w-80 h-40 sm:w-96 sm:h-48" />
+      <canvas
+        ref={canvasRef}
+        className="absolute top-36 left-4 sm:top-40 sm:left-6 w-28 h-14 sm:w-40 sm:h-20"
+      />
     </div>
   );
 }
