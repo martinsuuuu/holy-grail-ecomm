@@ -61,25 +61,6 @@ async function uploadImageFile(file: File, onLoaded: (url: string) => void, onEr
   }
 }
 
-const MAX_HERO_VIDEO_SECONDS = 10;
-
-function getVideoDuration(file: File): Promise<number> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const video = document.createElement('video');
-    video.preload = 'metadata';
-    video.onloadedmetadata = () => {
-      URL.revokeObjectURL(url);
-      resolve(video.duration);
-    };
-    video.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Could not read that video file.'));
-    };
-    video.src = url;
-  });
-}
-
 function newSlide(): HeroSlide {
   return {
     id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `slide-${Date.now()}-${Math.random()}`,
@@ -110,17 +91,6 @@ export default function SiteEditorPage() {
       setVideoError('Please upload a video file (MP4, WebM, or MOV).');
       return;
     }
-    try {
-      const duration = await getVideoDuration(file);
-      if (duration > MAX_HERO_VIDEO_SECONDS + 0.5) {
-        setVideoError(`That video is ${duration.toFixed(1)}s long — hero videos can play up to ${MAX_HERO_VIDEO_SECONDS} seconds.`);
-        return;
-      }
-    } catch {
-      setVideoError('Could not read that video file.');
-      return;
-    }
-
     setUploadingVideoId(slideId);
     try {
       const result = await upload(file.name, file, {
@@ -570,7 +540,7 @@ export default function SiteEditorPage() {
                   <span className="text-[11px] text-stone-400">{config.heroSlides.length}/{MAX_HERO_SLIDES}</span>
                 </div>
                 <p className="text-xs text-stone-400 mb-3">
-                  Leave empty to auto-rotate one photo per brand. Add slides here to take full control — each can have its own image or video (up to {MAX_HERO_VIDEO_SECONDS}s), caption, and link.
+                  Leave empty to auto-rotate one photo per brand. Add slides here to take full control — each can have its own image or video, caption, and link.
                 </p>
 
                 {config.heroSlides.length === 0 && autoSlides.length > 0 && (
@@ -670,7 +640,7 @@ export default function SiteEditorPage() {
                             <VideoIcon className="h-4 w-4 text-stone-400" />
                           )}
                           <span className="text-xs text-stone-500">
-                            {uploadingVideoId === slide.id ? 'Uploading…' : `Upload a video (max ${MAX_HERO_VIDEO_SECONDS}s)`}
+                            {uploadingVideoId === slide.id ? 'Uploading…' : 'Upload a video'}
                           </span>
                           <input
                             type="file"
