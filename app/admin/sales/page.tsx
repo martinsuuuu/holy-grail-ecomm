@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Calendar } from 'lucide-react';
+import { startOfMonth, endOfMonth, subMonths, subDays, startOfYear, format } from 'date-fns';
 
 interface Metric {
   current: number;
@@ -18,8 +19,9 @@ interface GroupRow {
 }
 
 interface SalesReport {
-  month: string;
-  monthLabel: string;
+  from: string;
+  to: string;
+  rangeLabel: string;
   summary: {
     grossSales: Metric;
     netSales: Metric;
@@ -89,25 +91,42 @@ const thRight = 'text-right px-5 py-2.5 text-[11px] font-semibold text-stone-500
 const td = 'px-5 py-2.5 text-sm text-espresso whitespace-nowrap';
 const tdRight = 'px-5 py-2.5 text-sm text-espresso text-right whitespace-nowrap';
 
+const iso = (d: Date) => format(d, 'yyyy-MM-dd');
+const today = () => new Date();
+
+const PRESETS: { label: string; range: () => [Date, Date] }[] = [
+  { label: 'This Month', range: () => [startOfMonth(today()), endOfMonth(today())] },
+  { label: 'Last Month', range: () => [startOfMonth(subMonths(today(), 1)), endOfMonth(subMonths(today(), 1))] },
+  { label: 'Last 7 Days', range: () => [subDays(today(), 6), today()] },
+  { label: 'Last 30 Days', range: () => [subDays(today(), 29), today()] },
+  { label: 'This Year', range: () => [startOfYear(today()), today()] },
+];
+
 export default function AdminSalesPage() {
-  const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [from, setFrom] = useState(() => iso(startOfMonth(today())));
+  const [to, setTo] = useState(() => iso(endOfMonth(today())));
   const [report, setReport] = useState<SalesReport | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsLoading(true);
-    fetch(`/api/admin/sales?month=${month}`)
+    fetch(`/api/admin/sales?from=${from}&to=${to}`)
       .then((res) => res.json())
       .then((data) => {
         setReport(data);
         setIsLoading(false);
       });
-  }, [month]);
+  }, [from, to]);
 
-  const shiftMonth = (delta: number) => {
-    const [y, m] = month.split('-').map(Number);
-    const d = new Date(y, m - 1 + delta, 1);
-    setMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  const applyPreset = (range: () => [Date, Date]) => {
+    const [start, end] = range();
+    setFrom(iso(start));
+    setTo(iso(end));
+  };
+
+  const isActivePreset = (range: () => [Date, Date]) => {
+    const [start, end] = range();
+    return from === iso(start) && to === iso(end);
   };
 
   const kpiRows = report
@@ -124,21 +143,48 @@ export default function AdminSalesPage() {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-display font-bold text-espresso">Sales Summary</h1>
-          <p className="text-stone-500 text-sm mt-1">Monthly performance report</p>
+          <p className="text-stone-500 text-sm mt-1">
+            {report?.rangeLabel || '—'}
+          </p>
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 mb-6 bg-white rounded-2xl border border-stone-200/70 p-3">
         <div className="flex items-center gap-2">
-          <button onClick={() => shiftMonth(-1)} className="p-2 rounded-xl border border-stone-200 hover:bg-stone-50 text-stone-500">
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <span className="text-sm font-semibold text-espresso w-36 text-center">
-            {report?.monthLabel || '—'}
-          </span>
-          <button onClick={() => shiftMonth(1)} className="p-2 rounded-xl border border-stone-200 hover:bg-stone-50 text-stone-500">
-            <ChevronRight className="h-4 w-4" />
-          </button>
+          <Calendar className="h-4 w-4 text-stone-400 flex-shrink-0" />
+          <input
+            type="date"
+            value={from}
+            max={to}
+            onChange={(e) => setFrom(e.target.value)}
+            className="input-field text-sm py-1.5 px-2.5 w-[9.5rem]"
+          />
+          <span className="text-stone-400 text-sm">to</span>
+          <input
+            type="date"
+            value={to}
+            min={from}
+            onChange={(e) => setTo(e.target.value)}
+            className="input-field text-sm py-1.5 px-2.5 w-[9.5rem]"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 sm:ml-2 sm:pl-2 sm:border-l border-stone-200">
+          {PRESETS.map((preset) => (
+            <button
+              key={preset.label}
+              onClick={() => applyPreset(preset.range)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                isActivePreset(preset.range)
+                  ? 'bg-primary-600 text-espresso'
+                  : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-stone-100'
+              }`}
+            >
+              {preset.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -156,8 +202,8 @@ export default function AdminSalesPage() {
               <thead className="bg-stone-50">
                 <tr>
                   <th className={th}>Key Performance Indicator</th>
-                  <th className={thRight}>Current Month</th>
-                  <th className={thRight}>Previous Month</th>
+                  <th className={thRight}>Selected Period</th>
+                  <th className={thRight}>Previous Period</th>
                   <th className={thRight}>Growth %</th>
                 </tr>
               </thead>

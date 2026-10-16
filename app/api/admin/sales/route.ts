@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { orders, users, products } from '@/db/schema';
 import { inArray, and, gte, lte, eq } from 'drizzle-orm';
-import { startOfMonth, endOfMonth, subMonths, eachDayOfInterval, format, parse, isValid } from 'date-fns';
+import { startOfMonth, endOfMonth, startOfDay, endOfDay, eachDayOfInterval, format, parse, isValid } from 'date-fns';
 
 const PAID_STATUSES = ['CONFIRMED', 'SHIPPED', 'DELIVERED'] as const;
 
@@ -19,18 +19,18 @@ function emptyGroupTotals(): GroupTotals {
   return { unitsSold: 0, totalSales: 0, grossProfit: 0, netSales: 0 };
 }
 
-async function loadMonthData(monthStart: Date, monthEnd: Date) {
+async function loadRangeData(rangeStart: Date, rangeEnd: Date) {
   const ordersInRange = await db.query.orders.findMany({
     where: and(
       inArray(orders.status, PAID_STATUSES as unknown as string[]),
-      gte(orders.createdAt, monthStart),
-      lte(orders.createdAt, monthEnd)
+      gte(orders.createdAt, rangeStart),
+      lte(orders.createdAt, rangeEnd)
     ),
     with: { items: { with: { product: true } } },
   });
 
   const newCustomers = await db.select().from(users).where(
-    and(eq(users.role, 'CUSTOMER'), gte(users.createdAt, monthStart), lte(users.createdAt, monthEnd))
+    and(eq(users.role, 'CUSTOMER'), gte(users.createdAt, rangeStart), lte(users.createdAt, rangeEnd))
   );
 
   return { ordersInRange, newCustomerCount: newCustomers.length };
@@ -48,18 +48,29 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const monthParam = searchParams.get('month'); // 'yyyy-MM'
-  const parsedMonth = monthParam ? parse(monthParam, 'yyyy-MM', new Date()) : new Date();
-  const anchor = isValid(parsedMonth) ? parsedMonth : new Date();
+  const fromParam = searchParams.get('from'); // 'yyyy-MM-dd'
+  const toParam = searchParams.get('to'); // 'yyyy-MM-dd'
 
-  const monthStart = startOfMonth(anchor);
-  const monthEnd = endOfMonth(anchor);
-  const prevMonthStart = startOfMonth(subMonths(anchor, 1));
-  const prevMonthEnd = endOfMonth(subMonths(anchor, 1));
+  const now = new Date();
+  const parsedFrom = fromParam ? parse(fromParam, 'yyyy-MM-dd', now) : startOfMonth(now);
+  const parsedTo = toParam ? parse(toParam, 'yyyy-MM-dd', now) : endOfMonth(now);
+
+  const rangeStart = startOfDay(isValid(parsedFrom) ? parsedFrom : startOfMonth(now));
+  const rangeEndRaw = isValid(parsedTo) ? parsedTo : endOfMonth(now);
+  // A backwards range (to before from) would make every later computation
+  // nonsensical — treat it as a single-day range on `from` instead.
+  const rangeEnd = endOfDay(rangeEndRaw < rangeStart ? rangeStart : rangeEndRaw);
+
+  // "Previous period" is the same length immediately before the selected
+  // range (the standard custom-date-range comparison pattern) — not
+  // necessarily a calendar month, since the range itself might not be one.
+  const rangeDurationMs = rangeEnd.getTime() - rangeStart.getTime();
+  const prevRangeEnd = new Date(rangeStart.getTime() - 1);
+  const prevRangeStart = new Date(prevRangeEnd.getTime() - rangeDurationMs);
 
   const [current, previous] = await Promise.all([
-    loadMonthData(monthStart, monthEnd),
-    loadMonthData(prevMonthStart, prevMonthEnd),
+    loadRangeData(rangeStart, rangeEnd),
+    loadRangeData(prevRangeStart, prevRangeEnd),
   ]);
 
   // ---- 1. Sales Summary (this month vs. last month) ----
@@ -104,7 +115,7 @@ export async function GET(request: NextRequest) {
   };
 
   // ---- 2. Daily Website Sales Monitoring ----
-  const dayKeys = eachDayOfInterval({ start: monthStart, end: monthEnd }).map((d) => format(d, 'yyyy-MM-dd'));
+  const dayKeys = eachDayOfInterval({ start: rangeStart, end: rangeEnd }).map((d) => format(d, 'yyyy-MM-dd'));
   const dailyMap = new Map<string, { orders: number; unitsSold: number; grossSales: number; discounts: number; refunds: number; netSales: number }>();
   for (const key of dayKeys) dailyMap.set(key, { orders: 0, unitsSold: 0, grossSales: 0, discounts: 0, refunds: 0, netSales: 0 });
   for (const order of current.ordersInRange) {
@@ -194,9 +205,18 @@ export async function GET(request: NextRequest) {
     })
     .sort((a, b) => b.salesRevenue - a.salesRevenue);
 
+  const sameYear = rangeStart.getFullYear() === rangeEnd.getFullYear();
+  const sameDay = format(rangeStart, 'yyyy-MM-dd') === format(rangeEnd, 'yyyy-MM-dd');
+  const rangeLabel = sameDay
+    ? format(rangeStart, 'MMMM d, yyyy')
+    : sameYear
+    ? `${format(rangeStart, 'MMM d')} – ${format(rangeEnd, 'MMM d, yyyy')}`
+    : `${format(rangeStart, 'MMM d, yyyy')} – ${format(rangeEnd, 'MMM d, yyyy')}`;
+
   return NextResponse.json({
-    month: format(monthStart, 'yyyy-MM'),
-    monthLabel: format(monthStart, 'MMMM yyyy'),
+    from: format(rangeStart, 'yyyy-MM-dd'),
+    to: format(rangeEnd, 'yyyy-MM-dd'),
+    rangeLabel,
     summary,
     dailySales,
     salesByBrand,
