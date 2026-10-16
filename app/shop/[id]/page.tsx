@@ -14,6 +14,7 @@ import Link from 'next/link';
 import AddToCartModal from '@/components/AddToCartModal';
 import AddedToCartPopup, { AddedToCartItem } from '@/components/AddedToCartPopup';
 import ProductImageLightbox from '@/components/ProductImageLightbox';
+import ImageMagnifier from '@/components/ImageMagnifier';
 
 interface Product {
   id: string;
@@ -219,14 +220,14 @@ export default function ProductDetailPage() {
                     className="group relative block w-full h-full cursor-zoom-in"
                     aria-label="View full-size image"
                   >
-                    <img
+                    <ImageMagnifier
                       src={galleryImages[activeImageIndex] || galleryImages[0]}
                       alt={product.name}
                       className="w-full h-full object-contain"
                     />
-                    <span className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-espresso/60 text-cream text-xs px-2.5 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-espresso/60 text-cream text-xs px-2.5 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                       <ZoomIn className="h-3.5 w-3.5" />
-                      View full size
+                      Click for full-size zoom
                     </span>
                   </button>
                 ) : (
