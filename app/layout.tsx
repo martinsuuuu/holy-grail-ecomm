@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth';
 import SessionProvider from '@/components/SessionProvider';
 import StoreHydration from '@/components/StoreHydration';
 import SplashScreen from '@/components/SplashScreen';
+import CapacitorBridge from '@/components/CapacitorBridge';
 import { fetchSiteConfig } from '@/lib/siteConfigServer';
 import { getThemePreset, getFontOption, hexToRgbTriple } from '@/lib/siteConfig';
 
@@ -82,6 +83,7 @@ export default async function RootLayout({
     >
       <body className="bg-cream min-h-screen font-sans text-espresso">
         <SplashScreen />
+        <CapacitorBridge />
         <SessionProvider session={session}>
           <StoreHydration />
           {children}
