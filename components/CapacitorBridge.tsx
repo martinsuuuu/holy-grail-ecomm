@@ -18,7 +18,12 @@ export default function CapacitorBridge() {
       const { Capacitor } = await import('@capacitor/core');
       if (!Capacitor.isNativePlatform()) return;
 
+      // iOS overlays the status bar on top of the WebView by default, which
+      // left a blank gap (the page's own background showing through) above
+      // the announcement bar instead of the brand color. Reserving the
+      // space instead avoids needing safe-area-aware CSS across the site.
       const { StatusBar, Style } = await import('@capacitor/status-bar');
+      StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
       StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
       StatusBar.setBackgroundColor({ color: '#0B3D2E' }).catch(() => {});
 
