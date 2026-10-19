@@ -28,23 +28,46 @@ import {
 import HGMonogram from './HGMonogram';
 import { DEFAULT_SITE_CONFIG, SiteConfig, THEME_TEXTURE_URL } from '@/lib/siteConfig';
 
-const navItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/site-editor', label: 'Site Editor', icon: Palette },
-  { href: '/admin/products', label: 'Products', icon: Package },
-  { href: '/admin/categories', label: 'Categories', icon: Tag },
-  { href: '/admin/item-types', label: 'Item Types', icon: LayoutGrid },
-  { href: '/admin/customers', label: 'Customers', icon: Users },
-  { href: '/admin/accounts', label: 'Accounts', icon: UserCog },
-  { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
-  { href: '/admin/appointments', label: 'Appointments', icon: CalendarCheck },
-  { href: '/admin/purchase-orders', label: 'Purchase Orders', icon: Truck },
-  { href: '/admin/expenses', label: 'Expenses', icon: DollarSign },
-  { href: '/admin/sales', label: 'Sales Summary', icon: BarChart3 },
-  { href: '/admin/payment-methods', label: 'Payment Methods', icon: CreditCard },
-  { href: '/admin/promo-codes', label: 'Promo Codes', icon: Percent },
-  { href: '/admin/delivery-settings', label: 'Delivery Settings', icon: MapPin },
-  { href: '/admin/notifications', label: 'Notifications', icon: Bell },
+// Grouped so related pages are visually separated rather than one long flat
+// list — in particular, Customers and Staff Accounts are two distinct
+// account types that are easy to conflate ("Accounts" alone doesn't say
+// "staff") when they're just sitting next to each other with no grouping.
+const NAV_SECTIONS: { label?: string; items: { href: string; label: string; icon: typeof LayoutDashboard }[] }[] = [
+  {
+    items: [
+      { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/admin/site-editor', label: 'Site Editor', icon: Palette },
+      { href: '/admin/products', label: 'Products', icon: Package },
+      { href: '/admin/categories', label: 'Categories', icon: Tag },
+      { href: '/admin/item-types', label: 'Item Types', icon: LayoutGrid },
+    ],
+  },
+  {
+    label: 'People',
+    items: [
+      { href: '/admin/customers', label: 'Customers', icon: Users },
+      { href: '/admin/accounts', label: 'Staff Accounts', icon: UserCog },
+    ],
+  },
+  {
+    label: 'Operations',
+    items: [
+      { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
+      { href: '/admin/appointments', label: 'Appointments', icon: CalendarCheck },
+      { href: '/admin/purchase-orders', label: 'Purchase Orders', icon: Truck },
+      { href: '/admin/expenses', label: 'Expenses', icon: DollarSign },
+      { href: '/admin/sales', label: 'Sales Summary', icon: BarChart3 },
+    ],
+  },
+  {
+    label: 'Settings',
+    items: [
+      { href: '/admin/payment-methods', label: 'Payment Methods', icon: CreditCard },
+      { href: '/admin/promo-codes', label: 'Promo Codes', icon: Percent },
+      { href: '/admin/delivery-settings', label: 'Delivery Settings', icon: MapPin },
+      { href: '/admin/notifications', label: 'Notifications', icon: Bell },
+    ],
+  },
 ];
 
 export default function AdminSidebar() {
@@ -82,32 +105,43 @@ export default function AdminSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
-          const showWarning = item.href === '/admin/payment-methods' && noActivePayment;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
-                isActive
-                  ? 'bg-primary-600 text-espresso'
-                  : 'text-cream/50 hover:bg-white/5 hover:text-cream'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </div>
-              {showWarning && !isActive && (
-                <AlertTriangle className="h-3.5 w-3.5 text-amber-400 flex-shrink-0" />
-              )}
-              {isActive && <ChevronRight className="h-3 w-3" />}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 px-3 py-4">
+        {NAV_SECTIONS.map((section, sectionIndex) => (
+          <div key={section.label ?? sectionIndex} className={sectionIndex > 0 ? 'mt-4 pt-4 border-t border-white/10' : ''}>
+            {section.label && (
+              <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-cream/30">
+                {section.label}
+              </p>
+            )}
+            <div className="space-y-1">
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
+                const showWarning = item.href === '/admin/payment-methods' && noActivePayment;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                      isActive
+                        ? 'bg-primary-600 text-espresso'
+                        : 'text-cream/50 hover:bg-white/5 hover:text-cream'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className="h-4 w-4" />
+                      {item.label}
+                    </div>
+                    {showWarning && !isActive && (
+                      <AlertTriangle className="h-3.5 w-3.5 text-amber-400 flex-shrink-0" />
+                    )}
+                    {isActive && <ChevronRight className="h-3 w-3" />}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Footer */}

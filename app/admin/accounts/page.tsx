@@ -145,7 +145,7 @@ export default function AdminAccountsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-display font-bold text-espresso">Accounts</h1>
+          <h1 className="text-2xl font-display font-bold text-espresso">Staff Accounts</h1>
           <p className="text-stone-500 text-sm mt-1">Staff and shipper accounts — customer accounts live in the Customers tab</p>
         </div>
         <button onClick={openAdd} className="btn-primary flex items-center gap-2">
