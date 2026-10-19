@@ -2,63 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '@/lib/utils';
-import { TrendingUp, TrendingDown, Minus, Calendar } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Calendar, FileSpreadsheet, FileText } from 'lucide-react';
 import { startOfMonth, endOfMonth, subMonths, subDays, startOfYear, format } from 'date-fns';
-
-interface Metric {
-  current: number;
-  previous: number;
-  growthPct: number | null;
-}
-
-interface GroupRow {
-  unitsSold: number;
-  totalSales: number;
-  grossProfit: number;
-  netSales: number;
-}
-
-interface SalesReport {
-  from: string;
-  to: string;
-  rangeLabel: string;
-  summary: {
-    grossSales: Metric;
-    netSales: Metric;
-    totalOrders: Metric;
-    unitsSold: Metric;
-    avgOrderValue: Metric;
-    grossProfit: Metric;
-    newCustomers: Metric;
-  };
-  dailySales: Array<{
-    date: string;
-    orders: number;
-    unitsSold: number;
-    grossSales: number;
-    discounts: number;
-    refunds: number;
-    netSales: number;
-  }>;
-  salesByBrand: Array<GroupRow & { brand: string }>;
-  salesByCategory: Array<GroupRow & { category: string }>;
-  websiteTraffic: {
-    totalSessions: number | null;
-    productPageViews: number | null;
-    addedToCart: number | null;
-    reachedCheckout: number | null;
-    completedPurchases: number;
-    conversionRate: number | null;
-    cartAbandonmentRate: number | null;
-  };
-  inventoryPerformance: Array<{
-    category: string;
-    availableUnits: number;
-    unitsSold: number;
-    salesRevenue: number;
-    sellThroughRate: number;
-  }>;
-}
+import type { SalesReport } from '@/lib/salesReport';
+import { exportSalesToExcel, exportSalesToPdf } from '@/lib/salesExport';
 
 function GrowthBadge({ pct }: { pct: number | null }) {
   if (pct === null) {
@@ -185,6 +132,24 @@ export default function AdminSalesPage() {
               {preset.label}
             </button>
           ))}
+        </div>
+        <div className="flex items-center gap-1.5 sm:ml-auto">
+          <button
+            onClick={() => report && exportSalesToExcel(report)}
+            disabled={!report}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-stone-200 text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
+            Export Excel
+          </button>
+          <button
+            onClick={() => report && exportSalesToPdf(report)}
+            disabled={!report}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-stone-200 text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            <FileText className="h-3.5 w-3.5 text-red-600" />
+            Export PDF
+          </button>
         </div>
       </div>
 
