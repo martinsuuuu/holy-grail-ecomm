@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency } from '@/lib/utils';
-import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck, ChevronLeft, ChevronRight, Loader2, UploadCloud } from 'lucide-react';
 import ProductBarcode from '@/components/admin/ProductBarcode';
 import { upload } from '@vercel/blob/client';
 import { resizeImageFile } from '@/lib/image';
+import { useBulkUploadStore } from '@/lib/bulkImageUploadStore';
 
 type ProductType = 'ONHAND' | 'PASABUY';
 
@@ -98,6 +99,16 @@ export default function AdminProductsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const tableScrollRef = useRef<HTMLDivElement>(null);
+
+  // Bulk image upload — pick one product, queue up many images for it at
+  // once, then let the global upload widget (visible on every admin page)
+  // churn through them in the background while the admin moves on.
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [bulkTargetId, setBulkTargetId] = useState('');
+  const [bulkProductSearch, setBulkProductSearch] = useState('');
+  const [bulkFiles, setBulkFiles] = useState<File[]>([]);
+  const bulkFileInputRef = useRef<HTMLInputElement>(null);
+  const enqueueBulkUpload = useBulkUploadStore((s) => s.enqueue);
   const scrollTable = (dir: -1 | 1) => tableScrollRef.current?.scrollBy({ left: dir * 400, behavior: 'smooth' });
 
   useEffect(() => {
@@ -155,6 +166,34 @@ export default function AdminProductsPage() {
   const removeGalleryImage = (index: number) => {
     setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
   };
+
+  const openBulkUpload = () => {
+    setBulkTargetId('');
+    setBulkProductSearch('');
+    setBulkFiles([]);
+    setShowBulkUpload(true);
+  };
+
+  const addBulkFiles = (fileList: FileList | null) => {
+    if (!fileList) return;
+    const imgs = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    setBulkFiles(prev => [...prev, ...imgs]);
+  };
+
+  const removeBulkFile = (index: number) => {
+    setBulkFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const startBulkUpload = () => {
+    const product = products.find(p => p.id === bulkTargetId);
+    if (!product || bulkFiles.length === 0) return;
+    enqueueBulkUpload(product.id, product.name, bulkFiles);
+    setShowBulkUpload(false);
+  };
+
+  const bulkFilteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(bulkProductSearch.toLowerCase())
+  );
 
   const toDateInput = (iso: string | null) => {
     if (!iso) return '';
@@ -279,10 +318,16 @@ export default function AdminProductsPage() {
           <h1 className="text-2xl font-display font-bold text-espresso">Products</h1>
           <p className="text-stone-500 text-sm mt-1">{products.length} products total</p>
         </div>
-        <button onClick={openCreateModal} className="btn-primary flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add Product
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={openBulkUpload} className="btn-secondary flex items-center gap-2">
+            <UploadCloud className="h-4 w-4" />
+            Bulk Upload Images
+          </button>
+          <button onClick={openCreateModal} className="btn-primary flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Product
+          </button>
+        </div>
       </div>
 
       {/* Search */}
@@ -983,6 +1028,123 @@ export default function AdminProductsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Upload Images Modal */}
+      {showBulkUpload && (
+        <div className="fixed inset-0 bg-espresso/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-warm w-full max-w-lg max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-stone-100">
+              <h2 className="text-lg font-display font-semibold text-espresso">Bulk Upload Images</h2>
+              <button onClick={() => setShowBulkUpload(false)} className="p-1.5 hover:bg-stone-100 rounded-xl text-stone-400 hover:text-stone-600 transition-colors">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 overflow-y-auto flex-1">
+              <p className="text-sm text-stone-500">
+                Pick a product and select as many photos as you like. They&apos;ll upload in the
+                background — you can close this and keep working anywhere in the admin panel while
+                it finishes.
+              </p>
+
+              <div>
+                <label className="label">Target Product</label>
+                {bulkTargetId ? (
+                  <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-primary-200 bg-primary-50">
+                    <span className="text-sm font-medium text-espresso">
+                      {products.find(p => p.id === bulkTargetId)?.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setBulkTargetId('')}
+                      className="text-xs text-primary-700 hover:underline"
+                    >
+                      Change
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      placeholder="Search products to target..."
+                      value={bulkProductSearch}
+                      onChange={e => setBulkProductSearch(e.target.value)}
+                      className="input-field mb-2"
+                    />
+                    <div className="max-h-40 overflow-y-auto border border-stone-200 rounded-xl divide-y divide-stone-100">
+                      {bulkFilteredProducts.length === 0 ? (
+                        <p className="text-sm text-stone-400 text-center py-4">No products found</p>
+                      ) : (
+                        bulkFilteredProducts.map(p => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => setBulkTargetId(p.id)}
+                            className="w-full text-left px-3 py-2 text-sm text-espresso hover:bg-primary-50 transition-colors"
+                          >
+                            {p.name}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div>
+                <label className="label">Photos</label>
+                <input
+                  ref={bulkFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={e => { addBulkFiles(e.target.files); e.target.value = ''; }}
+                />
+                <div
+                  onClick={() => bulkFileInputRef.current?.click()}
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={e => { e.preventDefault(); addBulkFiles(e.dataTransfer.files); }}
+                  className="flex flex-col items-center justify-center h-28 border-2 border-dashed border-stone-200 rounded-xl cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-all"
+                >
+                  <UploadCloud className="h-6 w-6 text-stone-300 mb-2" />
+                  <p className="text-sm text-stone-400">Click or drag & drop — select multiple</p>
+                </div>
+
+                {bulkFiles.length > 0 && (
+                  <div className="mt-3 max-h-40 overflow-y-auto space-y-1.5">
+                    {bulkFiles.map((f, i) => (
+                      <div key={i} className="flex items-center justify-between gap-2 text-xs bg-stone-50 rounded-lg px-3 py-1.5">
+                        <span className="truncate text-stone-600">{f.name}</span>
+                        <button type="button" onClick={() => removeBulkFile(i)} className="text-stone-400 hover:text-red-600 flex-shrink-0">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {bulkFiles.length > 0 && (
+                  <p className="text-xs text-stone-400 mt-2">{bulkFiles.length} photo{bulkFiles.length === 1 ? '' : 's'} selected</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-3 p-6 pt-4 border-t border-stone-100 flex-shrink-0">
+              <button
+                type="button"
+                onClick={startBulkUpload}
+                disabled={!bulkTargetId || bulkFiles.length === 0}
+                className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Start Upload
+              </button>
+              <button type="button" onClick={() => setShowBulkUpload(false)} className="btn-secondary flex-1">
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

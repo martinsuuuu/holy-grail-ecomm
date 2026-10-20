@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import AdminSidebar from '@/components/AdminSidebar';
+import BulkUploadWidget from '@/components/admin/BulkUploadWidget';
 
 export default async function AdminLayout({
   children,
@@ -20,6 +21,7 @@ export default async function AdminLayout({
       <main className="flex-1 bg-cream overflow-auto">
         {children}
       </main>
+      <BulkUploadWidget />
     </div>
   );
 }
