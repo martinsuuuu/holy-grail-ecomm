@@ -36,7 +36,7 @@ export default function ReturnPolicyPage() {
         </h1>
 
         <p className="text-espresso/70 leading-relaxed text-sm mb-2">
-          At <strong className="text-espresso">Holygrail Inc.</strong>, we take pride in the quality,
+          At <strong className="text-espresso">Holy Grail Inc.</strong>, we take pride in the quality,
           authenticity, and condition of our curated luxury merchandise. As our inventory consists of
           high-value, rare, and, in many cases, one-of-a-kind pieces, we maintain a careful inspection
           and return process designed to protect our clients and preserve the integrity of our
@@ -46,13 +46,13 @@ export default function ReturnPolicyPage() {
         <Section title="1. Pre-Shipment Confirmation — Basis of Sale">
           <p>
             To promote transparency and ensure that clients are fully informed of an item&apos;s
-            condition before shipment, Holygrail Inc. follows a pre-shipment verification process:
+            condition before shipment, Holy Grail Inc. follows a pre-shipment verification process:
           </p>
           <List
             items={[
               <>
                 <strong className="text-espresso">Condition Documentation:</strong> Before an item is
-                shipped, Holygrail Inc. may provide high-resolution photographs and/or videos showing
+                shipped, Holy Grail Inc. may provide high-resolution photographs and/or videos showing
                 the item&apos;s overall condition, including relevant details such as the exterior,
                 interior, hardware, serial or date markings, tags, and other applicable features.
               </>,
@@ -90,14 +90,14 @@ export default function ReturnPolicyPage() {
             The seven-day period does <strong className="text-espresso">not</strong> constitute a
             seven-day unconditional or &ldquo;no questions asked&rdquo; return policy. A return request
             must meet the applicable requirements stated in this Return Policy and is subject to
-            inspection and approval by Holygrail Inc.
+            inspection and approval by Holy Grail Inc.
           </p>
 
           <SubHeading>Change of Mind</SubHeading>
           <p className="font-semibold text-espresso">
             Change of mind is not a valid reason for a return or refund.
           </p>
-          <p>Holygrail Inc. does not accept returns or issue refunds solely because a client:</p>
+          <p>Holy Grail Inc. does not accept returns or issue refunds solely because a client:</p>
           <List
             items={[
               'Changes their mind after completing the purchase;',
@@ -111,7 +111,7 @@ export default function ReturnPolicyPage() {
           <p>
             Clients are therefore encouraged to carefully review the item&apos;s photographs, videos,
             condition details, specifications, measurements, and other information provided by
-            Holygrail Inc. and to confirm their acceptance before completing the purchase.
+            Holy Grail Inc. and to confirm their acceptance before completing the purchase.
           </p>
 
           <SubHeading>Original Condition Required</SubHeading>
@@ -139,7 +139,7 @@ export default function ReturnPolicyPage() {
 
         <Section title="3. Inspection, Damage, and Condition Verification">
           <p>
-            All returned items are subject to inspection by Holygrail Inc. before a return or refund is
+            All returned items are subject to inspection by Holy Grail Inc. before a return or refund is
             approved.
           </p>
           <p>
@@ -158,7 +158,7 @@ export default function ReturnPolicyPage() {
               "Any other condition inconsistent with the item's documented pre-shipment condition,",
             ]}
           />
-          <p>Holygrail Inc. may decline the return or refund, subject to applicable laws and regulations.</p>
+          <p>Holy Grail Inc. may decline the return or refund, subject to applicable laws and regulations.</p>
           <p>
             To protect the integrity of our merchandise, returned items may undergo detailed
             authentication, condition, and identity verification before a refund is processed.
@@ -168,13 +168,13 @@ export default function ReturnPolicyPage() {
         <Section title="4. Shipping and Processing for Credit Card Payments">
           <p>For purchases made through our online credit card payment facility:</p>
           <p>
-            Once payment has been successfully verified, Holygrail Inc. will securely prepare and ship
+            Once payment has been successfully verified, Holy Grail Inc. will securely prepare and ship
             the item <strong className="text-espresso">within seventy-two (72) hours</strong>, subject
             to final quality inspection, documentation, and applicable shipping arrangements.
           </p>
           <p>
             Certain circumstances, including weekends, holidays, courier limitations, payment
-            verification delays, or circumstances beyond Holygrail Inc.&apos;s reasonable control, may
+            verification delays, or circumstances beyond Holy Grail Inc.&apos;s reasonable control, may
             affect the actual shipping timeline.
           </p>
         </Section>
@@ -210,7 +210,7 @@ export default function ReturnPolicyPage() {
 
         <Section title="6. Return Authorization and Shipping">
           <p>
-            Before sending an item back, clients must first contact Holygrail Inc. and obtain return
+            Before sending an item back, clients must first contact Holy Grail Inc. and obtain return
             instructions and authorization.
           </p>
           <p>Unauthorized returns may not be accepted.</p>
@@ -220,7 +220,7 @@ export default function ReturnPolicyPage() {
             costs will be communicated to the client before the return is authorized.
           </p>
           <p>
-            Holygrail Inc. reserves the right to inspect all returned merchandise before determining
+            Holy Grail Inc. reserves the right to inspect all returned merchandise before determining
             whether a return and refund may be approved.
           </p>
         </Section>
@@ -255,7 +255,7 @@ export default function ReturnPolicyPage() {
             page, or reach us at:
           </p>
           <div className="not-italic">
-            <p className="font-semibold text-espresso">HOLYGRAIL INC.</p>
+            <p className="font-semibold text-espresso">HOLY GRAIL INC.</p>
             <p>Unit 2Y, Lee Gardens Condominium</p>
             <p>Lee St. cor. Shaw Boulevard</p>
             <p>Brgy. Wack Wack, Mandaluyong City</p>
