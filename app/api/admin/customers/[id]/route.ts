@@ -13,13 +13,18 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 
   const body = await request.json();
-  const { name, email, phone, address, password } = body;
+  const { name, email, phone, address, password, birthDate } = body;
+
+  if (birthDate && (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || new Date(birthDate) > new Date())) {
+    return NextResponse.json({ error: 'Please provide a valid birthdate' }, { status: 400 });
+  }
 
   const updates: Record<string, unknown> = {};
   if (name?.trim()) updates.name = name.trim();
   if (email?.trim()) updates.email = email.trim().toLowerCase();
   if (phone !== undefined) updates.phone = phone || null;
   if (address !== undefined) updates.address = address || null;
+  if (birthDate) updates.birthDate = birthDate;
   if (password?.trim()) updates.password = await bcrypt.hash(password.trim(), 10);
 
   const [updated] = await db.update(users)

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/utils';
-import { Users, Ban, CheckCircle, Search, Plus, Edit, X, Eye, EyeOff } from 'lucide-react';
+import { Users, Ban, CheckCircle, Search, Plus, Edit, X, Eye, EyeOff, Cake } from 'lucide-react';
 import AddressForm from '@/components/AddressForm';
 import { AddressData, EMPTY_ADDRESS, parseAddress } from '@/lib/address';
 
@@ -14,6 +14,7 @@ interface Customer {
   email: string;
   phone: string | null;
   address: string | null;
+  birthDate: string | null;
   banned: boolean;
   createdAt: string;
   orders: Array<{ id: string; totalAmount: number }>;
@@ -21,7 +22,14 @@ interface Customer {
 
 type ModalMode = 'add' | 'edit';
 
-const emptyForm = { name: '', email: '', password: '', phone: '' };
+const emptyForm = { name: '', email: '', password: '', phone: '', birthDate: '' };
+
+function formatBirthday(birthDate: string | null): string {
+  if (!birthDate) return '—';
+  return new Date(`${birthDate}T00:00:00`).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+  });
+}
 const emptyAddress: AddressData = EMPTY_ADDRESS;
 
 export default function AdminCustomersPage() {
@@ -59,6 +67,7 @@ export default function AdminCustomersPage() {
       email: customer.email,
       password: '',
       phone: customer.phone ?? '',
+      birthDate: customer.birthDate ?? '',
     });
     setFormAddress(parseAddress(customer.address) ?? emptyAddress);
     setFormError('');
@@ -74,15 +83,15 @@ export default function AdminCustomersPage() {
     setFormError('');
 
     if (modal?.mode === 'add') {
-      if (!form.name.trim() || !form.email.trim() || !form.password.trim()) {
-        setFormError('Name, email, and password are required.');
+      if (!form.name.trim() || !form.email.trim() || !form.password.trim() || !form.birthDate) {
+        setFormError('Name, email, password, and birthdate are required.');
         setIsSaving(false);
         return;
       }
       const res = await fetch('/api/admin/customers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: form.name.trim(), email: form.email.trim(), password: form.password, address: JSON.stringify(formAddress) }),
+        body: JSON.stringify({ name: form.name.trim(), email: form.email.trim(), password: form.password, birthDate: form.birthDate, address: JSON.stringify(formAddress) }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -99,6 +108,7 @@ export default function AdminCustomersPage() {
           name: form.name,
           email: form.email,
           phone: form.phone,
+          birthDate: form.birthDate || undefined,
           address: JSON.stringify(formAddress),
           password: form.password || undefined,
         }),
@@ -166,6 +176,7 @@ export default function AdminCustomersPage() {
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Customer ID</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Customer</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Joined</th>
+              <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Birthday</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Orders</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Status</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-stone-500 uppercase">Actions</th>
@@ -175,7 +186,7 @@ export default function AdminCustomersPage() {
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i}>
-                  {Array.from({ length: 6 }).map((_, j) => (
+                  {Array.from({ length: 7 }).map((_, j) => (
                     <td key={j} className="px-6 py-4">
                       <div className="h-4 bg-stone-200 rounded animate-pulse" />
                     </td>
@@ -184,7 +195,7 @@ export default function AdminCustomersPage() {
               ))
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-stone-500">
+                <td colSpan={7} className="px-6 py-12 text-center text-stone-500">
                   <Users className="h-8 w-8 mx-auto mb-2 text-stone-300" />
                   <p>No customers found</p>
                 </td>
@@ -213,6 +224,12 @@ export default function AdminCustomersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-stone-600">{formatDate(customer.createdAt)}</td>
+                    <td className="px-6 py-4 text-sm text-stone-600">
+                      <span className="flex items-center gap-1.5">
+                        <Cake className="h-3.5 w-3.5 text-pink-400 flex-shrink-0" />
+                        {formatBirthday(customer.birthDate)}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 text-sm font-medium text-espresso">{customer.orders.length}</td>
                     <td className="px-6 py-4">
                       <span className={`badge text-xs ${customer.banned ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
@@ -325,6 +342,18 @@ export default function AdminCustomersPage() {
                     value={form.phone}
                     onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                     placeholder="09xxxxxxxxx"
+                    className="input-field"
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <label className="label">Birthdate {modal.mode === 'add' && <span className="text-red-500">*</span>}</label>
+                  <input
+                    type="date"
+                    required={modal.mode === 'add'}
+                    value={form.birthDate}
+                    onChange={e => setForm(f => ({ ...f, birthDate: e.target.value }))}
+                    max={new Date().toISOString().slice(0, 10)}
                     className="input-field"
                   />
                 </div>

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { formatDate, formatDateTime, formatCurrency, getOrderStatusColor, getOrderStatusLabel } from '@/lib/utils';
 import {
   ArrowLeft, Mail, Phone, MapPin, ShoppingBag,
-  Ban, CheckCircle, AlertTriangle, Save, Truck, CreditCard,
+  Ban, CheckCircle, AlertTriangle, Save, Truck, CreditCard, Cake,
 } from 'lucide-react';
 import AddressForm from '@/components/AddressForm';
 import { AddressData, EMPTY_ADDRESS, displayAddress, parseAddress } from '@/lib/address';
@@ -35,9 +35,17 @@ interface Customer {
   email: string;
   phone: string | null;
   address: string | null;
+  birthDate: string | null;
   banned: boolean;
   createdAt: string;
   orders: Order[];
+}
+
+function formatBirthday(birthDate: string | null): string | null {
+  if (!birthDate) return null;
+  return new Date(`${birthDate}T00:00:00`).toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric',
+  });
 }
 
 const DELIVERY_LABEL: Record<string, string> = {
@@ -164,6 +172,12 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
                   <span className="flex items-center gap-1.5">
                     <MapPin className="h-3.5 w-3.5 text-stone-400" />
                     {displayAddress(customer.address)}
+                  </span>
+                )}
+                {formatBirthday(customer.birthDate) && (
+                  <span className="flex items-center gap-1.5">
+                    <Cake className="h-3.5 w-3.5 text-pink-400" />
+                    {formatBirthday(customer.birthDate)}
                   </span>
                 )}
               </div>

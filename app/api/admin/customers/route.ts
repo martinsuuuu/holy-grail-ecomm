@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
       email: true,
       phone: true,
       address: true,
+      birthDate: true,
       banned: true,
       createdAt: true,
     },
@@ -63,10 +64,14 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name, email, password } = body;
+  const { name, email, password, birthDate } = body;
 
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !birthDate) {
     return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || new Date(birthDate) > new Date()) {
+    return NextResponse.json({ error: 'Please provide a valid birthdate' }, { status: 400 });
   }
 
   const existingUserArr = await db.select().from(users).where(eq(users.email, email)).limit(1);
@@ -80,6 +85,7 @@ export async function POST(request: NextRequest) {
     name,
     email,
     password: hashedPassword,
+    birthDate,
     role: 'CUSTOMER',
   }).returning();
   const user = newUserArr[0];
