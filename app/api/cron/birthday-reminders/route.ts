@@ -55,7 +55,49 @@ export async function GET(request: NextRequest) {
     created++;
   }
 
-  return NextResponse.json({ success: true, created });
+  // Monthly digest: every customer whose birthday falls anywhere in the
+  // current calendar month, with the date, so an admin can pick recipients
+  // for that month's birthday promo in one place (not just the ones inside
+  // the 7-day reminder window above).
+  const monthLabel = today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const digestTitle = `Birthdays This Month — ${monthLabel}`;
+
+  const existingDigest = await db.select().from(notifications).where(
+    and(eq(notifications.type, 'BIRTHDAY_DIGEST'), eq(notifications.title, digestTitle))
+  );
+
+  let digestCreated = false;
+  if (existingDigest.length === 0) {
+    const birthdaysThisMonth = customers
+      .map((customer) => {
+        if (!customer.birthDate) return null;
+        const [, month, day] = customer.birthDate.split('-').map(Number);
+        if (!month || !day || month !== today.getMonth() + 1) return null;
+        return { customer, day };
+      })
+      .filter((entry): entry is { customer: typeof customers[number]; day: number } => entry !== null)
+      .sort((a, b) => a.day - b.day);
+
+    if (birthdaysThisMonth.length > 0) {
+      const list = birthdaysThisMonth
+        .map(({ customer, day }) => {
+          const dateLabel = new Date(today.getFullYear(), today.getMonth(), day)
+            .toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          return `${customer.name} (${customer.email}) – ${dateLabel}`;
+        })
+        .join('; ');
+
+      const isSingle = birthdaysThisMonth.length === 1;
+      await db.insert(notifications).values({
+        title: digestTitle,
+        message: `🎂 ${birthdaysThisMonth.length} customer${isSingle ? '' : 's'} ${isSingle ? 'celebrates' : 'celebrate'} a birthday this month — consider them for this month's birthday promo: ${list}.`,
+        type: 'BIRTHDAY_DIGEST',
+      });
+      digestCreated = true;
+    }
+  }
+
+  return NextResponse.json({ success: true, created, digestCreated });
 }
 
 export async function POST(request: NextRequest) {

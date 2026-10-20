@@ -50,7 +50,7 @@ export default function AdminNotificationsPage() {
     if (filter === 'unread') return !n.read;
     if (filter === 'orders') return n.type === 'ORDER';
     if (filter === 'warnings') return n.type === 'WARNING';
-    if (filter === 'birthdays') return n.type === 'BIRTHDAY';
+    if (filter === 'birthdays') return n.type === 'BIRTHDAY' || n.type === 'BIRTHDAY_DIGEST';
     return true;
   });
 
@@ -60,7 +60,9 @@ export default function AdminNotificationsPage() {
     switch (type) {
       case 'ORDER': return <ShoppingBag className="h-4 w-4 text-sky-500" />;
       case 'WARNING': return <AlertTriangle className="h-4 w-4 text-amber-500" />;
-      case 'BIRTHDAY': return <Cake className="h-4 w-4 text-pink-500" />;
+      case 'BIRTHDAY':
+      case 'BIRTHDAY_DIGEST':
+        return <Cake className="h-4 w-4 text-pink-500" />;
       default: return <Info className="h-4 w-4 text-emerald-500" />;
     }
   };
@@ -69,7 +71,9 @@ export default function AdminNotificationsPage() {
     switch (type) {
       case 'ORDER': return 'bg-sky-50';
       case 'WARNING': return 'bg-amber-50';
-      case 'BIRTHDAY': return 'bg-pink-50';
+      case 'BIRTHDAY':
+      case 'BIRTHDAY_DIGEST':
+        return 'bg-pink-50';
       default: return 'bg-emerald-50';
     }
   };
