@@ -5,6 +5,7 @@ import { formatCurrency } from '@/lib/utils';
 import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import ProductBarcode from '@/components/admin/ProductBarcode';
 import { upload } from '@vercel/blob/client';
+import { resizeImageFile } from '@/lib/image';
 
 type ProductType = 'ONHAND' | 'PASABUY';
 
@@ -126,7 +127,8 @@ export default function AdminProductsPage() {
     setError('');
     setIsUploadingImage(true);
     try {
-      const result = await upload(file.name, file, { access: 'public', handleUploadUrl: '/api/admin/image-upload' });
+      const resized = await resizeImageFile(file);
+      const result = await upload(resized.name, resized, { access: 'public', handleUploadUrl: '/api/admin/image-upload' });
       setFormData(prev => ({ ...prev, imageUrl: result.url }));
     } catch {
       setError('Image upload failed. Please try again.');
@@ -140,7 +142,8 @@ export default function AdminProductsPage() {
     setError('');
     setUploadingGalleryCount(n => n + 1);
     try {
-      const result = await upload(file.name, file, { access: 'public', handleUploadUrl: '/api/admin/image-upload' });
+      const resized = await resizeImageFile(file);
+      const result = await upload(resized.name, resized, { access: 'public', handleUploadUrl: '/api/admin/image-upload' });
       setFormData(prev => ({ ...prev, images: [...prev.images, result.url] }));
     } catch {
       setError('Image upload failed. Please try again.');

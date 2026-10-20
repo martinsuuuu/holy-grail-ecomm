@@ -73,3 +73,86 @@ export function compressImageToDataUrl(
 export function dataUrlBytes(dataUrl: string): number {
   return (dataUrl.length * 3) / 4;
 }
+
+const PRODUCT_MAX_DIMENSION = 2400;
+const PRODUCT_MAX_BYTES = 1.5 * 1024 * 1024;
+const PRODUCT_INITIAL_QUALITY = 0.88;
+const PRODUCT_MIN_QUALITY = 0.6;
+
+/**
+ * Resizes/re-encodes a product photo client-side into a smaller JPEG File
+ * before it's handed to Vercel Blob's upload(). Phone camera photos are
+ * routinely 4000px+ and 5-10MB; that's what makes "adding product images"
+ * feel slow, especially uploading several gallery photos at once on a
+ * typical home-wifi upload link. 2400px/~1.5MB keeps plenty of detail for
+ * the product page's magnifier (2.5x) and lightbox (up to 3x) zoom while
+ * cutting the actual bytes sent, often by 5-10x.
+ *
+ * GIFs and SVGs pass through untouched — rasterizing would drop animation
+ * or vector crispness for no upload-speed benefit worth mentioning.
+ */
+export function resizeImageFile(
+  file: File,
+  { maxDimension = PRODUCT_MAX_DIMENSION, maxBytes = PRODUCT_MAX_BYTES, initialQuality = PRODUCT_INITIAL_QUALITY } = {}
+): Promise<File> {
+  if (file.type === 'image/gif' || file.type === 'image/svg+xml') {
+    return Promise.resolve(file);
+  }
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      let { width, height } = img;
+      if (width > maxDimension || height > maxDimension) {
+        const scale = maxDimension / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        // Canvas unsupported (shouldn't happen in practice) — fall back to
+        // the original file rather than failing the upload outright.
+        resolve(file);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const newName = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+      const toBlob = (quality: number) =>
+        new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/jpeg', quality));
+
+      (async () => {
+        let quality = initialQuality;
+        let blob = await toBlob(quality);
+
+        while (blob && blob.size > maxBytes && quality > PRODUCT_MIN_QUALITY) {
+          quality = Math.max(quality - 0.08, PRODUCT_MIN_QUALITY);
+          blob = await toBlob(quality);
+        }
+
+        if (!blob) {
+          resolve(file);
+          return;
+        }
+        resolve(new File([blob], newName, { type: 'image/jpeg' }));
+      })();
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      // Not a decodable image (or a transient load error) — let the
+      // original upload path handle/report it rather than failing silently.
+      resolve(file);
+    };
+
+    img.src = objectUrl;
+  });
+}
