@@ -6,6 +6,7 @@ import {
   Palette, Type, MessageSquare, Layout, Check, RefreshCw, ExternalLink, AlertCircle, ImageUp,
   Megaphone, GalleryHorizontal, ShieldCheck, Search, Grid3x3, LayoutGrid, Sparkles, PanelBottom, Zap, BarChart3,
   Plus, Trash2, ChevronUp, ChevronDown, RotateCcw, Sparkle, Quote, Star, Film, Briefcase, Mail, VideoIcon, Loader2,
+  HelpCircle, FileUp,
 } from 'lucide-react';
 import {
   THEME_PRESETS,
@@ -15,16 +16,18 @@ import {
   MAX_TESTIMONIALS,
   MAX_VIDEOS,
   MAX_CAREERS,
+  MAX_FAQS,
   SiteConfig,
   HeroSlide,
   Testimonial,
   VideoItem,
   CareerOpening,
+  FaqItem,
 } from '@/lib/siteConfig';
 
 type Tab = 'theme' | 'content';
 
-type SectionId = 'announcement' | 'hero' | 'quickActions' | 'trust' | 'sourcing' | 'categoryGrid' | 'brandGrid' | 'videos' | 'stats' | 'testimonials' | 'cta' | 'careers' | 'footer';
+type SectionId = 'announcement' | 'hero' | 'quickActions' | 'trust' | 'sourcing' | 'categoryGrid' | 'brandGrid' | 'videos' | 'stats' | 'testimonials' | 'cta' | 'careers' | 'faq' | 'footer';
 
 const CONTENT_SECTIONS: { id: SectionId; label: string; icon: typeof Megaphone }[] = [
   { id: 'announcement', label: 'Announcement Bar', icon: Megaphone },
@@ -39,6 +42,7 @@ const CONTENT_SECTIONS: { id: SectionId; label: string; icon: typeof Megaphone }
   { id: 'testimonials', label: 'Customer Feedback', icon: Quote },
   { id: 'cta', label: 'Experience CTA', icon: Sparkles },
   { id: 'careers', label: 'Careers', icon: Briefcase },
+  { id: 'faq', label: 'FAQ', icon: HelpCircle },
   { id: 'footer', label: 'Footer', icon: PanelBottom },
 ];
 
@@ -84,6 +88,8 @@ export default function SiteEditorPage() {
   const [videoError, setVideoError] = useState('');
   const [uploadingVideoId, setUploadingVideoId] = useState<string | null>(null);
   const [uploadingImageKey, setUploadingImageKey] = useState<string | null>(null);
+  const [isUploadingFaq, setIsUploadingFaq] = useState(false);
+  const [faqError, setFaqError] = useState('');
 
   const handleHeroVideoUpload = async (slideId: string, file: File) => {
     setVideoError('');
@@ -310,6 +316,55 @@ export default function SiteEditorPage() {
     const next = [...config.careers];
     [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
     update('careers', next);
+  };
+
+  const updateFaq = (id: string, patch: Partial<FaqItem>) => {
+    update('faqs', config.faqs.map((f) => (f.id === id ? { ...f, ...patch } : f)));
+  };
+  const addFaq = () => {
+    if (config.faqs.length >= MAX_FAQS) return;
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `faq-${Date.now()}-${Math.random()}`;
+    update('faqs', [...config.faqs, { id, category: '', question: '', answer: '' }]);
+  };
+  const removeFaq = (id: string) => update('faqs', config.faqs.filter((f) => f.id !== id));
+  const moveFaq = (id: string, dir: -1 | 1) => {
+    const idx = config.faqs.findIndex((f) => f.id === id);
+    const swapIdx = idx + dir;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= config.faqs.length) return;
+    const next = [...config.faqs];
+    [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
+    update('faqs', next);
+  };
+
+  const handleFaqDocUpload = async (file: File) => {
+    setFaqError('');
+    if (!file.name.toLowerCase().endsWith('.docx')) {
+      setFaqError('Please upload a .docx file.');
+      return;
+    }
+    setIsUploadingFaq(true);
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      const res = await fetch('/api/admin/faq/parse', { method: 'POST', body });
+      const data = await res.json();
+      if (!res.ok) {
+        setFaqError(data.error || 'Could not read that document.');
+        return;
+      }
+      const faqs: FaqItem[] = data.faqs.map((f: { category: string; question: string; answer: string }) => ({
+        id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `faq-${Date.now()}-${Math.random()}`,
+        category: f.category,
+        question: f.question,
+        answer: f.answer,
+      }));
+      update('faqs', faqs);
+      if (data.intro) update('faqIntro', data.intro);
+    } catch {
+      setFaqError('Upload failed. Please try again.');
+    } finally {
+      setIsUploadingFaq(false);
+    }
   };
 
   const handleSave = async () => {
@@ -1314,6 +1369,109 @@ export default function SiteEditorPage() {
                 className="w-full flex items-center justify-center gap-1.5 mt-3 py-2.5 rounded-xl border-2 border-dashed border-stone-200 text-sm text-espresso/70 hover:border-primary-300 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <Plus className="h-4 w-4" /> Add Opening
+              </button>
+            </div>
+          )}
+
+          {tab === 'content' && section === 'faq' && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-stone-400">FAQ Page</h3>
+                <span className="text-[11px] text-stone-400">{config.faqs.length}/{MAX_FAQS}</span>
+              </div>
+              <p className="text-xs text-stone-400 mb-3">
+                Upload a .docx to replace the whole list at once — numbered questions ending in "?" become
+                entries, and short ALL-CAPS lines become section headers. Or edit entries directly below.
+              </p>
+
+              <label className={`flex flex-col items-center justify-center gap-1 py-4 mb-3 border-2 border-dashed border-stone-200 rounded-xl transition-colors text-center ${
+                isUploadingFaq ? 'opacity-60' : 'cursor-pointer hover:border-primary-300 hover:bg-primary-50/40'
+              }`}>
+                {isUploadingFaq ? (
+                  <Loader2 className="h-4 w-4 text-stone-400 animate-spin" />
+                ) : (
+                  <FileUp className="h-4 w-4 text-stone-400" />
+                )}
+                <span className="text-xs text-stone-500">
+                  {isUploadingFaq ? 'Reading document…' : 'Upload FAQ (.docx) — replaces the list below'}
+                </span>
+                <input
+                  type="file"
+                  accept=".docx"
+                  className="hidden"
+                  disabled={isUploadingFaq}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = '';
+                    if (!file) return;
+                    handleFaqDocUpload(file);
+                  }}
+                />
+              </label>
+              {faqError && (
+                <p className="flex items-center gap-1.5 text-xs text-red-700 mb-3">
+                  <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                  {faqError}
+                </p>
+              )}
+
+              <div className="mb-3">
+                <label className="label text-xs">Intro text</label>
+                <textarea value={config.faqIntro} onChange={(e) => update('faqIntro', e.target.value)} rows={2} className="input-field text-sm" />
+              </div>
+
+              <div className="space-y-3">
+                {config.faqs.map((f, i) => (
+                  <div key={f.id} className="border border-stone-200 rounded-2xl p-3 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-espresso">Question {i + 1}</span>
+                      <div className="flex items-center gap-1">
+                        <button type="button" onClick={() => moveFaq(f.id, -1)} disabled={i === 0} className="p-1 rounded text-stone-400 hover:text-espresso disabled:opacity-30 disabled:cursor-not-allowed">
+                          <ChevronUp className="h-3.5 w-3.5" />
+                        </button>
+                        <button type="button" onClick={() => moveFaq(f.id, 1)} disabled={i === config.faqs.length - 1} className="p-1 rounded text-stone-400 hover:text-espresso disabled:opacity-30 disabled:cursor-not-allowed">
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        </button>
+                        <button type="button" onClick={() => removeFaq(f.id)} className="p-1 rounded text-red-500 hover:text-red-700">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      value={f.category}
+                      onChange={(e) => updateFaq(f.id, { category: e.target.value })}
+                      placeholder="Section (e.g. Shipping & Delivery) — optional"
+                      className="input-field text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={f.question}
+                      onChange={(e) => updateFaq(f.id, { question: e.target.value })}
+                      placeholder="Question"
+                      className="input-field text-xs"
+                    />
+                    <textarea
+                      value={f.answer}
+                      onChange={(e) => updateFaq(f.id, { answer: e.target.value })}
+                      placeholder="Answer"
+                      rows={3}
+                      className="input-field text-xs"
+                    />
+                  </div>
+                ))}
+                {config.faqs.length === 0 && (
+                  <p className="text-xs text-stone-400 italic py-2">No FAQ entries yet — upload a document or add one below.</p>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={addFaq}
+                disabled={config.faqs.length >= MAX_FAQS}
+                className="w-full flex items-center justify-center gap-1.5 mt-3 py-2.5 rounded-xl border-2 border-dashed border-stone-200 text-sm text-espresso/70 hover:border-primary-300 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <Plus className="h-4 w-4" /> Add Question
               </button>
             </div>
           )}

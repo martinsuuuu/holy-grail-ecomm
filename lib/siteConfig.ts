@@ -170,6 +170,14 @@ export interface CareerOpening {
   description: string;
 }
 
+export interface FaqItem {
+  id: string;
+  /** Section grouping (e.g. "Shipping & Delivery"). Blank = ungrouped. */
+  category: string;
+  question: string;
+  answer: string;
+}
+
 export interface SiteConfig {
   themePresetId: string;
   headingFontId: string;
@@ -241,6 +249,11 @@ export interface SiteConfig {
   /** Textured overlay behind the dark (espresso) sections — the CTA card
    *  and the footer — instead of a flat color. */
   themeTextureEnabled: boolean;
+
+  // FAQ page — admin can either edit entries directly or upload a .docx to
+  // replace the whole list in one go (see /api/admin/faq/parse).
+  faqIntro: string;
+  faqs: FaqItem[];
 }
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
@@ -372,6 +385,31 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   themeTextureEnabled: true,
 
   footerTagline: 'Sign up to receive exclusive content and updates on new arrivals.',
+
+  faqIntro: "Welcome to Holy Grail! We're here to make your luxury shopping experience effortless and enjoyable. Find answers to our most frequently asked questions below.",
+  faqs: [
+    { id: 'faq-1', category: 'About Holy Grail', question: 'Are your luxury items authentic?', answer: 'Absolutely! At Holy Grail, authenticity is our priority. Every luxury item undergoes a careful authentication process through our in-house experts and trusted third-party authentication services, including Entrupy and Legit Grails, as applicable. Shop with confidence knowing that authenticity is at the heart of everything we do.' },
+    { id: 'faq-2', category: 'About Holy Grail', question: 'Are your items brand new or pre-loved?', answer: 'We specialize in carefully curated pre-loved luxury items, but we may also offer brand-new and unused pieces. Each product listing includes its condition and details to help you shop confidently.' },
+    { id: 'faq-3', category: 'About Holy Grail', question: 'Do your items come with original boxes, dust bags, and authenticity cards?', answer: 'Inclusions vary depending on the item. Please check the product description for the specific accessories included with your purchase.' },
+    { id: 'faq-4', category: 'Ordering & Reservations', question: 'How can I place an order?', answer: "Shopping with us is easy! Browse our collection, select your favorite luxury piece, add it to your cart, and proceed to checkout. Found your Holy Grail? Shop now before it's gone!" },
+    { id: 'faq-5', category: 'Ordering & Reservations', question: 'Can I reserve an item?', answer: 'Yes! We offer a 24-hour reservation period, subject to availability and confirmation by our team.' },
+    { id: 'faq-6', category: 'Ordering & Reservations', question: 'Can I request additional photos or videos of an item?', answer: "Of course! We're happy to provide additional photos or videos whenever available so you can take a closer look before purchasing. Simply message our team for assistance." },
+    { id: 'faq-7', category: 'Ordering & Reservations', question: 'What is a "Personal Shopping Service" item?', answer: "Personal Shopping Service items are pieces we don't currently hold in stock but can source on your behalf. When you order one, we begin sourcing it for you — the product page shows an expected arrival window so you know roughly when to expect it. Personal Shopping Service items aren't subject to the same stock-reservation limits as on-hand items." },
+    { id: 'faq-8', category: 'Payment Options', question: 'What payment methods do you accept?', answer: 'We accept Credit Cards and Direct Bank Transfers through our official CTBC, BDO, and RCBC accounts. Simply select your preferred payment method at checkout, follow the payment instructions, and upload your proof of payment for verification.' },
+    { id: 'faq-9', category: 'Payment Options', question: 'How will I know if my payment has been confirmed?', answer: 'Our team will verify your payment and confirm your order once the transaction has been successfully validated.' },
+    { id: 'faq-10', category: 'Shipping & Delivery', question: 'What delivery options are available?', answer: 'We offer convenient delivery options to bring your luxury finds right to your doorstep! Grab Express – same-day delivery within serviceable areas. LBC – nationwide delivery across the Philippines. DHL – international shipping. Shipping fees and estimated delivery times are provided at checkout.' },
+    { id: 'faq-11', category: 'Shipping & Delivery', question: 'Do you ship internationally?', answer: "Yes! We offer international shipping through DHL, subject to destination availability and shipping requirements. Please note that customs duties, taxes, and additional import charges may apply depending on your country's regulations." },
+    { id: 'faq-12', category: 'Shipping & Delivery', question: 'When will my order be shipped?', answer: 'Orders are prepared for shipment once full payment, including applicable shipping fees, has been verified. Our team will coordinate your shipment based on courier availability and scheduled pickups.' },
+    { id: 'faq-13', category: 'Shipping & Delivery', question: 'Will I receive a tracking number?', answer: 'Yes! Once your package has been shipped and tracking information becomes available, our team will provide the details so you can monitor your delivery.' },
+    { id: 'faq-14', category: 'Product Condition & Authentication', question: 'How do I know the condition of an item?', answer: "We aim to provide accurate product descriptions and photos showing the item's condition, including visible signs of wear, when applicable. As most of our pieces are pre-loved, minor imperfections may be present." },
+    { id: 'faq-15', category: 'Product Condition & Authentication', question: 'Do you provide a Certificate of Authenticity (COA)?', answer: 'Authentication documentation is provided where applicable. Please refer to the product listing or contact our team to confirm the available documentation for your chosen item.' },
+    { id: 'faq-16', category: 'Sell Your Luxury Items', question: 'Does Holy Grail buy pre-loved luxury items?', answer: 'Yes! We also purchase selected authentic luxury bags, wallets, apparel, and accessories. Simply send us clear photos and details of your item through our official Facebook page or WhatsApp for an initial assessment.' },
+    { id: 'faq-17', category: 'Sell Your Luxury Items', question: 'How does the buyout process work?', answer: "Our process is simple: send clear photos and details of your luxury item, then wait for our initial assessment and price offer, usually provided the following day. If you agree with our offer, we schedule a physical inspection and authentication, and confirm the final offer afterward. Final offers may change depending on the item's actual condition and authentication results." },
+    { id: 'faq-18', category: 'Sell Your Luxury Items', question: 'Is there an authentication fee when selling my item?', answer: 'An ₱1,800 Entrupy authentication fee applies only if your item is found to be not authentic. If your item is confirmed authentic, Holy Grail will shoulder the authentication fee.' },
+    { id: 'faq-19', category: 'Pickup & Customer Support', question: 'Can I personally pick up my purchased item?', answer: 'Yes! Personal pickup is available by arrangement. Please coordinate with our team in advance. For now, all pickups are accommodated at the building lobby.' },
+    { id: 'faq-20', category: 'Pickup & Customer Support', question: 'Where is Holy Grail located?', answer: "We're located at Lee Gardens North Tower, Shaw Boulevard corner Lee Street, Addition Hills, Mandaluyong City, Philippines. Please contact our team before visiting so we can assist you accordingly." },
+    { id: 'faq-21', category: 'Pickup & Customer Support', question: 'How can I contact Holy Grail?', answer: 'You may reach us through our official Facebook page or website messaging channels for product inquiries, order assistance, shipping updates, and other concerns. Our regular office hours are Monday to Friday, 9:00 AM – 6:00 PM (Philippine Time).' },
+  ],
 };
 
 /** Hard cap on the number of custom hero slides an admin can add, so the
@@ -386,6 +424,11 @@ export const MAX_VIDEOS = 8;
 
 /** Hard cap on the number of career openings an admin can list. */
 export const MAX_CAREERS = 8;
+
+/** Hard cap on the number of FAQ entries — generous for a real FAQ document
+ *  (the reference one has 21), just a sanity ceiling against a malformed
+ *  upload producing hundreds of bogus entries. */
+export const MAX_FAQS = 80;
 
 /** Textured overlay used behind dark (espresso) sections when
  *  `themeTextureEnabled` is on. */

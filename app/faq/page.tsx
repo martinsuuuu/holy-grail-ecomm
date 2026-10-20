@@ -1,61 +1,55 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { fetchSiteConfig } from '@/lib/siteConfigServer';
 
-const FAQS = [
-  {
-    q: 'How does checkout work?',
-    a: "We use a deposit-based reservation system. Once you place an order, the items are reserved for 24 hours while you submit proof of your deposit. After we confirm the deposit, your order moves into processing and fulfillment. If proof isn't submitted in time, the reservation expires and the stock is released.",
-  },
-  {
-    q: 'What payment methods do you accept?',
-    a: 'We accept GCash and direct bank transfer. Available payment methods and their QR codes/account details are shown at checkout — simply select one, complete the transfer, and upload your proof of payment.',
-  },
-  {
-    q: 'What is a "Personal Shopping Service" item?',
-    a: "Personal Shopping Service items are pieces we don't currently hold in stock but can source on your behalf. When you order one, we begin sourcing it for you — the product page shows an expected arrival window so you know roughly when to expect it. Personal Shopping Service items aren't subject to the same stock-reservation limits as on-hand items.",
-  },
-  {
-    q: 'What delivery options are available?',
-    a: 'At checkout you can choose Lalamove for same-day delivery within serviceable areas, Shopee Checkout for standard 2–3 business day delivery, or J&T Express for standard nationwide delivery. Delivery charges and estimated timelines are shown before you confirm your order.',
-  },
-  {
-    q: 'Can I track my order?',
-    a: 'Yes — once your order is confirmed, you can follow its status from your account\'s Order History page, from placement through processing, shipping, and delivery.',
-  },
-  {
-    q: 'What is your return policy?',
-    a: "Return requests must be submitted within 7 calendar days of receiving your item, and the item must come back in its original condition with all accessories and packaging included. Change of mind isn't a valid reason for a return. See our full Return Policy for details.",
-  },
-  {
-    q: 'How do I save items for later?',
-    a: 'Tap the heart icon on any product card or product page to add it to your Wishlist. You can review saved items anytime from the wishlist icon in the navigation bar.',
-  },
-];
+export default async function FaqPage() {
+  const config = await fetchSiteConfig();
 
-export default function FaqPage() {
+  // Group while preserving first-seen order of each category (uploaded
+  // docs list questions in category blocks, so this naturally mirrors that).
+  const groups: { category: string; items: typeof config.faqs }[] = [];
+  for (const item of config.faqs) {
+    const existing = groups.find((g) => g.category === item.category);
+    if (existing) {
+      existing.items.push(item);
+    } else {
+      groups.push({ category: item.category, items: [item] });
+    }
+  }
+
   return (
     <div className="min-h-screen bg-cream">
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <p className="text-sm uppercase tracking-[0.3em] text-espresso/50 mb-3">Support</p>
-        <h1 className="font-display font-black text-4xl sm:text-5xl text-espresso mb-10 leading-tight">
+        <h1 className="font-display font-black text-4xl sm:text-5xl text-espresso mb-6 leading-tight">
           Frequently Asked Questions
         </h1>
+        {config.faqIntro && (
+          <p className="text-espresso/60 leading-relaxed mb-10">{config.faqIntro}</p>
+        )}
 
-        <div className="divide-y divide-stone-200 border-t border-b border-stone-200">
-          {FAQS.map((item) => (
-            <details key={item.q} className="group py-5">
-              <summary className="flex items-center justify-between cursor-pointer list-none font-medium text-espresso">
-                {item.q}
-                <span className="ml-4 flex-shrink-0 text-espresso/40 group-open:rotate-45 transition-transform text-xl leading-none">+</span>
-              </summary>
-              <p className="mt-3 text-espresso/60 text-sm leading-relaxed">{item.a}</p>
-            </details>
-          ))}
-        </div>
+        {groups.map((group) => (
+          <div key={group.category || 'general'} className="mb-10 last:mb-0">
+            {group.category && (
+              <h2 className="font-display font-bold text-lg text-espresso mb-2">{group.category}</h2>
+            )}
+            <div className="divide-y divide-stone-200 border-t border-b border-stone-200">
+              {group.items.map((item) => (
+                <details key={item.id} className="group py-5">
+                  <summary className="flex items-center justify-between gap-4 cursor-pointer list-none font-medium text-espresso">
+                    {item.question}
+                    <span className="ml-4 flex-shrink-0 text-espresso/40 group-open:rotate-45 transition-transform text-xl leading-none">+</span>
+                  </summary>
+                  <p className="mt-3 text-espresso/60 text-sm leading-relaxed whitespace-pre-line">{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        ))}
 
-        <p className="mt-10 text-sm text-espresso/50">
+        <p className="mt-2 text-sm text-espresso/50">
           Still have questions? <a href="/contact" className="text-espresso underline hover:text-espresso/70">Contact us</a> and we&apos;ll be happy to help.
         </p>
       </div>
