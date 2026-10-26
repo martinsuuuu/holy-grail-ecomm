@@ -3,8 +3,10 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { formatCurrency, formatDateTime, getOrderStatusColor, getOrderStatusLabel } from '@/lib/utils';
-import { ShoppingBag, CheckCircle, Search, Filter, Package, Eye, Truck, ZoomIn, X, Calendar, Plus, UserCog, Phone } from 'lucide-react';
+import { ShoppingBag, CheckCircle, Search, Filter, Package, Eye, Truck, ZoomIn, X, Calendar, Plus, UserCog, Phone, FileText } from 'lucide-react';
 import ManualOrderModal from '@/components/admin/ManualOrderModal';
+import InvoicePreviewModal from '@/components/InvoicePreviewModal';
+import { isOrderPaid } from '@/lib/invoice';
 
 const DELIVERY_LABEL: Record<string, string> = {
   LALAMOVE: 'Lalamove',
@@ -31,6 +33,7 @@ interface Order {
   discountAmount: number;
   depositProof: string | null;
   depositConfirmed: boolean;
+  paymentMethodName?: string | null;
   reservationExpiry: string;
   createdAt: string;
   user: {
@@ -110,6 +113,7 @@ function OrdersContent() {
   const [dateTo, setDateTo] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [showInvoice, setShowInvoice] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [showManualOrderModal, setShowManualOrderModal] = useState(false);
 
@@ -455,6 +459,16 @@ function OrdersContent() {
                 );
               })()}
 
+              {isOrderPaid(selectedOrder.status) && (
+                <button
+                  onClick={() => setShowInvoice(true)}
+                  className="w-full btn-secondary flex items-center justify-center gap-2 mb-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  Sales Invoice
+                </button>
+              )}
+
               {/* Actions */}
               {selectedOrder.status === 'DEPOSIT_SUBMITTED' && !selectedOrder.depositConfirmed && (
                 <button
@@ -523,6 +537,18 @@ function OrdersContent() {
     </div>
 
     {/* Lightbox */}
+    {showInvoice && selectedOrder && (
+      <InvoicePreviewModal
+        order={{ ...selectedOrder, paymentMethodName: selectedOrder.paymentMethodName ?? null, paymentMethod: null }}
+        orderTypeLabel={
+          selectedOrder.deliveryMethod === 'WALK_IN'
+            ? 'Walk-in'
+            : orderType(selectedOrder) === 'PASABUY' ? 'Personal Shopping' : 'On Hand'
+        }
+        onClose={() => setShowInvoice(false)}
+      />
+    )}
+
     {lightboxSrc && (
       <div
         className="fixed inset-0 bg-espresso/80 flex items-center justify-center z-50 p-4"

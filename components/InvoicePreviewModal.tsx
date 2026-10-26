@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { X, Download, Loader2, FileText } from 'lucide-react';
-import { buildInvoicePdf, InvoiceOrder } from '@/lib/invoice';
+import { buildInvoicePdf, InvoiceOrder, isOrderPaid } from '@/lib/invoice';
 
 export default function InvoicePreviewModal({
   order,
@@ -15,7 +15,7 @@ export default function InvoicePreviewModal({
 }) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [error, setError] = useState('');
-  const fileNameRef = useRef(`invoice-${order.id.slice(-8).toUpperCase()}.pdf`);
+  const fileNameRef = useRef(`${isOrderPaid(order.status) ? 'sales-invoice' : 'invoice'}-${order.id.slice(-8).toUpperCase()}.pdf`);
 
   useEffect(() => {
     let currentUrl: string | null = null;
@@ -44,7 +44,7 @@ export default function InvoicePreviewModal({
         <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
           <p className="font-display font-semibold text-espresso flex items-center gap-2">
             <FileText className="h-4 w-4 text-primary-700" />
-            Invoice Preview
+            {isOrderPaid(order.status) ? 'Sales Invoice' : 'Invoice Preview'}
           </p>
           <button
             onClick={onClose}

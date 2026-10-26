@@ -10,6 +10,7 @@ import { ArrowLeft, Package, Upload, CheckCircle, Truck, Clock, AlertCircle, Ima
 import { isAddressComplete } from '@/lib/address';
 import Link from 'next/link';
 import InvoicePreviewModal from '@/components/InvoicePreviewModal';
+import { isOrderPaid } from '@/lib/invoice';
 
 interface PaymentMethod {
   id: string;
@@ -32,6 +33,7 @@ interface OrderDetail {
   depositConfirmed: boolean;
   shippedAt: string | null;
   createdAt: string;
+  statusHistory?: Array<{ status: string; createdAt: string }>;
   paymentMethodName: string | null;
   paymentMethod: PaymentMethod | null;
   user: {
@@ -204,7 +206,7 @@ export default function OrderDetailPage() {
               className="flex items-center gap-1.5 text-xs font-medium text-primary-700 hover:text-primary-800 border border-primary-200 hover:bg-primary-50 rounded-full px-3 py-1.5 transition-colors"
             >
               <FileText className="h-3.5 w-3.5" />
-              Invoice
+              {isOrderPaid(order.status) ? 'Sales Invoice' : 'Invoice'}
             </button>
           </div>
         </div>

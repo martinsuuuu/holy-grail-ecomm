@@ -117,7 +117,7 @@ export async function PATCH(
           pendingNotification = {
             userId: order.userId,
             title: 'Deposit Confirmed',
-            message: `Your deposit for order #${order.id.slice(-8).toUpperCase()} has been confirmed. Your personal shopping items are being sourced — we'll notify you when they arrive!`,
+            message: `Your deposit for order #${order.id.slice(-8).toUpperCase()} has been confirmed. Your personal shopping items are being sourced — we'll notify you when they arrive! Your sales invoice is now available in your order details.`,
             type: 'ORDER',
           };
           historyNote = 'Deposit confirmed — sourcing personal shopping item(s)';
@@ -128,7 +128,7 @@ export async function PATCH(
           pendingNotification = {
             userId: order.userId,
             title: 'Deposit Confirmed',
-            message: `Your deposit for order #${order.id.slice(-8).toUpperCase()} has been confirmed. Your order is being processed.`,
+            message: `Your deposit for order #${order.id.slice(-8).toUpperCase()} has been confirmed. Your order is being processed. Your sales invoice is now available in your order details.`,
             type: 'ORDER',
           };
           historyNote = 'Deposit confirmed';
