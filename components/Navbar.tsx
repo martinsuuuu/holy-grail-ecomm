@@ -89,9 +89,11 @@ function NavDropdown({
       </button>
       {open && (
         <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-[420px] bg-white rounded-2xl shadow-warm border border-stone-200/70 p-5 z-50 flex gap-5">
-          <div className="w-32 flex-shrink-0">
+          <div className="w-36 flex-shrink-0">
             <p className="text-[11px] font-bold uppercase tracking-widest text-stone-400 mb-2">{listLabel}</p>
-            <div className="space-y-1.5 mb-3">
+            {/* Capped height + scroll, so a long brand list stays inside the viewport
+                and the "Shop All" button below it is always reachable */}
+            <div className="space-y-1.5 mb-3 max-h-[min(55vh,380px)] overflow-y-auto overscroll-contain pr-2 [scrollbar-width:thin]">
               {categories.map((cat) => (
                 <Link
                   key={cat.id}
