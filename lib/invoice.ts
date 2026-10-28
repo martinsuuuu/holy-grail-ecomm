@@ -56,7 +56,10 @@ function statusLabel(status: string) {
 
 async function loadLogoDataUrl(): Promise<string | null> {
   try {
-    const res = await fetch('/logo-mark-new.png');
+    const res = await fetch('/logo-mark.png');
+    // A 404 comes back as an HTML page — treat anything that isn't an image as "no logo"
+    // instead of letting addImage choke on it and fail the whole invoice.
+    if (!res.ok || !res.headers.get('content-type')?.startsWith('image/')) return null;
     const blob = await res.blob();
     return await new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -79,7 +82,11 @@ export async function buildInvoicePdf(order: InvoiceOrder, orderTypeLabel: strin
   // Header — logo + company block (top-left)
   const logo = await loadLogoDataUrl();
   if (logo) {
-    doc.addImage(logo, 'PNG', marginX, 36, 32, 32);
+    try {
+      doc.addImage(logo, 'PNG', marginX, 36, 32, 32);
+    } catch {
+      // Invoice is still valid without the logo
+    }
   }
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
