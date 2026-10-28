@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { timeAgo } from '@/lib/utils';
+import { orderRefFromNotification, resolveOrderHref } from '@/lib/notificationLink';
 import { Bell, CheckCheck, Check, ShoppingBag, Info, ArrowLeft } from 'lucide-react';
 
 interface Notification {
@@ -51,6 +52,12 @@ export default function CustomerNotificationsPage() {
       body: JSON.stringify({ markAllRead: true }),
     });
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const openNotification = async (n: Notification) => {
+    if (!n.read) markAsRead(n.id);
+    const href = await resolveOrderHref(n, session?.user.role);
+    if (href) router.push(href);
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -136,7 +143,8 @@ export default function CustomerNotificationsPage() {
             {filtered.map(n => (
               <div
                 key={n.id}
-                className={`bg-white rounded-2xl border p-4 flex items-start gap-4 transition-colors ${
+                onClick={orderRefFromNotification(n) ? () => openNotification(n) : undefined}
+                className={`bg-white rounded-2xl border p-4 flex items-start gap-4 transition-colors ${orderRefFromNotification(n) ? 'cursor-pointer hover:border-primary-300 ' : ''}${
                   !n.read ? 'border-primary-200 bg-primary-50/40' : 'border-stone-200/70'
                 }`}
               >
@@ -152,7 +160,7 @@ export default function CustomerNotificationsPage() {
                     </div>
                     {!n.read && (
                       <button
-                        onClick={() => markAsRead(n.id)}
+                        onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }}
                         className="p-1 text-primary-400 hover:text-primary-700 hover:bg-primary-100 rounded flex-shrink-0 transition-colors"
                         title="Mark as read"
                       >

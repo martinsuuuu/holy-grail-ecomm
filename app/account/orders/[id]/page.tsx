@@ -140,6 +140,14 @@ export default function OrderDetailPage() {
     setIsSubmitting(false);
   };
 
+  // Notifications link here with #order-status — the content only exists after the
+  // order loads, so the browser's own hash-scroll has nothing to land on yet.
+  useEffect(() => {
+    if (!isLoading && order && window.location.hash === '#order-status') {
+      document.getElementById('order-status')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [isLoading, order]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-cream">
@@ -201,17 +209,20 @@ export default function OrderDetailPage() {
             <span className={`badge ${getOrderStatusColor(order.status)}`}>
               {getOrderStatusLabel(order.status)}
             </span>
-            <button
-              onClick={() => setShowInvoice(true)}
-              className="flex items-center gap-1.5 text-xs font-medium text-primary-700 hover:text-primary-800 border border-primary-200 hover:bg-primary-50 rounded-full px-3 py-1.5 transition-colors"
-            >
-              <FileText className="h-3.5 w-3.5" />
-              {isOrderPaid(order.status) ? 'Sales Invoice' : 'Invoice'}
-            </button>
+            {/* The invoice only exists once payment is confirmed */}
+            {isOrderPaid(order.status) && (
+              <button
+                onClick={() => setShowInvoice(true)}
+                className="flex items-center gap-1.5 text-xs font-medium text-primary-700 hover:text-primary-800 border border-primary-200 hover:bg-primary-50 rounded-full px-3 py-1.5 transition-colors"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Sales Invoice
+              </button>
+            )}
           </div>
         </div>
 
-        {showInvoice && (
+        {showInvoice && isOrderPaid(order.status) && (
           <InvoicePreviewModal
             order={order}
             orderTypeLabel={hasPasabuy ? 'Personal Shopping' : 'On Hand'}
@@ -228,7 +239,7 @@ export default function OrderDetailPage() {
 
         {/* Status Steps */}
         {order.status !== 'CANCELLED' && (
-          <div className="bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6 mb-4">
+          <div id="order-status" className="scroll-mt-24 bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6 mb-4">
             <div className="flex items-center justify-between">
               {statusSteps.map((step, index) => (
                 <div key={step.key} className="flex items-center">

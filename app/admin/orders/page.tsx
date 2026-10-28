@@ -537,7 +537,7 @@ function OrdersContent() {
     </div>
 
     {/* Lightbox */}
-    {showInvoice && selectedOrder && (
+    {showInvoice && selectedOrder && isOrderPaid(selectedOrder.status) && (
       <InvoicePreviewModal
         order={{ ...selectedOrder, paymentMethodName: selectedOrder.paymentMethodName ?? null, paymentMethod: null }}
         orderTypeLabel={

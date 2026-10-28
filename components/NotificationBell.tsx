@@ -5,6 +5,8 @@ import { Bell, X, Check, CheckCheck } from 'lucide-react';
 import { timeAgo } from '@/lib/utils';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { orderRefFromNotification, resolveOrderHref } from '@/lib/notificationLink';
 
 interface Notification {
   id: string;
@@ -17,6 +19,7 @@ interface Notification {
 
 export default function NotificationBell() {
   const { data: session } = useSession();
+  const router = useRouter();
   const viewAllHref = session?.user.role === 'ADMIN' ? '/admin/notifications' : '/account/notifications';
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -70,6 +73,15 @@ export default function NotificationBell() {
     });
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     setUnreadCount(0);
+  };
+
+  const openNotification = async (n: Notification) => {
+    if (!n.read) markAsRead(n.id);
+    const href = await resolveOrderHref(n, session?.user.role);
+    if (href) {
+      setIsOpen(false);
+      router.push(href);
+    }
   };
 
   const getTypeColor = (type: string) => {
@@ -129,7 +141,8 @@ export default function NotificationBell() {
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-b border-stone-50 hover:bg-stone-50 transition-colors ${!notification.read ? 'bg-primary-50/40' : ''}`}
+                  onClick={orderRefFromNotification(notification) ? () => openNotification(notification) : undefined}
+                  className={`p-4 border-b border-stone-50 hover:bg-stone-50 transition-colors ${!notification.read ? 'bg-primary-50/40' : ''} ${orderRefFromNotification(notification) ? 'cursor-pointer' : ''}`}
                 >
                   <div className="flex items-start gap-3">
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${getTypeColor(notification.type)}`}>
@@ -142,7 +155,7 @@ export default function NotificationBell() {
                         </p>
                         {!notification.read && (
                           <button
-                            onClick={() => markAsRead(notification.id)}
+                            onClick={(e) => { e.stopPropagation(); markAsRead(notification.id); }}
                             className="flex-shrink-0 text-primary-400 hover:text-primary-700"
                           >
                             <Check className="h-3 w-3" />

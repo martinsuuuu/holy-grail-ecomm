@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { timeAgo } from '@/lib/utils';
+import { orderRefFromNotification, resolveOrderHref } from '@/lib/notificationLink';
 import { Bell, CheckCheck, Check, Info, AlertTriangle, ShoppingBag, Cake } from 'lucide-react';
 
 interface Notification {
@@ -15,6 +17,7 @@ interface Notification {
 }
 
 export default function AdminNotificationsPage() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -53,6 +56,12 @@ export default function AdminNotificationsPage() {
     if (filter === 'birthdays') return n.type === 'BIRTHDAY' || n.type === 'BIRTHDAY_DIGEST';
     return true;
   });
+
+  const openNotification = async (n: Notification) => {
+    if (!n.read) markAsRead(n.id);
+    const href = await resolveOrderHref(n, 'ADMIN');
+    if (href) router.push(href);
+  };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -139,7 +148,10 @@ export default function AdminNotificationsPage() {
           {filtered.map((notification) => (
             <div
               key={notification.id}
+              onClick={orderRefFromNotification(notification) ? () => openNotification(notification) : undefined}
               className={`bg-white rounded-2xl shadow-soft border p-4 flex items-start gap-4 transition-colors ${
+                orderRefFromNotification(notification) ? 'cursor-pointer hover:border-primary-300 ' : ''
+              }${
                 !notification.read ? 'border-primary-200 bg-primary-50/30' : 'border-stone-200/70'
               }`}
             >
@@ -158,7 +170,7 @@ export default function AdminNotificationsPage() {
                     <span className="text-xs text-stone-400">{timeAgo(notification.createdAt)}</span>
                     {!notification.read && (
                       <button
-                        onClick={() => markAsRead(notification.id)}
+                        onClick={(e) => { e.stopPropagation(); markAsRead(notification.id); }}
                         className="p-1 text-primary-400 hover:text-primary-600 hover:bg-primary-100 rounded transition-colors"
                         title="Mark as read"
                       >
