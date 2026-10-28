@@ -25,6 +25,7 @@ export const authOptions: NextAuthOptions = {
           password: users.password,
           role: users.role,
           banned: users.banned,
+          emailVerified: users.emailVerified,
         }).from(users).where(eq(users.email, credentials.email)).limit(1);
         const user = userArr[0];
 
@@ -43,6 +44,10 @@ export const authOptions: NextAuthOptions = {
 
         if (!isPasswordValid) {
           throw new Error('Invalid email or password');
+        }
+
+        if (!user.emailVerified) {
+          throw new Error('Please verify your email before signing in');
         }
 
         return {

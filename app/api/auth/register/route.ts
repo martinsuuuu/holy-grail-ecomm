@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
 import { users, notifications } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { emailConfigured, sendVerificationEmail } from '@/lib/email';
+import { createEmailToken } from '@/lib/emailTokens';
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -34,6 +36,8 @@ export async function POST(request: NextRequest) {
     phone: phone.trim(),
     birthDate,
     role: 'CUSTOMER',
+    // Without SMTP configured nobody could ever verify, so don't lock them out
+    emailVerified: emailConfigured ? null : new Date(),
   }).returning();
   const user = newUserArr[0];
 
@@ -45,6 +49,17 @@ export async function POST(request: NextRequest) {
     type: 'INFO',
   });
 
+  let requiresVerification = false;
+  if (emailConfigured) {
+    requiresVerification = true;
+    try {
+      const token = await createEmailToken(user.id, 'VERIFY');
+      await sendVerificationEmail({ to: user.email, name: user.name, token });
+    } catch {
+      // The account exists; they can request another verification email from the login page
+    }
+  }
+
   const { password: _, ...userWithoutPassword } = user;
-  return NextResponse.json(userWithoutPassword, { status: 201 });
+  return NextResponse.json({ ...userWithoutPassword, requiresVerification }, { status: 201 });
 }

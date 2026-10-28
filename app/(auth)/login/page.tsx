@@ -15,6 +15,23 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
+
+  const registered = searchParams.get('registered');
+  const needsVerification = error === 'Please verify your email before signing in';
+
+  const resendVerification = async () => {
+    setResendState('sending');
+    try {
+      await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+    } finally {
+      setResendState('sent');
+    }
+  };
 
   const callbackUrl = searchParams.get('callbackUrl') || '/shop';
 
@@ -66,6 +83,22 @@ function LoginForm() {
 
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-warm border border-stone-200/70 p-8">
+          {registered === 'verify' && !error && (
+            <div className="p-3 rounded-xl mb-4 text-sm bg-green-50 text-green-800 border border-green-200">
+              Account created! We&apos;ve emailed you a link — verify your email, then sign in.
+            </div>
+          )}
+          {searchParams.get('verified') && !error && (
+            <div className="p-3 rounded-xl mb-4 text-sm bg-green-50 text-green-800 border border-green-200">
+              Email verified. You can sign in now.
+            </div>
+          )}
+          {searchParams.get('reset') && !error && (
+            <div className="p-3 rounded-xl mb-4 text-sm bg-green-50 text-green-800 border border-green-200">
+              Password updated. Sign in with your new password.
+            </div>
+          )}
+
           {error && (
             <div className={`flex items-center gap-2 p-3 rounded-xl mb-4 text-sm ${
               error === 'Your account has been blocked'
@@ -73,7 +106,26 @@ function LoginForm() {
                 : 'bg-red-50 text-red-700'
             }`}>
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              {error}
+              <span>
+                {error}
+                {needsVerification && (
+                  <>
+                    {' '}
+                    {resendState === 'sent' ? (
+                      <span className="font-medium">— if that account exists, a new link is on its way.</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={resendVerification}
+                        disabled={resendState === 'sending' || !email}
+                        className="underline font-medium"
+                      >
+                        Resend verification email
+                      </button>
+                    )}
+                  </>
+                )}
+              </span>
             </div>
           )}
 
@@ -91,7 +143,12 @@ function LoginForm() {
             </div>
 
             <div>
-              <label className="label">Password</label>
+              <div className="flex items-center justify-between">
+                <label className="label">Password</label>
+                <Link href="/forgot-password" className="text-xs text-primary-700 hover:text-primary-900 font-medium">
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative mt-1">
                 <input
                   type={showPassword ? 'text' : 'password'}

@@ -56,7 +56,7 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push('/login?registered=true');
+      router.push(data.requiresVerification ? '/login?registered=verify' : '/login?registered=true');
     } catch (err) {
       setError('An unexpected error occurred');
     } finally {

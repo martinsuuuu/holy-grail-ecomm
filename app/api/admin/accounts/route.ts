@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
     password: hashedPassword,
     phone: phone?.trim() || null,
     role,
+    emailVerified: new Date(), // created by staff, so no email check needed
   }).returning();
   const user = newUserArr[0];
 

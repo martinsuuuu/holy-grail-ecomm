@@ -13,6 +13,19 @@ export const users = pgTable('users', {
   phone: text('phone'),
   address: text('address'),
   birthDate: text('birth_date'), // 'YYYY-MM-DD'
+  emailVerified: timestamp('email_verified'), // null until the customer clicks the emailed link
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// One-time tokens for email verification and password reset. Only a SHA-256
+// hash is stored, so a database leak can't be used to take over accounts.
+export const emailTokens = pgTable('email_tokens', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(), // 'VERIFY' | 'RESET'
+  tokenHash: text('token_hash').notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  usedAt: timestamp('used_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

@@ -29,6 +29,7 @@ async function main() {
       email: 'admin@retail.com',
       password: adminPassword,
       role: 'ADMIN',
+      emailVerified: new Date(),
     }).returning();
     admin = arr[0];
   }
@@ -45,6 +46,7 @@ async function main() {
       email: 'shipper@retail.com',
       password: shipperPassword,
       role: 'SHIPPER',
+      emailVerified: new Date(),
     }).returning();
     shipper = arr[0];
   }
@@ -61,6 +63,7 @@ async function main() {
       email: 'customer@retail.com',
       password: customerPassword,
       role: 'CUSTOMER',
+      emailVerified: new Date(),
     }).returning();
     customer = arr[0];
   }
