@@ -533,7 +533,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-stone-100 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="md:hidden border-t border-stone-100 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain">
           <Link
             href="/shop"
             className="flex items-center gap-2 py-2 text-espresso/70 hover:text-espresso"
