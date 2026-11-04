@@ -1,5 +1,6 @@
 'use client';
 
+import { deliveryLabel } from '@/lib/delivery';
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -375,7 +376,7 @@ export default function AccountPage() {
                     </div>
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-stone-50">
-                    <span className="text-xs text-stone-400">{order.deliveryMethod}</span>
+                    <span className="text-xs text-stone-400">{deliveryLabel(order.deliveryMethod)}</span>
                     <ChevronRight className="h-4 w-4 text-stone-400" />
                   </div>
                 </Link>

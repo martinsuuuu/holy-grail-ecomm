@@ -1,6 +1,8 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { pesos } from './pdfUtils';
+import { deliveryLabel } from './delivery';
+
 
 const COMPANY = {
   name: 'Holygrail Inc.',
@@ -163,7 +165,7 @@ export async function buildInvoicePdf(order: InvoiceOrder, orderTypeLabel: strin
   doc.setTextColor(60, 60, 60);
   doc.text([COMPANY.name, COMPANY.email, COMPANY.website], marginX, fromToY + 16);
   doc.text(
-    [order.user.name, order.user.email, order.deliveryMethod].filter(Boolean),
+    [order.user.name, order.user.email, deliveryLabel(order.deliveryMethod)].filter(Boolean),
     pageWidth / 2,
     fromToY + 16
   );

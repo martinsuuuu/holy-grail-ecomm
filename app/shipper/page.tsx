@@ -1,5 +1,6 @@
 'use client';
 
+import { deliveryLabel } from '@/lib/delivery';
 import { useState, useEffect } from 'react';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { Truck, Package, CheckCircle, MapPin, User, Clock } from 'lucide-react';
@@ -165,7 +166,7 @@ export default function ShipperPage() {
                 <div className="flex items-center gap-2 mb-4">
                   <MapPin className="h-4 w-4 text-primary-600" />
                   <div>
-                    <span className="text-sm font-medium text-espresso">{order.deliveryMethod}</span>
+                    <span className="text-sm font-medium text-espresso">{deliveryLabel(order.deliveryMethod)}</span>
                     <span className="text-xs text-espresso/50 ml-2">Delivery</span>
                   </div>
                 </div>

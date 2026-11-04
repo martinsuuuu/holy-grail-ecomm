@@ -3,15 +3,21 @@ import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
 import { users, notifications } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { EMPTY_ADDRESS } from '@/lib/address';
 import { emailConfigured, sendVerificationEmail } from '@/lib/email';
 import { createEmailToken } from '@/lib/emailTokens';
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { name, email, password, phone, birthDate } = body;
+  const { name, email, password, phone, birthDate, country, region, city } = body;
 
   if (!name || !email || !password || !phone || !birthDate) {
     return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+  }
+
+  const clean = (v: unknown) => (typeof v === 'string' ? v.trim().slice(0, 100) : '');
+  if (!clean(country) || !clean(region) || !clean(city)) {
+    return NextResponse.json({ error: 'Country, region and city are required' }, { status: 400 });
   }
 
   if (password.length < 6) {
@@ -35,6 +41,14 @@ export async function POST(request: NextRequest) {
     password: hashedPassword,
     phone: phone.trim(),
     birthDate,
+    // Partial address (no street yet) — the full one is completed at checkout. Codes stay
+    // empty on purpose so the address form still treats it as incomplete.
+    address: JSON.stringify({
+      ...EMPTY_ADDRESS,
+      country: clean(country),
+      regionName: clean(region),
+      cityName: clean(city),
+    }),
     role: 'CUSTOMER',
     // Without SMTP configured nobody could ever verify, so don't lock them out
     emailVerified: emailConfigured ? null : new Date(),

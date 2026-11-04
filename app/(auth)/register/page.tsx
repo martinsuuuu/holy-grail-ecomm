@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import HGMonogram from '@/components/HGMonogram';
+import RegistrationLocation, { LocationValue } from '@/components/RegistrationLocation';
+import { DEFAULT_COUNTRY } from '@/lib/countries';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -16,6 +18,7 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
   });
+  const [location, setLocation] = useState<LocationValue>({ country: DEFAULT_COUNTRY, region: '', city: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +29,11 @@ export default function RegisterPage() {
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      return;
+    }
+
+    if (!location.country || !location.region.trim() || !location.city.trim()) {
+      setError('Please select your country, region and city');
       return;
     }
 
@@ -45,6 +53,9 @@ export default function RegisterPage() {
           email: formData.email,
           phone: formData.phone,
           birthDate: formData.birthDate,
+          country: location.country,
+          region: location.region,
+          city: location.city,
           password: formData.password,
         }),
       });
@@ -134,6 +145,8 @@ export default function RegisterPage() {
                 className="input-field"
               />
             </div>
+
+            <RegistrationLocation value={location} onChange={setLocation} />
 
             <div>
               <label className="label">Password</label>

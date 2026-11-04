@@ -1,5 +1,6 @@
 'use client';
 
+import { deliveryLabel } from '@/lib/delivery';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDate, formatDateTime, formatCurrency, getOrderStatusColor, getOrderStatusLabel } from '@/lib/utils';
@@ -47,13 +48,6 @@ function formatBirthday(birthDate: string | null): string | null {
     month: 'long', day: 'numeric', year: 'numeric',
   });
 }
-
-const DELIVERY_LABEL: Record<string, string> = {
-  LALAMOVE: 'Lalamove',
-  SHOPEE: 'Shopee',
-  JNT: 'J&T Express',
-  WALK_IN: 'Walk-in / In-Store',
-};
 
 export default function CustomerDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -331,7 +325,7 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
                       <td className="px-6 py-4">
                         <span className="flex items-center gap-1.5 text-stone-600 text-xs">
                           <Truck className="h-3.5 w-3.5 text-stone-400 flex-shrink-0" />
-                          {DELIVERY_LABEL[order.deliveryMethod] ?? order.deliveryMethod}
+                          {deliveryLabel(order.deliveryMethod)}
                         </span>
                       </td>
 

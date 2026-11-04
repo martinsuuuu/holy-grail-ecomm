@@ -1,5 +1,6 @@
 'use client';
 
+import { deliveryLabel } from '@/lib/delivery';
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { formatCurrency, formatDateTime, getOrderStatusColor, getOrderStatusLabel } from '@/lib/utils';
@@ -7,13 +8,6 @@ import { ShoppingBag, CheckCircle, Search, Filter, Package, Eye, Truck, ZoomIn, 
 import ManualOrderModal from '@/components/admin/ManualOrderModal';
 import InvoicePreviewModal from '@/components/InvoicePreviewModal';
 import { isOrderPaid } from '@/lib/invoice';
-
-const DELIVERY_LABEL: Record<string, string> = {
-  LALAMOVE: 'Lalamove',
-  SHOPEE: 'Shopee',
-  JNT: 'J&T Express',
-  WALK_IN: 'Walk-in / In-Store',
-};
 
 interface StatusHistoryEntry {
   id: string;
@@ -362,7 +356,7 @@ function OrdersContent() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-500">Delivery</span>
-                  <span className="font-medium">{DELIVERY_LABEL[selectedOrder.deliveryMethod] ?? selectedOrder.deliveryMethod}</span>
+                  <span className="font-medium">{deliveryLabel(selectedOrder.deliveryMethod)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-500">Order Type</span>

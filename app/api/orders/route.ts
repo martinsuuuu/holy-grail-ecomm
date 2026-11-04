@@ -1,3 +1,4 @@
+import { DELIVERY_VALUES } from '@/lib/delivery';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -70,12 +71,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No items in order' }, { status: 400 });
   }
 
-  if (!deliveryMethod || !['LALAMOVE', 'SHOPEE', 'JNT'].includes(deliveryMethod)) {
+  if (!deliveryMethod || !DELIVERY_VALUES.includes(deliveryMethod)) {
     return NextResponse.json({ error: 'Invalid delivery method' }, { status: 400 });
-  }
-
-  if (deliveryMethod === 'LALAMOVE' && !deliveryAddress?.trim()) {
-    return NextResponse.json({ error: 'Please provide a Lalamove delivery address' }, { status: 400 });
   }
 
   if (!paymentMethodId) {

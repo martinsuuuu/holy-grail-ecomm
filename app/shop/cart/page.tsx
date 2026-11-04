@@ -8,6 +8,7 @@ import CartItem from '@/components/CartItem';
 import { useCartStore } from '@/lib/cartStore';
 import { formatCurrency } from '@/lib/utils';
 import { ShoppingCart, ArrowLeft, Truck, AlertCircle, CreditCard, Smartphone, Building2, QrCode, X, ZoomIn, ExternalLink, MapPin, Tag, CheckCircle } from 'lucide-react';
+import { DELIVERY_METHODS, DeliveryMethod, deliveryLabel } from '@/lib/delivery';
 import Link from 'next/link';
 
 interface PaymentMethod {
@@ -21,16 +22,13 @@ export default function CartPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const { items, clearCart, getTotalPrice } = useCartStore();
-  const [deliveryMethod, setDeliveryMethod] = useState<'LALAMOVE' | 'SHOPEE' | 'JNT'>('LALAMOVE');
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('DHL');
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [paymentMethodsLoaded, setPaymentMethodsLoaded] = useState(false);
   const [selectedPaymentId, setSelectedPaymentId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [lightboxQr, setLightboxQr] = useState<{ src: string; name: string } | null>(null);
-  const [shopeeLink, setShopeeLink] = useState('');
-  const [lalamoveAddress, setLalamoveAddress] = useState('');
-  const [useSameAddress, setUseSameAddress] = useState(false);
   const [promoInput, setPromoInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountAmount: number } | null>(null);
   const [promoError, setPromoError] = useState('');
@@ -45,9 +43,6 @@ export default function CartPage() {
       })
       .catch(() => {})
       .finally(() => setPaymentMethodsLoaded(true));
-    fetch('/api/settings')
-      .then((r) => r.json())
-      .then((data) => setShopeeLink(data.shopee_checkout_link || ''));
   }, []);
 
   const gcashMethods = paymentMethods.filter((m) => m.type === 'GCASH');
@@ -104,11 +99,6 @@ export default function CartPage() {
       return;
     }
 
-    if (deliveryMethod === 'LALAMOVE' && !useSameAddress && !lalamoveAddress.trim()) {
-      setError('Please enter your Lalamove delivery address or select "Same as shipping address"');
-      return;
-    }
-
     setIsLoading(true);
     setError('');
 
@@ -123,9 +113,7 @@ export default function CartPage() {
           })),
           deliveryMethod,
           paymentMethodId: selectedPaymentId,
-          deliveryAddress: deliveryMethod === 'LALAMOVE'
-            ? (useSameAddress ? 'Same as shipping address' : lalamoveAddress.trim())
-            : null,
+          deliveryAddress: null,
           promoCode: appliedPromo?.code || null,
         }),
       });
@@ -200,12 +188,8 @@ export default function CartPage() {
                   <Truck className="h-5 w-5 text-primary-700" />
                   Delivery Method
                 </h2>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { value: 'LALAMOVE', label: 'Lalamove', desc: 'Same-day delivery' },
-                    { value: 'SHOPEE', label: 'Shopee Checkout', desc: '2-3 business days' },
-                    { value: 'JNT', label: 'J&T Express', desc: 'Standard delivery' },
-                  ].map((method) => (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {DELIVERY_METHODS.map((method) => (
                     <label
                       key={method.value}
                       className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
@@ -219,7 +203,7 @@ export default function CartPage() {
                         name="delivery"
                         value={method.value}
                         checked={deliveryMethod === method.value}
-                        onChange={(e) => setDeliveryMethod(e.target.value as 'LALAMOVE' | 'SHOPEE' | 'JNT')}
+                        onChange={() => setDeliveryMethod(method.value)}
                         className="text-primary-600"
                       />
                       <div>
@@ -230,69 +214,11 @@ export default function CartPage() {
                   ))}
                 </div>
 
-                {/* Shopee Checkout link */}
-                {deliveryMethod === 'SHOPEE' && (
-                  <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-xl">
-                    <p className="text-sm font-medium text-orange-800 mb-2">Proceed to Shopee Checkout</p>
-                    <p className="text-xs text-orange-600 mb-3">
-                      Click the link below to complete your order through Shopee.
-                    </p>
-                    {shopeeLink ? (
-                      <a
-                        href={shopeeLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        Open Shopee Checkout
-                      </a>
-                    ) : (
-                      <p className="text-xs text-orange-400 italic">Shopee checkout link not configured yet.</p>
-                    )}
-                  </div>
-                )}
-
-                {/* J&T Express info */}
-                {deliveryMethod === 'JNT' && (
-                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-                    <p className="text-sm font-medium text-red-800 mb-1 flex items-center gap-1.5">
-                      <Truck className="h-4 w-4" />
-                      J&T Express
-                    </p>
-                    <p className="text-xs text-red-600">
-                      No action needed on your end. After your order is confirmed, our team will book a J&T Express pickup for you and update your order with the tracking details.
-                    </p>
-                  </div>
-                )}
-
-                {/* Lalamove address */}
-                {deliveryMethod === 'LALAMOVE' && (
-                  <div className="mt-4 p-4 bg-primary-50 border border-primary-200 rounded-xl space-y-3">
-                    <p className="text-sm font-medium text-primary-800 flex items-center gap-1.5">
-                      <MapPin className="h-4 w-4" />
-                      Lalamove Delivery Address
-                    </p>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={useSameAddress}
-                        onChange={(e) => setUseSameAddress(e.target.checked)}
-                        className="rounded text-primary-600"
-                      />
-                      <span className="text-sm text-primary-700">Same as my shipping address</span>
-                    </label>
-                    {!useSameAddress && (
-                      <textarea
-                        value={lalamoveAddress}
-                        onChange={(e) => setLalamoveAddress(e.target.value)}
-                        placeholder="Enter full delivery address or paste Lalamove pin location…"
-                        rows={3}
-                        className="w-full border border-primary-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
-                      />
-                    )}
-                  </div>
-                )}
+                <p className="mt-4 text-xs text-espresso/60 flex items-start gap-1.5">
+                  <Truck className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                  No action needed on your end. After your order is confirmed, our team will arrange the
+                  {' '}{deliveryLabel(deliveryMethod)} booking and update your order with the tracking details.
+                </p>
               </div>
 
               {/* Payment method */}

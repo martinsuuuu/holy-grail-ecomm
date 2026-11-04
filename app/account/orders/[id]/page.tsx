@@ -1,5 +1,6 @@
 'use client';
 
+import { deliveryLabel } from '@/lib/delivery';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -548,7 +549,7 @@ export default function OrderDetailPage() {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2 text-sm text-espresso/60">
                 <Truck className="h-4 w-4" />
-                <span>{order.deliveryMethod}</span>
+                <span>{deliveryLabel(order.deliveryMethod)}</span>
               </div>
               <div className="text-right">
                 {order.discountAmount > 0 && (

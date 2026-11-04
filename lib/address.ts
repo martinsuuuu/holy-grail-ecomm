@@ -1,4 +1,5 @@
 export interface AddressData {
+  country?: string; // set at registration; older addresses don't have it
   street: string;
   subdivision: string;
   regionCode: string;
@@ -32,6 +33,7 @@ export function formatAddress(data: AddressData): string {
     data.cityName,
     data.provinceName,
     data.regionName,
+    data.country,
   ].filter(Boolean);
   return parts.join(', ');
 }
