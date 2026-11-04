@@ -8,7 +8,7 @@ const config: CapacitorConfig = {
   // it can't be statically exported into the app bundle, so the WebView
   // loads the live production site directly instead.
   server: {
-    url: 'https://luxury-ecomm-khaki.vercel.app',
+    url: 'https://test.holygrail.ph',
     cleartext: false,
   },
   ios: {
