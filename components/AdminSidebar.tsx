@@ -17,7 +17,6 @@ import {
   ChevronRight,
   CreditCard,
   AlertTriangle,
-  MapPin,
   Tag,
   Percent,
   Palette,
@@ -64,7 +63,6 @@ const NAV_SECTIONS: { label?: string; items: { href: string; label: string; icon
     items: [
       { href: '/admin/payment-methods', label: 'Payment Methods', icon: CreditCard },
       { href: '/admin/promo-codes', label: 'Promo Codes', icon: Percent },
-      { href: '/admin/delivery-settings', label: 'Delivery Settings', icon: MapPin },
       { href: '/admin/notifications', label: 'Notifications', icon: Bell },
     ],
   },
