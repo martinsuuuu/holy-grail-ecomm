@@ -1,4 +1,5 @@
-import { DELIVERY_VALUES } from '@/lib/delivery';
+import { DELIVERY_VALUES, deliveryLabel } from '@/lib/delivery';
+import { sendOrderPlacedEmail } from '@/lib/email';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -208,6 +209,26 @@ export async function POST(request: NextRequest) {
       statusHistory: { orderBy: asc(orderStatusHistory.createdAt) },
     },
   });
+
+  // Receipt email — a mail problem must never fail an order that's already been placed
+  if (fullOrder && session.user.email) {
+    try {
+      await sendOrderPlacedEmail({
+        to: session.user.email,
+        name: session.user.name ?? 'there',
+        orderRef: order.id.slice(-8).toUpperCase(),
+        items: fullOrder.items.map((i) => ({ name: i.product.name, quantity: i.quantity, price: i.price })),
+        discountAmount,
+        promoCode: appliedPromoCode,
+        total: totalAmount,
+        deliveryLabel: deliveryLabel(deliveryMethod),
+        paymentMethodName: pm.name,
+        depositDeadline: reservationExpiry,
+      });
+    } catch (e) {
+      console.error('[email] order placed email failed', e);
+    }
+  }
 
   return NextResponse.json(fullOrder, { status: 201 });
 }

@@ -4,7 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { appointments, users } from '@/db/schema';
 import { eq, and, ne } from 'drizzle-orm';
-import { APPOINTMENT_OPEN_HOUR, APPOINTMENT_CLOSE_HOUR } from '@/lib/appointments';
+import { APPOINTMENT_OPEN_HOUR, APPOINTMENT_CLOSE_HOUR, formatHourRange } from '@/lib/appointments';
+import { sendAppointmentBookedEmail } from '@/lib/email';
 
 // Returns the hours already taken for a given date, so the booking page can
 // gray them out. No auth required — availability is public information.
@@ -75,6 +76,20 @@ export async function POST(request: NextRequest) {
     notes: notes?.trim() || null,
     status: 'PENDING',
   }).returning();
+
+  // Booking-received email works for guests too, since the address is on the appointment itself
+  try {
+    await sendAppointmentBookedEmail({
+      to: appointment.email,
+      name: appointment.name,
+      dateLabel: new Date(appointment.date + 'T00:00:00').toLocaleDateString('en-US', {
+        weekday: 'long', month: 'long', day: 'numeric',
+      }),
+      timeLabel: formatHourRange(appointment.hour),
+    });
+  } catch (e) {
+    console.error('[email] appointment booked email failed', e);
+  }
 
   return NextResponse.json(appointment, { status: 201 });
 }

@@ -100,3 +100,102 @@ export async function sendAppointmentConfirmedEmail({
     )
   );
 }
+
+const peso = (n: number) =>
+  `₱${n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+export async function sendOrderPlacedEmail({
+  to,
+  name,
+  orderRef,
+  items,
+  discountAmount,
+  promoCode,
+  total,
+  deliveryLabel,
+  paymentMethodName,
+  depositDeadline,
+}: {
+  to: string;
+  name: string;
+  orderRef: string;
+  items: { name: string; quantity: number; price: number }[];
+  discountAmount: number;
+  promoCode: string | null;
+  total: number;
+  deliveryLabel: string;
+  paymentMethodName: string | null;
+  depositDeadline: Date;
+}): Promise<void> {
+  const rows = items
+    .map(
+      (i) => `<tr>
+        <td style="padding: 6px 12px 6px 0;">${escapeHtml(i.name)}${i.quantity > 1 ? ` × ${i.quantity}` : ''}</td>
+        <td style="padding: 6px 0; text-align: right;">${peso(i.price * i.quantity)}</td>
+      </tr>`
+    )
+    .join('');
+  const discountRow =
+    discountAmount > 0
+      ? `<tr><td style="padding: 6px 12px 6px 0; color: #777;">Discount${promoCode ? ` (${escapeHtml(promoCode)})` : ''}</td><td style="padding: 6px 0; text-align: right;">-${peso(discountAmount)}</td></tr>`
+      : '';
+  const deadline = depositDeadline.toLocaleString('en-US', {
+    timeZone: 'Asia/Manila',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+  await send(
+    to,
+    `Your Holy Grail order #${orderRef} has been placed`,
+    layout(
+      'Thank you for your order',
+      `<p>Hi ${escapeHtml(name)},</p>
+       <p>We've received your order <strong>#${orderRef}</strong>.</p>
+       <table style="width: 100%; margin: 16px 0; font-size: 14px; border-collapse: collapse;">
+         ${rows}
+         ${discountRow}
+         <tr><td style="padding: 10px 12px 6px 0; border-top: 1px solid #ddd; font-weight: 600;">Total</td><td style="padding: 10px 0 6px; border-top: 1px solid #ddd; text-align: right; font-weight: 600;">${peso(total)}</td></tr>
+       </table>
+       <table style="margin: 8px 0 16px; font-size: 14px;">
+         <tr><td style="padding: 3px 12px 3px 0; color: #777;">Delivery</td><td>${escapeHtml(deliveryLabel)}</td></tr>
+         ${paymentMethodName ? `<tr><td style="padding: 3px 12px 3px 0; color: #777;">Payment</td><td>${escapeHtml(paymentMethodName)}</td></tr>` : ''}
+       </table>
+       <p style="background: #f6f1e7; padding: 12px 14px; border-radius: 8px; font-size: 14px;">
+         <strong>Next step:</strong> please submit your deposit proof by <strong>${deadline} (PH time)</strong>
+         from your order page. Orders without a deposit by then are released automatically.
+       </p>
+       ${button(`${appUrl()}/account`, 'View my orders')}`
+    )
+  );
+}
+
+export async function sendAppointmentBookedEmail({
+  to,
+  name,
+  dateLabel,
+  timeLabel,
+}: {
+  to: string;
+  name: string;
+  dateLabel: string;
+  timeLabel: string;
+}): Promise<void> {
+  await send(
+    to,
+    'We received your Holy Grail appointment request',
+    layout(
+      'Your booking request is in',
+      `<p>Hi ${escapeHtml(name)},</p>
+       <p>Thanks for booking a showroom visit. Your request is <strong>pending confirmation</strong> — we'll email you once our team confirms it.</p>
+       <table style="margin: 16px 0; font-size: 14px;">
+         <tr><td style="padding: 4px 12px 4px 0; color: #777;">Date</td><td style="font-weight: 600;">${escapeHtml(dateLabel)}</td></tr>
+         <tr><td style="padding: 4px 12px 4px 0; color: #777;">Time</td><td style="font-weight: 600;">${escapeHtml(timeLabel)}</td></tr>
+       </table>
+       <p style="color: #777; font-size: 13px;">Unit 2Y, Lee Gardens Condominium, Lee St. cor. Shaw Boulevard, Brgy. Wack Wack, Mandaluyong City, Philippines</p>
+       <p style="color: #777; font-size: 13px;">Need to change it? Just reply to this email.</p>`
+    )
+  );
+}
