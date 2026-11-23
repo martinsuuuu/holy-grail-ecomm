@@ -4,18 +4,44 @@ import nodemailer from 'nodemailer';
 // are present (Hostinger mailbox: smtp.hostinger.com, port 465). Until then,
 // every send here just logs and returns — the rest of the app (in-app
 // notifications, admin visibility) works the same either way.
-export const emailConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD);
+// Each department can send from its own Hostinger mailbox (appointments@, consignment@,
+// sourcing@). A channel uses SMTP_<CHANNEL>_USER / SMTP_<CHANNEL>_PASSWORD when both are
+// set, and otherwise falls back to the default SMTP_USER mailbox.
+export type EmailChannel = 'default' | 'appointments' | 'consignment' | 'sourcing';
 
-const transporter = emailConfigured
-  ? nodemailer.createTransport({
+const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
+
+function channelCredentials(channel: EmailChannel): { user: string; pass: string } | null {
+  if (channel !== 'default') {
+    const key = channel.toUpperCase();
+    const user = process.env[`SMTP_${key}_USER`];
+    const pass = process.env[`SMTP_${key}_PASSWORD`];
+    if (user && pass) return { user, pass };
+  }
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASSWORD;
+  return user && pass ? { user, pass } : null;
+}
+
+const transporters = new Map<string, ReturnType<typeof nodemailer.createTransport>>();
+
+function transportFor(channel: EmailChannel) {
+  const creds = process.env.SMTP_HOST ? channelCredentials(channel) : null;
+  if (!creds) return null;
+  let transporter = transporters.get(creds.user);
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 465),
-      secure: Number(process.env.SMTP_PORT || 465) === 465,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
-    })
-  : null;
+      port: SMTP_PORT,
+      secure: SMTP_PORT === 465,
+      auth: creds,
+    });
+    transporters.set(creds.user, transporter);
+  }
+  return { transporter, user: creds.user };
+}
 
-const FROM = process.env.EMAIL_FROM || `Holy Grail <${process.env.SMTP_USER}>`;
+export const emailConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD);
 
 export const appUrl = () =>
   (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '');
@@ -23,12 +49,15 @@ export const appUrl = () =>
 const escapeHtml = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-async function send(to: string, subject: string, html: string): Promise<void> {
-  if (!transporter) {
+async function send(to: string, subject: string, html: string, channel: EmailChannel = 'default'): Promise<void> {
+  const t = transportFor(channel);
+  if (!t) {
     console.log(`[email] Skipped — SMTP not configured. Would have sent "${subject}" to ${to}.`);
     return;
   }
-  await transporter.sendMail({ from: FROM, to, subject, html });
+  // EMAIL_FROM only applies to the default mailbox; department mailboxes send as themselves
+  const from = channel === 'default' && process.env.EMAIL_FROM ? process.env.EMAIL_FROM : `Holy Grail <${t.user}>`;
+  await t.transporter.sendMail({ from, to, subject, html });
 }
 
 function layout(heading: string, body: string): string {
@@ -97,7 +126,8 @@ export async function sendAppointmentConfirmedEmail({
        </table>
        <p style="color: #777; font-size: 13px;">Unit 2Y, Lee Gardens Condominium, Lee St. cor. Shaw Boulevard, Brgy. Wack Wack, Mandaluyong City, Philippines</p>
        <p style="color: #777; font-size: 13px;">Need to reschedule? Just reply to this email.</p>`
-    )
+    ),
+    'appointments'
   );
 }
 
@@ -115,6 +145,7 @@ export async function sendOrderPlacedEmail({
   deliveryLabel,
   paymentMethodName,
   depositDeadline,
+  channel = 'default',
 }: {
   to: string;
   name: string;
@@ -126,6 +157,7 @@ export async function sendOrderPlacedEmail({
   deliveryLabel: string;
   paymentMethodName: string | null;
   depositDeadline: Date;
+  channel?: EmailChannel;
 }): Promise<void> {
   const rows = items
     .map(
@@ -168,7 +200,8 @@ export async function sendOrderPlacedEmail({
          from your order page. Orders without a deposit by then are released automatically.
        </p>
        ${button(`${appUrl()}/account`, 'View my orders')}`
-    )
+    ),
+    channel
   );
 }
 
@@ -196,6 +229,7 @@ export async function sendAppointmentBookedEmail({
        </table>
        <p style="color: #777; font-size: 13px;">Unit 2Y, Lee Gardens Condominium, Lee St. cor. Shaw Boulevard, Brgy. Wack Wack, Mandaluyong City, Philippines</p>
        <p style="color: #777; font-size: 13px;">Need to change it? Just reply to this email.</p>`
-    )
+    ),
+    'appointments'
   );
 }

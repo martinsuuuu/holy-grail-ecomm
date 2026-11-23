@@ -224,6 +224,8 @@ export async function POST(request: NextRequest) {
         deliveryLabel: deliveryLabel(deliveryMethod),
         paymentMethodName: pm.name,
         depositDeadline: reservationExpiry,
+        // Orders that include sourced (pasabuy) pieces come from the sourcing mailbox
+        channel: pasabuyProductIds.size > 0 ? 'sourcing' : 'default',
       });
     } catch (e) {
       console.error('[email] order placed email failed', e);
