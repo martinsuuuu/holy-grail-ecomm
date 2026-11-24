@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency } from '@/lib/utils';
-import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck, ChevronLeft, ChevronRight, Loader2, UploadCloud } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Upload, X, ShoppingBag, Truck, ChevronLeft, ChevronRight, Loader2, UploadCloud, Download, FileSpreadsheet } from 'lucide-react';
 import ProductBarcode from '@/components/admin/ProductBarcode';
 import { upload } from '@vercel/blob/client';
 import { resizeImageFile } from '@/lib/image';
 import { useBulkUploadStore } from '@/lib/bulkImageUploadStore';
+import { exportProductsToExcel, downloadProductTemplate, parseProductsFile } from '@/lib/productSheet';
 
 type ProductType = 'ONHAND' | 'PASABUY';
 
@@ -119,6 +120,42 @@ export default function AdminProductsPage() {
       .then(r => r.json())
       .then(data => setItemTypes(data.map((t: { name: string }) => t.name)));
   }, []);
+
+  const excelInputRef = useRef<HTMLInputElement>(null);
+  const [isImportingExcel, setIsImportingExcel] = useState(false);
+  const [importMessage, setImportMessage] = useState('');
+  const [importError, setImportError] = useState('');
+
+  const handleExcelImport = async (file: File) => {
+    setImportError('');
+    setImportMessage('');
+    setIsImportingExcel(true);
+    try {
+      const rows = await parseProductsFile(file);
+      if (rows.length === 0) {
+        setImportError('That spreadsheet has no rows to import.');
+        return;
+      }
+      const res = await fetch('/api/admin/products/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setImportError(data.error || 'Import failed');
+        return;
+      }
+      const problems = (data.errors as { row: number; error: string }[]).slice(0, 5).map(e => `row ${e.row}: ${e.error}`).join('; ');
+      setImportMessage(`Imported: ${data.created} added, ${data.updated} updated${data.failed ? `, ${data.failed} skipped (${problems})` : ''}.`);
+      fetchProducts();
+    } catch {
+      setImportError('Could not read that file. Use an .xlsx file made from the template or an export.');
+    } finally {
+      setIsImportingExcel(false);
+      if (excelInputRef.current) excelInputRef.current.value = '';
+    }
+  };
 
   const fetchProducts = async () => {
     const params = search ? `?search=${search}` : '';
@@ -319,6 +356,25 @@ export default function AdminProductsPage() {
           <p className="text-stone-500 text-sm mt-1">{products.length} products total</p>
         </div>
         <div className="flex items-center gap-3">
+          <input
+            ref={excelInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleExcelImport(f); }}
+          />
+          <button onClick={downloadProductTemplate} className="btn-secondary flex items-center gap-2" title="Blank spreadsheet with the right columns">
+            <FileSpreadsheet className="h-4 w-4" />
+            Template
+          </button>
+          <button onClick={() => exportProductsToExcel(products as unknown as Record<string, unknown>[])} className="btn-secondary flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Export Excel
+          </button>
+          <button onClick={() => excelInputRef.current?.click()} disabled={isImportingExcel} className="btn-secondary flex items-center gap-2 disabled:opacity-60">
+            {isImportingExcel ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+            Import Excel
+          </button>
           <button onClick={openBulkUpload} className="btn-secondary flex items-center gap-2">
             <UploadCloud className="h-4 w-4" />
             Bulk Upload Images
@@ -329,6 +385,13 @@ export default function AdminProductsPage() {
           </button>
         </div>
       </div>
+
+      {importError && (
+        <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">{importError}</div>
+      )}
+      {importMessage && (
+        <div className="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm px-4 py-3">{importMessage}</div>
+      )}
 
       {/* Search */}
       <div className="relative mb-6">
