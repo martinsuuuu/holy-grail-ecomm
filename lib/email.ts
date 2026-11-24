@@ -7,7 +7,7 @@ import nodemailer from 'nodemailer';
 // Each department can send from its own Hostinger mailbox (appointments@, consignment@,
 // sourcing@). A channel uses SMTP_<CHANNEL>_USER / SMTP_<CHANNEL>_PASSWORD when both are
 // set, and otherwise falls back to the default SMTP_USER mailbox.
-export type EmailChannel = 'default' | 'appointments' | 'consignment' | 'sourcing';
+export type EmailChannel = 'default' | 'appointments' | 'consignment' | 'sourcing' | 'payments' | 'shipping';
 
 const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
 
@@ -277,5 +277,89 @@ export async function sendBdoQrReadyEmail({
        </p>
        ${button(`${appUrl()}/account/orders/${orderId}#order-status`, 'Open my order')}`
     )
+  );
+}
+
+type OrderEmailBase = {
+  to: string;
+  name: string;
+  orderRef: string;
+  orderId: string;
+  items: { name: string; quantity: number; price: number }[];
+  total: number;
+  deliveryLabel: string;
+};
+
+function orderItemsTable(items: OrderEmailBase['items'], total: number): string {
+  const rows = items
+    .map(
+      (i) => `<tr>
+        <td style="padding: 6px 12px 6px 0;">${escapeHtml(i.name)}${i.quantity > 1 ? ` × ${i.quantity}` : ''}</td>
+        <td style="padding: 6px 0; text-align: right;">${peso(i.price * i.quantity)}</td>
+      </tr>`
+    )
+    .join('');
+  return `<table style="width: 100%; margin: 16px 0; font-size: 14px; border-collapse: collapse;">
+    ${rows}
+    <tr><td style="padding: 10px 12px 6px 0; border-top: 1px solid #ddd; font-weight: 600;">Total</td><td style="padding: 10px 0 6px; border-top: 1px solid #ddd; text-align: right; font-weight: 600;">${peso(total)}</td></tr>
+  </table>`;
+}
+
+const orderLink = (orderId: string) => `${appUrl()}/account/orders/${orderId}#order-status`;
+
+// Sent from payments@ once staff confirm the payment (or a walk-in order is paid in-store)
+export async function sendOrderPaidEmail({ sourcing, ...o }: OrderEmailBase & { sourcing: boolean }): Promise<void> {
+  await send(
+    o.to,
+    `Payment received for order #${o.orderRef}`,
+    layout(
+      'Payment confirmed',
+      `<p>Hi ${escapeHtml(o.name)},</p>
+       <p>We've received and confirmed your payment for order <strong>#${o.orderRef}</strong>. Thank you!</p>
+       ${orderItemsTable(o.items, o.total)}
+       <p style="background: #f6f1e7; padding: 12px 14px; border-radius: 8px; font-size: 14px;">
+         ${
+           sourcing
+             ? 'Your personal shopping item(s) are now being sourced. We\'ll let you know as soon as they arrive.'
+             : `Your order is now being prepared for ${escapeHtml(o.deliveryLabel)}. We'll email you again when it ships.`
+         }
+         Your sales invoice is available on your order page.
+       </p>
+       ${button(orderLink(o.orderId), 'View my order')}`
+    ),
+    'payments'
+  );
+}
+
+// Sent from shipping@ when the order goes out
+export async function sendOrderShippedEmail(o: OrderEmailBase): Promise<void> {
+  await send(
+    o.to,
+    `Your order #${o.orderRef} has shipped`,
+    layout(
+      'Your order is on its way',
+      `<p>Hi ${escapeHtml(o.name)},</p>
+       <p>Good news — order <strong>#${o.orderRef}</strong> has been shipped via <strong>${escapeHtml(o.deliveryLabel)}</strong>.</p>
+       ${orderItemsTable(o.items, o.total)}
+       ${button(orderLink(o.orderId), 'Track my order')}`
+    ),
+    'shipping'
+  );
+}
+
+// Sent from shipping@ when the order is marked delivered
+export async function sendOrderDeliveredEmail(o: OrderEmailBase): Promise<void> {
+  await send(
+    o.to,
+    `Your order #${o.orderRef} was delivered`,
+    layout(
+      'Your order has been delivered',
+      `<p>Hi ${escapeHtml(o.name)},</p>
+       <p>Order <strong>#${o.orderRef}</strong> has been marked as delivered. We hope you love your pieces!</p>
+       ${orderItemsTable(o.items, o.total)}
+       <p style="color: #777; font-size: 13px;">If anything isn't right, just reply to this email and we'll help.</p>
+       ${button(orderLink(o.orderId), 'View my order')}`
+    ),
+    'shipping'
   );
 }

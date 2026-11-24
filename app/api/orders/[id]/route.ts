@@ -4,7 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { orders, products, notifications, paymentMethods, orderStatusHistory, users } from '@/db/schema';
 import { eq, sql, asc } from 'drizzle-orm';
-import { sendBdoQrReadyEmail } from '@/lib/email';
+import { sendBdoQrReadyEmail, sendOrderPaidEmail, sendOrderShippedEmail, sendOrderDeliveredEmail } from '@/lib/email';
+import { deliveryLabel } from '@/lib/delivery';
 
 export async function GET(
   request: NextRequest,
@@ -255,6 +256,34 @@ export async function PATCH(
       }
     } catch (e) {
       console.error('[email] BDO QR ready email failed', e);
+    }
+  }
+
+  // Customer emails for the three milestones: paid (payments@), shipped and delivered (shipping@).
+  // Only on a real transition, and a mail problem never fails the status change that already saved.
+  const nowPaid = updateData.depositConfirmed === true && !order.depositConfirmed;
+  const nowShipped = updateData.status === 'SHIPPED' && order.status !== 'SHIPPED';
+  const nowDelivered = updateData.status === 'DELIVERED' && order.status !== 'DELIVERED';
+  if (nowPaid || nowShipped || nowDelivered) {
+    try {
+      const customer = await db.query.users.findFirst({ where: eq(users.id, order.userId), columns: { name: true, email: true } });
+      // Walk-in customers without an email get a placeholder address — nothing to send to
+      if (customer?.email && !customer.email.endsWith('@holygrail.local')) {
+        const base = {
+          to: customer.email,
+          name: customer.name ?? 'there',
+          orderRef: order.id.slice(-8).toUpperCase(),
+          orderId: order.id,
+          items: order.items.map((i) => ({ name: i.product.name, quantity: i.quantity, price: i.price })),
+          total: order.totalAmount,
+          deliveryLabel: deliveryLabel(order.deliveryMethod),
+        };
+        if (nowPaid) await sendOrderPaidEmail({ ...base, sourcing: hasPasabuyItems });
+        if (nowShipped) await sendOrderShippedEmail(base);
+        if (nowDelivered) await sendOrderDeliveredEmail(base);
+      }
+    } catch (e) {
+      console.error('[email] order milestone email failed', e);
     }
   }
 

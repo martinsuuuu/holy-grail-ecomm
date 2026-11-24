@@ -7,6 +7,8 @@ import { eq, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { createId } from '@paralleldrive/cuid2';
 import { generateCustomerId } from '@/lib/utils';
+import { sendOrderPaidEmail } from '@/lib/email';
+import { deliveryLabel } from '@/lib/delivery';
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -156,6 +158,25 @@ export async function POST(request: NextRequest) {
       statusHistory: true,
     },
   });
+
+  // A paid walk-in order gets the same payment receipt as an online one — unless the customer
+  // was entered by name only and only has a placeholder address.
+  if (!isSalesOrder && fullOrder?.user?.email && !fullOrder.user.email.endsWith('@holygrail.local')) {
+    try {
+      await sendOrderPaidEmail({
+        to: fullOrder.user.email,
+        name: fullOrder.user.name ?? 'there',
+        orderRef: order.id.slice(-8).toUpperCase(),
+        orderId: order.id,
+        items: fullOrder.items.map((i) => ({ name: i.product.name, quantity: i.quantity, price: i.price })),
+        total: totalAmount,
+        deliveryLabel: deliveryLabel('WALK_IN'),
+        sourcing: false,
+      });
+    } catch (e) {
+      console.error('[email] walk-in paid email failed', e);
+    }
+  }
 
   return NextResponse.json(fullOrder, { status: 201 });
 }
