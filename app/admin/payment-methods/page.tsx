@@ -32,6 +32,8 @@ interface MethodCardProps {
 }
 
 function MethodCard({ m, edit, uploading, fileInputRefs, onUpdateEdit, onToggle, onDelete, onQrUpload, onRemoveQr }: MethodCardProps) {
+  // BDO Checkout has no fixed QR: staff upload a fresh one for each order from the Orders page.
+  const isBdo = m.type === 'BDO_CHECKOUT';
   return (
     <div className={`border rounded-2xl p-4 ${m.isActive ? 'border-stone-200 bg-white' : 'border-stone-100 bg-stone-50 opacity-60'}`}>
       {/* Header row */}
@@ -39,7 +41,9 @@ function MethodCard({ m, edit, uploading, fileInputRefs, onUpdateEdit, onToggle,
         <div className="flex items-center gap-2 min-w-0">
           {m.type === 'GCASH'
             ? <Smartphone className="h-4 w-4 text-sky-500 flex-shrink-0" />
-            : <Building2 className="h-4 w-4 text-primary-500 flex-shrink-0" />}
+            : m.type === 'BDO_CHECKOUT'
+              ? <CreditCard className="h-4 w-4 text-violet-500 flex-shrink-0" />
+              : <Building2 className="h-4 w-4 text-primary-500 flex-shrink-0" />}
           <span className="font-medium text-espresso truncate">{m.name}</span>
           {!m.isActive && <span className="text-xs text-stone-400 flex-shrink-0">(hidden)</span>}
         </div>
@@ -62,8 +66,14 @@ function MethodCard({ m, edit, uploading, fileInputRefs, onUpdateEdit, onToggle,
         </div>
       </div>
 
+      {isBdo && (
+        <div className="mb-1 px-3 py-2 bg-violet-50 border border-violet-200 rounded-xl text-xs text-violet-800">
+          Customers who pick this wait for a QR. Upload it on the order (Admin → Orders → Upload BDO QR) and they can then scan and pay.
+        </div>
+      )}
+
       {/* Account details */}
-      <div className="space-y-2 mb-3">
+      {!isBdo && <div className="space-y-2 mb-3">
         <div>
           <label className="text-xs text-stone-500 font-medium block mb-1">Account Name</label>
           <input
@@ -84,10 +94,10 @@ function MethodCard({ m, edit, uploading, fileInputRefs, onUpdateEdit, onToggle,
             className="w-full border border-stone-300 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
         </div>
-      </div>
+      </div>}
 
       {/* No QR warning */}
-      {!m.qrCode && (
+      {!isBdo && !m.qrCode && (
         <div className="flex items-center gap-1.5 mb-3 px-2 py-1.5 bg-amber-50 border border-amber-200 rounded-xl">
           <AlertTriangle className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
           <span className="text-xs text-amber-700 font-medium">Not visible to customers — upload a QR code</span>
@@ -95,7 +105,7 @@ function MethodCard({ m, edit, uploading, fileInputRefs, onUpdateEdit, onToggle,
       )}
 
       {/* QR Code */}
-      <div>
+      {!isBdo && <div>
         {m.qrCode ? (
           <div className="relative inline-block">
             <img src={m.qrCode} alt="QR Code" className="w-32 h-32 object-contain border border-stone-200 rounded-xl" />
@@ -136,7 +146,7 @@ function MethodCard({ m, edit, uploading, fileInputRefs, onUpdateEdit, onToggle,
             <Upload className="h-3 w-3" /> Replace image
           </button>
         )}
-      </div>
+      </div>}
     </div>
   );
 }
@@ -145,7 +155,7 @@ export default function PaymentMethodsPage() {
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [addType, setAddType] = useState<'GCASH' | 'BANK_TRANSFER'>('BANK_TRANSFER');
+  const [addType, setAddType] = useState<'GCASH' | 'BANK_TRANSFER' | 'BDO_CHECKOUT'>('BANK_TRANSFER');
   const [addName, setAddName] = useState('');
   const [addError, setAddError] = useState('');
   const [uploading, setUploading] = useState<string | null>(null);
@@ -171,6 +181,7 @@ export default function PaymentMethodsPage() {
 
   const gcash = methods.filter(m => m.type === 'GCASH');
   const banks = methods.filter(m => m.type === 'BANK_TRANSFER');
+  const bdoCheckout = methods.filter(m => m.type === 'BDO_CHECKOUT');
 
   const handleAdd = async () => {
     setAddError('');
@@ -360,6 +371,43 @@ export default function PaymentMethodsPage() {
               <Plus className="h-4 w-4" /> Add bank
             </button>
           </div>
+
+          {/* BDO Checkout */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <CreditCard className="h-5 w-5 text-violet-500" />
+              <h2 className="text-base font-display font-semibold text-espresso">BDO Checkout</h2>
+              <span className="text-xs text-stone-400">(QR uploaded per order)</span>
+            </div>
+            {bdoCheckout.length === 0 ? (
+              <div className="border-2 border-dashed border-stone-200 rounded-2xl p-8 text-center text-stone-400 text-sm">
+                BDO Checkout isn&apos;t set up yet.{' '}
+                <button
+                  onClick={() => { setAddType('BDO_CHECKOUT'); setAddName('BDO Checkout'); setShowAddModal(true); }}
+                  className="text-primary-600 hover:text-primary-800 underline"
+                >
+                  Add BDO Checkout
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {bdoCheckout.map(m => (
+                  <MethodCard
+                    key={m.id}
+                    m={m}
+                    edit={edits[m.id]}
+                    uploading={uploading}
+                    fileInputRefs={fileInputRefs}
+                    onUpdateEdit={updateEdit}
+                    onToggle={handleToggle}
+                    onDelete={handleDelete}
+                    onQrUpload={handleQrUpload}
+                    onRemoveQr={handleRemoveQr}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -376,17 +424,17 @@ export default function PaymentMethodsPage() {
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-espresso/80 block mb-1.5">Type</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {(['GCASH', 'BANK_TRANSFER'] as const).map(t => (
+                <div className="grid grid-cols-3 gap-2">
+                  {(['GCASH', 'BANK_TRANSFER', 'BDO_CHECKOUT'] as const).map(t => (
                     <label
                       key={t}
                       className={`flex items-center gap-2 p-3 rounded-2xl border-2 cursor-pointer text-sm transition-all ${
                         addType === t ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-stone-200 text-stone-600'
                       }`}
                     >
-                      <input type="radio" name="type" value={t} checked={addType === t} onChange={() => setAddType(t)} className="hidden" />
-                      {t === 'GCASH' ? <Smartphone className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
-                      {t === 'GCASH' ? 'GCash' : 'Bank Transfer'}
+                      <input type="radio" name="type" value={t} checked={addType === t} onChange={() => { setAddType(t); if (t === 'BDO_CHECKOUT') setAddName('BDO Checkout'); }} className="hidden" />
+                      {t === 'GCASH' ? <Smartphone className="h-4 w-4" /> : t === 'BDO_CHECKOUT' ? <CreditCard className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
+                      {t === 'GCASH' ? 'GCash' : t === 'BDO_CHECKOUT' ? 'BDO Checkout' : 'Bank Transfer'}
                     </label>
                   ))}
                 </div>

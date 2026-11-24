@@ -1,10 +1,10 @@
 'use client';
 
 import { deliveryLabel } from '@/lib/delivery';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { formatCurrency, formatDateTime, getOrderStatusColor, getOrderStatusLabel } from '@/lib/utils';
-import { ShoppingBag, CheckCircle, Search, Filter, Package, Eye, Truck, ZoomIn, X, Calendar, Plus, UserCog, Phone, FileText, Trash2 } from 'lucide-react';
+import { ShoppingBag, CheckCircle, Search, Filter, Package, Eye, Truck, ZoomIn, X, Calendar, Plus, UserCog, Phone, FileText, Trash2, QrCode, Loader2 } from 'lucide-react';
 import ManualOrderModal from '@/components/admin/ManualOrderModal';
 import InvoicePreviewModal from '@/components/InvoicePreviewModal';
 import { isOrderPaid } from '@/lib/invoice';
@@ -28,6 +28,7 @@ interface Order {
   depositProof: string | null;
   depositConfirmed: boolean;
   paymentMethodName?: string | null;
+  paymentQr?: string | null;
   reservationExpiry: string;
   createdAt: string;
   user: {
@@ -55,6 +56,30 @@ const ROLE_LABEL: Record<string, string> = {
   SHIPPER: 'Shipper',
   CUSTOMER: 'Customer',
 };
+
+// Re-encodes the chosen QR image as a PNG capped at 700px — QR codes stay scannable at that size
+// and it keeps the order list light, since the QR is stored on the order itself.
+function qrFileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, 700 / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject(new Error('Canvas unavailable'));
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read that image')); };
+    img.src = url;
+  });
+}
 
 function orderType(order: Order): 'PASABUY' | 'ONHAND' {
   return order.items.some(i => i.product.type === 'PASABUY') ? 'PASABUY' : 'ONHAND';
@@ -110,6 +135,9 @@ function OrdersContent() {
   const [showInvoice, setShowInvoice] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [showManualOrderModal, setShowManualOrderModal] = useState(false);
+  const qrInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingQr, setIsUploadingQr] = useState(false);
+  const [qrError, setQrError] = useState('');
 
   useEffect(() => {
     fetch('/api/orders?all=true')
@@ -153,6 +181,29 @@ function OrdersContent() {
     }
   };
 
+  const handleQrUpload = async (orderId: string, file: File) => {
+    setQrError('');
+    if (!file.type.startsWith('image/')) { setQrError('Please choose an image file.'); return; }
+    setIsUploadingQr(true);
+    try {
+      const paymentQr = await qrFileToDataUrl(file);
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentQr }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setQrError(data.error || 'Upload failed'); return; }
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...data } : o));
+      setSelectedOrder(prev => prev?.id === orderId ? { ...prev, ...data } : prev);
+    } catch (e) {
+      setQrError(e instanceof Error ? e.message : 'Upload failed');
+    } finally {
+      setIsUploadingQr(false);
+      if (qrInputRef.current) qrInputRef.current.value = '';
+    }
+  };
+
   const handleDeleteOrder = async (order: Order) => {
     const ref = order.id.slice(-8).toUpperCase();
     const paid = ['CONFIRMED', 'SHIPPED', 'DELIVERED'].includes(order.status);
@@ -193,6 +244,7 @@ function OrdersContent() {
 
   const statusOptions = [
     { value: 'all', label: 'All Orders' },
+    { value: 'AWAITING_QR', label: 'Awaiting BDO QR' },
     { value: 'SALES_ORDER', label: 'Sales Order (Reserved)' },
     { value: 'PENDING_DEPOSIT', label: 'Pending Deposit' },
     { value: 'DEPOSIT_SUBMITTED', label: 'Deposit Submitted' },
@@ -489,6 +541,40 @@ function OrdersContent() {
                 </button>
               )}
 
+              {/* BDO Checkout QR — customer can't pay until this is uploaded */}
+              {(selectedOrder.status === 'AWAITING_QR' || (selectedOrder.status === 'PENDING_DEPOSIT' && selectedOrder.paymentQr)) && (
+                <div className="mb-3 rounded-xl border border-violet-200 bg-violet-50 p-3">
+                  <input
+                    ref={qrInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleQrUpload(selectedOrder.id, f); }}
+                  />
+                  <p className="text-xs font-semibold text-violet-900 flex items-center gap-1.5">
+                    <QrCode className="h-3.5 w-3.5" />
+                    {selectedOrder.status === 'AWAITING_QR' ? 'BDO Checkout — customer is waiting for a QR' : 'BDO Checkout QR'}
+                  </p>
+                  {selectedOrder.paymentQr && (
+                    <img src={selectedOrder.paymentQr} alt="BDO Checkout QR" className="w-32 h-32 object-contain bg-white border border-violet-200 rounded-lg mt-2 p-1" />
+                  )}
+                  <p className="text-xs text-violet-800 mt-2">
+                    {selectedOrder.status === 'AWAITING_QR'
+                      ? `Generate the BDO checkout QR for ${formatCurrency(selectedOrder.totalAmount)} and upload it. The customer is notified and gets 24 hours to pay.`
+                      : 'You can replace the QR if it was wrong.'}
+                  </p>
+                  {qrError && <p className="text-xs text-red-600 mt-2">{qrError}</p>}
+                  <button
+                    onClick={() => qrInputRef.current?.click()}
+                    disabled={isUploadingQr}
+                    className="w-full btn-primary flex items-center justify-center gap-2 mt-2 disabled:opacity-60"
+                  >
+                    {isUploadingQr ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
+                    {isUploadingQr ? 'Uploading…' : selectedOrder.paymentQr ? 'Replace QR' : 'Upload BDO QR'}
+                  </button>
+                </div>
+              )}
+
               {/* Actions */}
               {(selectedOrder.status === 'DEPOSIT_SUBMITTED' || selectedOrder.status === 'SALES_ORDER') && !selectedOrder.depositConfirmed && (
                 <button
@@ -535,7 +621,7 @@ function OrdersContent() {
                 </button>
               )}
 
-              {(selectedOrder.status === 'PENDING_DEPOSIT' || selectedOrder.status === 'DEPOSIT_SUBMITTED' || selectedOrder.status === 'SALES_ORDER') && (
+              {(selectedOrder.status === 'AWAITING_QR' || selectedOrder.status === 'PENDING_DEPOSIT' || selectedOrder.status === 'DEPOSIT_SUBMITTED' || selectedOrder.status === 'SALES_ORDER') && (
                 <button
                   onClick={() => handleStatusUpdate(selectedOrder.id, 'CANCELLED')}
                   className="w-full btn-danger flex items-center justify-center gap-2"

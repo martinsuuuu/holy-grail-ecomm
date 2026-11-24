@@ -32,7 +32,7 @@ export default async function AdminDashboard() {
     pendingDepositResult,
   ] = await Promise.all([
     db.select({ count: count() }).from(orders),
-    db.select({ count: count() }).from(orders).where(inArray(orders.status, ['CONFIRMED', 'DEPOSIT_SUBMITTED', 'PENDING_DEPOSIT', 'SALES_ORDER'])),
+    db.select({ count: count() }).from(orders).where(inArray(orders.status, ['CONFIRMED', 'DEPOSIT_SUBMITTED', 'PENDING_DEPOSIT', 'SALES_ORDER', 'AWAITING_QR'])),
     db.select({ count: count() }).from(users).where(eq(users.role, 'CUSTOMER')),
     db.select({ id: products.id, name: products.name, stock: products.stock, category: products.category })
       .from(products)
@@ -158,7 +158,7 @@ export default async function AdminDashboard() {
               <div className="p-8 text-center text-stone-500 text-sm">No orders yet</div>
             ) : (
               recentOrders.map((order) => {
-                const isClickable = ['SALES_ORDER', 'PENDING_DEPOSIT', 'DEPOSIT_SUBMITTED', 'WAITING_FOR_ARRIVAL', 'CONFIRMED', 'SHIPPED', 'DELIVERED'].includes(order.status);
+                const isClickable = ['AWAITING_QR', 'SALES_ORDER', 'PENDING_DEPOSIT', 'DEPOSIT_SUBMITTED', 'WAITING_FOR_ARRIVAL', 'CONFIRMED', 'SHIPPED', 'DELIVERED'].includes(order.status);
                 const inner = (
                   <>
                     <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center flex-shrink-0">

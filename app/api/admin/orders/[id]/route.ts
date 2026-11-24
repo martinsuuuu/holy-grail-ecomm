@@ -6,7 +6,7 @@ import { orders, orderItems, orderStatusHistory, products, notifications } from 
 import { eq, sql } from 'drizzle-orm';
 
 // Statuses where on-hand stock is only held in `reserved` (not yet deducted)
-const RESERVED_ONLY = ['PENDING_DEPOSIT', 'DEPOSIT_SUBMITTED', 'SALES_ORDER', 'WAITING_FOR_ARRIVAL'];
+const RESERVED_ONLY = ['AWAITING_QR', 'PENDING_DEPOSIT', 'DEPOSIT_SUBMITTED', 'SALES_ORDER', 'WAITING_FOR_ARRIVAL'];
 // Statuses where payment was confirmed and stock was actually deducted
 const STOCK_DEDUCTED = ['CONFIRMED', 'SHIPPED', 'DELIVERED'];
 

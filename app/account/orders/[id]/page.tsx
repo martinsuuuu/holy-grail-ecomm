@@ -37,6 +37,7 @@ interface OrderDetail {
   statusHistory?: Array<{ status: string; createdAt: string }>;
   paymentMethodName: string | null;
   paymentMethod: PaymentMethod | null;
+  paymentQr?: string | null;
   user: {
     id: string;
     name: string;
@@ -166,7 +167,11 @@ export default function OrderDetailPage() {
   const hasPasabuy = order.items.some(item => item.product.type === 'PASABUY') ||
     order.status === 'WAITING_FOR_ARRIVAL';
 
-  const statusSteps = hasPasabuy
+  const isBdoCheckout = order.paymentMethod?.type === 'BDO_CHECKOUT';
+  // The QR shown to pay with: BDO Checkout orders carry their own, others use the method's fixed QR
+  const payQr = order.paymentQr ?? order.paymentMethod?.qrCode ?? null;
+
+  const baseSteps = hasPasabuy
     ? [
         { key: 'PENDING_DEPOSIT', label: 'Order Placed' },
         { key: 'DEPOSIT_SUBMITTED', label: 'Deposit Submitted' },
@@ -182,6 +187,15 @@ export default function OrderDetailPage() {
         { key: 'SHIPPED', label: 'Shipped' },
         { key: 'DELIVERED', label: 'Delivered' },
       ];
+
+  // BDO Checkout adds a waiting step while staff prepare the order's QR
+  const statusSteps = isBdoCheckout
+    ? [
+        { key: 'AWAITING_QR', label: 'Order Placed' },
+        { key: 'PENDING_DEPOSIT', label: 'QR Ready' },
+        ...baseSteps.slice(1),
+      ]
+    : baseSteps;
 
   const currentStepIndex = order.status === 'CANCELLED'
     ? -1
@@ -280,6 +294,21 @@ export default function OrderDetailPage() {
             <div>
               <p className="font-medium text-red-800">Order Cancelled</p>
               <p className="text-sm text-red-600">This order was cancelled. Reserved stock has been returned.</p>
+            </div>
+          </div>
+        )}
+
+        {/* BDO Checkout — waiting for staff to upload this order's QR */}
+        {order.status === 'AWAITING_QR' && (
+          <div className="bg-violet-50 border border-violet-200 rounded-2xl p-6 mb-4 flex items-start gap-4">
+            <Clock className="h-6 w-6 text-violet-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-display font-semibold text-violet-900">Preparing your BDO Checkout QR</p>
+              <p className="text-sm text-violet-800 mt-1">
+                Your order is placed and your items are reserved. Our team is generating the payment QR for
+                {' '}{formatCurrency(order.totalAmount)} — you&apos;ll get a notification and email as soon as it&apos;s ready to scan.
+                Check back here; this page will show the QR once it&apos;s available.
+              </p>
             </div>
           </div>
         )}
@@ -408,7 +437,7 @@ export default function OrderDetailPage() {
                   )}
 
                   {/* QR Code */}
-                  {order.paymentMethod.qrCode && (
+                  {payQr && (
                     <div className="flex flex-col items-center">
                       <p className="text-xs text-espresso/50 mb-2 flex items-center gap-1">
                         <QrCode className="h-3 w-3" /> Scan to pay
@@ -418,7 +447,7 @@ export default function OrderDetailPage() {
                         onClick={() => setLightboxQr(true)}
                       >
                         <img
-                          src={order.paymentMethod.qrCode}
+                          src={payQr}
                           alt={`${order.paymentMethod.name} QR`}
                           className="w-full h-full object-contain border border-stone-200 rounded-xl bg-white p-1"
                         />
@@ -438,7 +467,7 @@ export default function OrderDetailPage() {
         )}
 
         {/* QR Lightbox */}
-        {lightboxQr && order.paymentMethod?.qrCode && (
+        {lightboxQr && payQr && order.paymentMethod && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-espresso/80"
             onClick={() => setLightboxQr(false)}
@@ -460,7 +489,7 @@ export default function OrderDetailPage() {
                 </button>
               </div>
               <img
-                src={order.paymentMethod.qrCode}
+                src={payQr}
                 alt={`${order.paymentMethod.name} QR Code`}
                 className="w-full object-contain rounded-lg border border-stone-100"
               />

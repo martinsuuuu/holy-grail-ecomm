@@ -142,8 +142,12 @@ export async function POST(request: NextRequest) {
 
   totalAmount = Math.max(totalAmount - discountAmount, 0);
 
-  // Create order with 24-hour reservation
-  const reservationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  // BDO Checkout needs staff to upload a QR for this order before the customer can pay,
+  // so the 24-hour deposit window only starts once the QR is ready (see PATCH /api/orders/[id]).
+  const awaitingQr = pm.type === 'BDO_CHECKOUT';
+  const reservationExpiry = awaitingQr
+    ? new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000)
+    : new Date(Date.now() + 24 * 60 * 60 * 1000);
 
   const newOrderArr = await db.insert(orders).values({
     userId: session.user.id,
@@ -155,7 +159,7 @@ export async function POST(request: NextRequest) {
     promoCode: appliedPromoCode,
     discountAmount,
     reservationExpiry,
-    status: 'PENDING_DEPOSIT',
+    status: awaitingQr ? 'AWAITING_QR' : 'PENDING_DEPOSIT',
   }).returning();
   const order = newOrderArr[0];
 
@@ -181,21 +185,23 @@ export async function POST(request: NextRequest) {
   // Create notifications
   await db.insert(notifications).values({
     title: 'New Order Placed',
-    message: `Order #${order.id.slice(-8).toUpperCase()} placed by ${session.user.name}. Total: ₱${totalAmount.toFixed(2)}`,
+    message: `Order #${order.id.slice(-8).toUpperCase()} placed by ${session.user.name}. Total: ₱${totalAmount.toFixed(2)}${awaitingQr ? ' — BDO Checkout: upload the payment QR.' : ''}`,
     type: 'ORDER',
   });
 
   await db.insert(notifications).values({
     userId: session.user.id,
     title: 'Order Confirmed',
-    message: `Your order #${order.id.slice(-8).toUpperCase()} has been placed. Please submit deposit proof within 24 hours.`,
+    message: awaitingQr
+      ? `Your order #${order.id.slice(-8).toUpperCase()} has been placed. We're preparing your BDO Checkout QR — you'll be notified as soon as it's ready to scan.`
+      : `Your order #${order.id.slice(-8).toUpperCase()} has been placed. Please submit deposit proof within 24 hours.`,
     type: 'ORDER',
   });
 
   await db.insert(orderStatusHistory).values({
     orderId: order.id,
     status: order.status,
-    note: 'Order placed by customer',
+    note: awaitingQr ? 'Order placed by customer — waiting for BDO Checkout QR' : 'Order placed by customer',
     actorId: session.user.id,
     actorName: session.user.name ?? session.user.email ?? 'Customer',
     actorRole: session.user.role,
@@ -225,6 +231,7 @@ export async function POST(request: NextRequest) {
         paymentMethodName: pm.name,
         depositDeadline: reservationExpiry,
         // Orders that include sourced (pasabuy) pieces come from the sourcing mailbox
+        awaitingQr,
         channel: pasabuyProductIds.size > 0 ? 'sourcing' : 'default',
       });
     } catch (e) {

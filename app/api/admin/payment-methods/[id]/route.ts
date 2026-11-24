@@ -3,11 +3,11 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { paymentMethods, notifications } from '@/db/schema';
-import { eq, and, isNotNull } from 'drizzle-orm';
+import { eq, and, isNotNull, or } from 'drizzle-orm';
 
 async function notifyIfNoActivePaymentMethod() {
   const active = await db.select().from(paymentMethods)
-    .where(and(eq(paymentMethods.isActive, true), isNotNull(paymentMethods.qrCode)));
+    .where(and(eq(paymentMethods.isActive, true), or(isNotNull(paymentMethods.qrCode), eq(paymentMethods.type, 'BDO_CHECKOUT'))));
 
   if (active.length === 0) {
     await db.insert(notifications).values({

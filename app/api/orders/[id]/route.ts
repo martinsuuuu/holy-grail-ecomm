@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { orders, products, notifications, paymentMethods, orderStatusHistory } from '@/db/schema';
+import { orders, products, notifications, paymentMethods, orderStatusHistory, users } from '@/db/schema';
 import { eq, sql, asc } from 'drizzle-orm';
+import { sendBdoQrReadyEmail } from '@/lib/email';
 
 export async function GET(
   request: NextRequest,
@@ -54,7 +55,7 @@ export async function PATCH(
   }
 
   const body = await request.json();
-  const { status, depositConfirmed } = body;
+  const { status, depositConfirmed, paymentQr } = body;
 
   const order = await db.query.orders.findFirst({
     where: eq(orders.id, params.id),
@@ -77,6 +78,7 @@ export async function PATCH(
   // release it either on confirm (deductStock, below) or here on cancel —
   // otherwise a cancelled order's reservation is never returned to the pool.
   let releaseReserved = false;
+  let qrReleased = false;
 
   if (session.user.role === 'ADMIN') {
     if (status) {
@@ -93,7 +95,7 @@ export async function PATCH(
         historyNote = 'Personal shopping items arrived — order confirmed';
       }
 
-      if (status === 'CANCELLED' && (order.status === 'PENDING_DEPOSIT' || order.status === 'DEPOSIT_SUBMITTED' || order.status === 'SALES_ORDER')) {
+      if (status === 'CANCELLED' && (order.status === 'PENDING_DEPOSIT' || order.status === 'DEPOSIT_SUBMITTED' || order.status === 'SALES_ORDER' || order.status === 'AWAITING_QR')) {
         releaseReserved = true;
         historyNote = 'Order cancelled';
       }
@@ -105,6 +107,39 @@ export async function PATCH(
       if (status === 'SHIPPED') {
         updateData.shippedAt = new Date();
         historyNote = 'Order shipped';
+      }
+    }
+
+    // BDO Checkout: staff upload the QR for this order. The first upload releases the order
+    // to the customer and starts their 24-hour deposit window; later uploads just replace it.
+    if (paymentQr !== undefined) {
+      if (typeof paymentQr !== 'string' || !paymentQr.startsWith('data:image/') || paymentQr.length > 4_000_000) {
+        return NextResponse.json({ error: 'Upload a valid QR image (under about 3 MB)' }, { status: 400 });
+      }
+      if (order.status !== 'AWAITING_QR' && order.status !== 'PENDING_DEPOSIT') {
+        return NextResponse.json({ error: 'A QR can only be added while the order is awaiting payment' }, { status: 400 });
+      }
+      const pmRow = order.paymentMethodId
+        ? (await db.select().from(paymentMethods).where(eq(paymentMethods.id, order.paymentMethodId)).limit(1))[0]
+        : undefined;
+      if (pmRow?.type !== 'BDO_CHECKOUT') {
+        return NextResponse.json({ error: 'This order does not use BDO Checkout' }, { status: 400 });
+      }
+
+      updateData.paymentQr = paymentQr;
+      if (order.status === 'AWAITING_QR') {
+        qrReleased = true;
+        updateData.status = 'PENDING_DEPOSIT';
+        updateData.reservationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        historyNote = 'BDO Checkout QR uploaded — customer can now pay';
+        pendingNotification = {
+          userId: order.userId,
+          title: 'BDO Checkout QR Ready',
+          message: `The BDO Checkout QR for your order #${order.id.slice(-8).toUpperCase()} is ready. Scan it to pay and upload your proof of payment within 24 hours.`,
+          type: 'ORDER',
+        };
+      } else {
+        historyNote = 'BDO Checkout QR replaced';
       }
     }
 
@@ -202,6 +237,24 @@ export async function PATCH(
       });
     } catch {
       // History logging failure should not affect the order status update
+    }
+  }
+
+  if (qrReleased) {
+    try {
+      const customer = await db.query.users.findFirst({ where: eq(users.id, order.userId), columns: { name: true, email: true } });
+      if (customer?.email) {
+        await sendBdoQrReadyEmail({
+          to: customer.email,
+          name: customer.name ?? 'there',
+          orderRef: order.id.slice(-8).toUpperCase(),
+          orderId: order.id,
+          total: order.totalAmount,
+          depositDeadline: updateData.reservationExpiry as Date,
+        });
+      }
+    } catch (e) {
+      console.error('[email] BDO QR ready email failed', e);
     }
   }
 

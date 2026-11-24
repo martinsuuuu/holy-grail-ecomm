@@ -145,6 +145,7 @@ export async function sendOrderPlacedEmail({
   deliveryLabel,
   paymentMethodName,
   depositDeadline,
+  awaitingQr = false,
   channel = 'default',
 }: {
   to: string;
@@ -157,6 +158,7 @@ export async function sendOrderPlacedEmail({
   deliveryLabel: string;
   paymentMethodName: string | null;
   depositDeadline: Date;
+  awaitingQr?: boolean;
   channel?: EmailChannel;
 }): Promise<void> {
   const rows = items
@@ -195,10 +197,17 @@ export async function sendOrderPlacedEmail({
          <tr><td style="padding: 3px 12px 3px 0; color: #777;">Delivery</td><td>${escapeHtml(deliveryLabel)}</td></tr>
          ${paymentMethodName ? `<tr><td style="padding: 3px 12px 3px 0; color: #777;">Payment</td><td>${escapeHtml(paymentMethodName)}</td></tr>` : ''}
        </table>
-       <p style="background: #f6f1e7; padding: 12px 14px; border-radius: 8px; font-size: 14px;">
+       ${
+         awaitingQr
+           ? `<p style="background: #f6f1e7; padding: 12px 14px; border-radius: 8px; font-size: 14px;">
+         <strong>Next step:</strong> we're preparing your BDO Checkout QR. We'll email and notify you as soon as it's ready to scan —
+         your items are reserved in the meantime.
+       </p>`
+           : `<p style="background: #f6f1e7; padding: 12px 14px; border-radius: 8px; font-size: 14px;">
          <strong>Next step:</strong> please submit your deposit proof by <strong>${deadline} (PH time)</strong>
          from your order page. Orders without a deposit by then are released automatically.
-       </p>
+       </p>`
+       }
        ${button(`${appUrl()}/account`, 'View my orders')}`
     ),
     channel
@@ -231,5 +240,42 @@ export async function sendAppointmentBookedEmail({
        <p style="color: #777; font-size: 13px;">Need to change it? Just reply to this email.</p>`
     ),
     'appointments'
+  );
+}
+
+export async function sendBdoQrReadyEmail({
+  to,
+  name,
+  orderRef,
+  orderId,
+  total,
+  depositDeadline,
+}: {
+  to: string;
+  name: string;
+  orderRef: string;
+  orderId: string;
+  total: number;
+  depositDeadline: Date;
+}): Promise<void> {
+  const deadline = depositDeadline.toLocaleString('en-US', {
+    timeZone: 'Asia/Manila',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  await send(
+    to,
+    `Your BDO Checkout QR for order #${orderRef} is ready`,
+    layout(
+      'Your payment QR is ready',
+      `<p>Hi ${escapeHtml(name)},</p>
+       <p>The BDO Checkout QR for order <strong>#${orderRef}</strong> is now available. Scan it to pay <strong>${peso(total)}</strong>, then upload your proof of payment on the order page.</p>
+       <p style="background: #f6f1e7; padding: 12px 14px; border-radius: 8px; font-size: 14px;">
+         Please complete payment by <strong>${deadline} (PH time)</strong>. Orders without a deposit by then are released automatically.
+       </p>
+       ${button(`${appUrl()}/account/orders/${orderId}#order-status`, 'Open my order')}`
+    )
   );
 }

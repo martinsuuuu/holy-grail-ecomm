@@ -98,6 +98,8 @@ export const orders = pgTable('orders', {
   paymentMethodId: text('payment_method_id'),
   paymentMethodName: text('payment_method_name'),
   deliveryAddress: text('delivery_address'),
+  // BDO Checkout orders: QR image the admin uploads for this specific order
+  paymentQr: text('payment_qr'),
   shippedAt: timestamp('shipped_at'),
   promoCode: text('promo_code'),
   discountAmount: doublePrecision('discount_amount').notNull().default(0),

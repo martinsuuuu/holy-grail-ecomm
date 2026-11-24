@@ -24,6 +24,7 @@ export async function GET() {
     `ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method_name text`,
     `ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_address text`,
     `ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipped_at timestamp`,
+    `ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_qr text`,
     `CREATE TABLE IF NOT EXISTS payment_methods (id text PRIMARY KEY, type text NOT NULL, name text NOT NULL, account_name text, account_number text, qr_code text, is_active boolean NOT NULL DEFAULT true, sort_order integer NOT NULL DEFAULT 0, created_at timestamp NOT NULL DEFAULT now())`,
     `CREATE TABLE IF NOT EXISTS categories (id text PRIMARY KEY, name text NOT NULL UNIQUE, description text, created_at timestamp NOT NULL DEFAULT now())`,
     `CREATE TABLE IF NOT EXISTS expenses (id text PRIMARY KEY, title text NOT NULL, category text NOT NULL, amount double precision NOT NULL, date timestamp NOT NULL, notes text, created_at timestamp NOT NULL DEFAULT now())`,

@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
   const { type, name } = await request.json();
 
-  if (!type || !['GCASH', 'BANK_TRANSFER'].includes(type)) {
+  if (!type || !['GCASH', 'BANK_TRANSFER', 'BDO_CHECKOUT'].includes(type)) {
     return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
   }
   if (!name?.trim()) {

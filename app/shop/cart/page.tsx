@@ -47,6 +47,7 @@ export default function CartPage() {
 
   const gcashMethods = paymentMethods.filter((m) => m.type === 'GCASH');
   const bankMethods = paymentMethods.filter((m) => m.type === 'BANK_TRANSFER');
+  const bdoMethods = paymentMethods.filter((m) => m.type === 'BDO_CHECKOUT');
   const selectedPayment = paymentMethods.find((m) => m.id === selectedPaymentId);
 
   const subtotal = getTotalPrice();
@@ -294,6 +295,41 @@ export default function CartPage() {
                             </label>
                           ))}
                         </div>
+                      </div>
+                    )}
+
+                    {/* BDO Checkout options — QR is issued per order after it's placed */}
+                    {bdoMethods.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-espresso/50 uppercase tracking-wider mb-2 flex items-center gap-1">
+                          <CreditCard className="h-3 w-3" /> BDO Checkout
+                        </p>
+                        <div className="space-y-2">
+                          {bdoMethods.map((m) => (
+                            <label
+                              key={m.id}
+                              className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                                selectedPaymentId === m.id ? 'border-violet-500 bg-violet-50' : 'border-stone-200 hover:border-stone-300'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="payment"
+                                value={m.id}
+                                checked={selectedPaymentId === m.id}
+                                onChange={() => setSelectedPaymentId(m.id)}
+                                className="text-violet-600"
+                              />
+                              <CreditCard className="h-4 w-4 text-violet-600 flex-shrink-0" />
+                              <span className="font-medium text-sm text-espresso">{m.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                        {selectedPayment?.type === 'BDO_CHECKOUT' && (
+                          <p className="mt-2 text-xs text-violet-800 bg-violet-50 border border-violet-200 rounded-xl px-3 py-2">
+                            After you place your order, our team prepares a BDO payment QR for it. You&apos;ll be notified as soon as it&apos;s ready to scan — your items stay reserved while you wait.
+                          </p>
+                        )}
                       </div>
                     )}
 
