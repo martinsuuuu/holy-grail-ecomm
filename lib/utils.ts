@@ -21,6 +21,7 @@ export function timeAgo(date: Date | string): string {
 
 export function getOrderStatusColor(status: string): string {
   const colors: Record<string, string> = {
+    SALES_ORDER: 'bg-indigo-100 text-indigo-800',
     PENDING_DEPOSIT: 'bg-amber-100 text-amber-800',
     DEPOSIT_SUBMITTED: 'bg-sky-100 text-sky-800',
     WAITING_FOR_ARRIVAL: 'bg-orange-100 text-orange-800',
@@ -34,6 +35,7 @@ export function getOrderStatusColor(status: string): string {
 
 export function getOrderStatusLabel(status: string): string {
   const labels: Record<string, string> = {
+    SALES_ORDER: 'Sales Order (Reserved)',
     PENDING_DEPOSIT: 'Pending Deposit',
     DEPOSIT_SUBMITTED: 'Deposit Submitted',
     WAITING_FOR_ARRIVAL: 'Waiting for Arrival',

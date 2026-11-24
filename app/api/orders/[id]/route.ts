@@ -93,7 +93,7 @@ export async function PATCH(
         historyNote = 'Personal shopping items arrived — order confirmed';
       }
 
-      if (status === 'CANCELLED' && (order.status === 'PENDING_DEPOSIT' || order.status === 'DEPOSIT_SUBMITTED')) {
+      if (status === 'CANCELLED' && (order.status === 'PENDING_DEPOSIT' || order.status === 'DEPOSIT_SUBMITTED' || order.status === 'SALES_ORDER')) {
         releaseReserved = true;
         historyNote = 'Order cancelled';
       }
@@ -108,7 +108,8 @@ export async function PATCH(
       }
     }
 
-    if (depositConfirmed !== undefined) {
+    // Ignore a repeat confirmation so stock can never be deducted twice
+    if (depositConfirmed !== undefined && !(depositConfirmed && order.depositConfirmed)) {
       updateData.depositConfirmed = depositConfirmed;
       if (depositConfirmed) {
         if (hasPasabuyItems) {

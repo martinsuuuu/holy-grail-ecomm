@@ -4,7 +4,7 @@ import { deliveryLabel } from '@/lib/delivery';
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { formatCurrency, formatDateTime, getOrderStatusColor, getOrderStatusLabel } from '@/lib/utils';
-import { ShoppingBag, CheckCircle, Search, Filter, Package, Eye, Truck, ZoomIn, X, Calendar, Plus, UserCog, Phone, FileText } from 'lucide-react';
+import { ShoppingBag, CheckCircle, Search, Filter, Package, Eye, Truck, ZoomIn, X, Calendar, Plus, UserCog, Phone, FileText, Trash2 } from 'lucide-react';
 import ManualOrderModal from '@/components/admin/ManualOrderModal';
 import InvoicePreviewModal from '@/components/InvoicePreviewModal';
 import { isOrderPaid } from '@/lib/invoice';
@@ -153,6 +153,31 @@ function OrdersContent() {
     }
   };
 
+  const handleDeleteOrder = async (order: Order) => {
+    const ref = order.id.slice(-8).toUpperCase();
+    const paid = ['CONFIRMED', 'SHIPPED', 'DELIVERED'].includes(order.status);
+    const ok = window.confirm(
+      `Delete order #${ref} permanently?\n\n` +
+      `• Its items, history, notifications and invoice are removed.\n` +
+      (order.status === 'CANCELLED'
+        ? '• Inventory was already released when it was cancelled.\n'
+        : paid
+          ? '• Deducted stock is returned to inventory.\n'
+          : '• Reserved stock is released back to inventory.\n') +
+      `\nThis cannot be undone.`
+    );
+    if (!ok) return;
+    const res = await fetch(`/api/admin/orders/${order.id}`, { method: 'DELETE' });
+    if (res.ok) {
+      setOrders(prev => prev.filter(o => o.id !== order.id));
+      setSelectedOrder(prev => (prev?.id === order.id ? null : prev));
+      setShowInvoice(false);
+    } else {
+      const data = await res.json().catch(() => ({}));
+      window.alert(data.error || 'Could not delete the order');
+    }
+  };
+
   const filtered = orders.filter(o => {
     const q = search.toLowerCase();
     const matchesSearch = o.id.toLowerCase().includes(q) ||
@@ -168,6 +193,7 @@ function OrdersContent() {
 
   const statusOptions = [
     { value: 'all', label: 'All Orders' },
+    { value: 'SALES_ORDER', label: 'Sales Order (Reserved)' },
     { value: 'PENDING_DEPOSIT', label: 'Pending Deposit' },
     { value: 'DEPOSIT_SUBMITTED', label: 'Deposit Submitted' },
     { value: 'WAITING_FOR_ARRIVAL', label: 'Waiting for Arrival' },
@@ -464,14 +490,14 @@ function OrdersContent() {
               )}
 
               {/* Actions */}
-              {selectedOrder.status === 'DEPOSIT_SUBMITTED' && !selectedOrder.depositConfirmed && (
+              {(selectedOrder.status === 'DEPOSIT_SUBMITTED' || selectedOrder.status === 'SALES_ORDER') && !selectedOrder.depositConfirmed && (
                 <button
                   onClick={() => handleConfirmDeposit(selectedOrder.id)}
                   disabled={isConfirming}
                   className="w-full btn-success flex items-center justify-center gap-2 mb-2"
                 >
                   <CheckCircle className="h-4 w-4" />
-                  {isConfirming ? 'Confirming...' : 'Confirm Deposit'}
+                  {isConfirming ? 'Confirming...' : selectedOrder.status === 'SALES_ORDER' ? 'Confirm Payment' : 'Confirm Deposit'}
                 </button>
               )}
 
@@ -509,7 +535,7 @@ function OrdersContent() {
                 </button>
               )}
 
-              {(selectedOrder.status === 'PENDING_DEPOSIT' || selectedOrder.status === 'DEPOSIT_SUBMITTED') && (
+              {(selectedOrder.status === 'PENDING_DEPOSIT' || selectedOrder.status === 'DEPOSIT_SUBMITTED' || selectedOrder.status === 'SALES_ORDER') && (
                 <button
                   onClick={() => handleStatusUpdate(selectedOrder.id, 'CANCELLED')}
                   className="w-full btn-danger flex items-center justify-center gap-2"
@@ -517,6 +543,14 @@ function OrdersContent() {
                   Cancel Order
                 </button>
               )}
+
+              <button
+                onClick={() => handleDeleteOrder(selectedOrder)}
+                className="w-full mt-2 flex items-center justify-center gap-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 rounded-xl px-4 py-2 transition-colors"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Order &amp; Revert Inventory
+              </button>
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-stone-400 text-sm py-12">

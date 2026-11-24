@@ -35,6 +35,7 @@ export default function ManualOrderModal({
   onCreated: (order: any) => void;
 }) {
   const [customerMode, setCustomerMode] = useState<'existing' | 'new'>('existing');
+  const [orderType, setOrderType] = useState<'WALK_IN' | 'SALES_ORDER'>('WALK_IN');
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customerSearch, setCustomerSearch] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
@@ -103,6 +104,8 @@ export default function ManualOrderModal({
 
   const total = cart.reduce((sum, l) => sum + l.product.price * l.quantity, 0);
 
+  const isSalesOrder = orderType === 'SALES_ORDER';
+
   const handleSubmit = async () => {
     setError('');
 
@@ -127,6 +130,7 @@ export default function ManualOrderModal({
       body: JSON.stringify({
         customerId: customerMode === 'existing' ? selectedCustomerId : undefined,
         newCustomer: customerMode === 'new' ? newCustomer : undefined,
+        orderType,
         items: cart.map(l => ({ productId: l.product.id, quantity: l.quantity })),
       }),
     });
@@ -148,8 +152,10 @@ export default function ManualOrderModal({
       <div className="bg-white rounded-2xl shadow-warm w-full max-w-2xl max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-stone-100">
           <div>
-            <h2 className="text-lg font-display font-semibold text-espresso">Create Manual Order</h2>
-            <p className="text-xs text-stone-500 mt-0.5">For a walk-in customer paying in-store</p>
+            <h2 className="text-lg font-display font-semibold text-espresso">{isSalesOrder ? 'Create Sales Order' : 'Create Manual Order'}</h2>
+            <p className="text-xs text-stone-500 mt-0.5">
+              {isSalesOrder ? 'Reserves the items for a customer — payment is confirmed later' : 'For a walk-in customer paying in-store'}
+            </p>
           </div>
           <button onClick={onClose} className="p-1.5 hover:bg-stone-100 rounded-xl text-stone-400 hover:text-stone-600 transition-colors">
             <X className="h-4 w-4" />
@@ -158,6 +164,30 @@ export default function ManualOrderModal({
 
         <div className="p-6 space-y-5 overflow-y-auto flex-1">
           {error && <div className="p-3 bg-red-50 text-red-700 rounded-xl text-sm">{error}</div>}
+
+          {/* Order type */}
+          <div>
+            <label className="label mb-2">Order Type</label>
+            <div className="flex gap-1 bg-stone-100 rounded-xl p-1 w-fit">
+              {([['WALK_IN', 'Walk-in (paid)'], ['SALES_ORDER', 'Sales Order (reserve)']] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setOrderType(value)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    orderType === value ? 'bg-white text-espresso shadow-sm' : 'text-stone-500 hover:text-espresso'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {isSalesOrder && (
+              <p className="text-xs text-stone-500 mt-2">
+                Stock is held for this order right away but it stays unpaid. Confirm payment on the order to finalize it, or cancel to release the items.
+              </p>
+            )}
+          </div>
 
           {/* Customer */}
           <div>
@@ -346,7 +376,7 @@ export default function ManualOrderModal({
 
         <div className="p-6 pt-4 border-t border-stone-100 flex gap-3">
           <button onClick={handleSubmit} disabled={isSubmitting} className="btn-primary flex-1">
-            {isSubmitting ? 'Creating...' : 'Create Order'}
+            {isSubmitting ? 'Creating...' : isSalesOrder ? 'Create Sales Order' : 'Create Order'}
           </button>
           <button onClick={onClose} className="btn-secondary flex-1">
             Cancel

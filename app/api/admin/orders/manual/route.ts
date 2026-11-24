@@ -17,6 +17,8 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
   const { customerId, newCustomer, items } = body;
+  // 'SALES_ORDER' reserves stock for the customer without payment; anything else is a paid walk-in
+  const isSalesOrder = body.orderType === 'SALES_ORDER';
 
   if (!items || items.length === 0) {
     return NextResponse.json({ error: 'No items in order' }, { status: 400 });
@@ -95,15 +97,19 @@ export async function POST(request: NextRequest) {
   }
 
   // Walk-in orders are paid and handed over in person, so they're created
-  // already confirmed — skip the online deposit-reservation workflow.
+  // already confirmed — skip the online deposit-reservation workflow. A sales
+  // order is the unpaid version: it holds the stock (as `reserved`, so it drops
+  // out of what's available) and waits for payment to be confirmed, which then
+  // deducts it for real through the normal confirm flow.
   const newOrderArr = await db.insert(orders).values({
     userId: resolvedUserId,
     deliveryMethod: 'WALK_IN',
-    paymentMethodName: 'Walk-in (In-Store Payment)',
-    depositConfirmed: true,
+    paymentMethodName: isSalesOrder ? 'Sales Order (Awaiting Payment)' : 'Walk-in (In-Store Payment)',
+    depositConfirmed: !isSalesOrder,
     totalAmount,
-    reservationExpiry: new Date(),
-    status: 'CONFIRMED',
+    // Not time-limited: the expire-orders cron only touches PENDING_DEPOSIT
+    reservationExpiry: isSalesOrder ? new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000) : new Date(),
+    status: isSalesOrder ? 'SALES_ORDER' : 'CONFIRMED',
   }).returning();
   const order = newOrderArr[0];
 
@@ -118,14 +124,16 @@ export async function POST(request: NextRequest) {
 
   for (const item of orderItemsData) {
     await db.update(products)
-      .set({ stock: sql`${products.stock} - ${item.quantity}` })
+      .set(isSalesOrder
+        ? { reserved: sql`${products.reserved} + ${item.quantity}` }
+        : { stock: sql`${products.stock} - ${item.quantity}` })
       .where(eq(products.id, item.productId));
   }
 
   await db.insert(orderStatusHistory).values({
     orderId: order.id,
-    status: 'CONFIRMED',
-    note: 'Manual order created for walk-in customer',
+    status: order.status,
+    note: isSalesOrder ? 'Sales order created — items reserved, awaiting payment' : 'Manual order created for walk-in customer',
     actorId: session.user.id,
     actorName: session.user.name ?? session.user.email ?? 'Admin',
     actorRole: session.user.role,
@@ -133,8 +141,10 @@ export async function POST(request: NextRequest) {
 
   await db.insert(notifications).values({
     userId: resolvedUserId,
-    title: 'Order Confirmed',
-    message: `Your in-store order #${order.id.slice(-8).toUpperCase()} has been recorded. Total: ₱${totalAmount.toFixed(2)}`,
+    title: isSalesOrder ? 'Items Reserved' : 'Order Confirmed',
+    message: isSalesOrder
+      ? `A sales order #${order.id.slice(-8).toUpperCase()} has been reserved for you. Total: ₱${totalAmount.toFixed(2)}. It will be confirmed once payment is received.`
+      : `Your in-store order #${order.id.slice(-8).toUpperCase()} has been recorded. Total: ₱${totalAmount.toFixed(2)}`,
     type: 'ORDER',
   });
 
