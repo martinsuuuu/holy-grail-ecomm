@@ -259,7 +259,7 @@ export async function PATCH(
     }
   }
 
-  // Customer emails for the three milestones: paid (payments@), shipped and delivered (shipping@).
+  // Customer emails for the three milestones: paid (payments@), shipped and delivered (logistics@).
   // Only on a real transition, and a mail problem never fails the status change that already saved.
   const nowPaid = updateData.depositConfirmed === true && !order.depositConfirmed;
   const nowShipped = updateData.status === 'SHIPPED' && order.status !== 'SHIPPED';

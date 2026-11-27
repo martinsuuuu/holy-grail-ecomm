@@ -307,7 +307,7 @@ function orderItemsTable(items: OrderEmailBase['items'], total: number): string 
 
 const orderLink = (orderId: string) => `${appUrl()}/account/orders/${orderId}#order-status`;
 
-// Sent from payments@ once staff confirm the payment (or a walk-in order is paid in-store)
+// Sent from the payments mailbox once staff confirm the payment (or a walk-in order is paid in-store)
 export async function sendOrderPaidEmail({ sourcing, ...o }: OrderEmailBase & { sourcing: boolean }): Promise<void> {
   await send(
     o.to,
@@ -331,7 +331,7 @@ export async function sendOrderPaidEmail({ sourcing, ...o }: OrderEmailBase & { 
   );
 }
 
-// Sent from shipping@ when the order goes out
+// Sent from the shipping mailbox (logistics@) when the order goes out
 export async function sendOrderShippedEmail(o: OrderEmailBase): Promise<void> {
   await send(
     o.to,
@@ -347,7 +347,7 @@ export async function sendOrderShippedEmail(o: OrderEmailBase): Promise<void> {
   );
 }
 
-// Sent from shipping@ when the order is marked delivered
+// Sent from the shipping mailbox (logistics@) when the order is marked delivered
 export async function sendOrderDeliveredEmail(o: OrderEmailBase): Promise<void> {
   await send(
     o.to,
